@@ -1,0 +1,496 @@
+# YepAI Shopify Store Creation + Installation Flow
+# Creates a new Shopify dev store and installs YepAI app via OAuth
+
+name: shopify-store-creation
+description: Create Shopify dev store and install YepAI app
+
+# Environment variables needed:
+# SHOPIFY_PARTNER_EMAIL - Shopify partner account email
+# SHOPIFY_PARTNER_PASSWORD - Shopify partner account password  
+# SHOPIFY_ORG_ID - Organization ID (default: 155064156)
+# YEPAI_CLIENT_ID - YepAI OAuth client ID (default: 6f59e94645ee98a1ba5a77d17fc24d77)
+
+steps:
+  # ========================================
+  # PHASE 1: Navigate to Shopify Store Creation
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: Navigate to Shopify Store Creation"
+
+  - id: navigate-store-create
+    action: browser.navigate
+    params:
+      url: "https://admin.shopify.com/store-create/organization/{{SHOPIFY_ORG_ID}}"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: wait
+    params:
+      ms: 3000
+
+  # Check for Cloudflare CAPTCHA
+  - id: check-captcha
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const hasCaptcha = document.body.innerHTML.includes('cloudflare') ||
+                            document.body.innerHTML.includes('CAPTCHA') ||
+                            document.body.innerHTML.includes('确认您是真人') ||
+                            document.querySelector('iframe[src*="challenge"]');
+          if (hasCaptcha) {
+            console.log('CAPTCHA detected - please complete manually');
+            return 'captcha_detected';
+          }
+          return 'no_captcha';
+        })()
+    output: captchaCheck
+
+  # Wait for user to complete CAPTCHA manually (if present)
+  - id: log-captcha-warning
+    action: log
+    params:
+      message: "⚠️ If CAPTCHA appears, please complete it manually within 60 seconds..."
+
+  - id: wait-for-manual-captcha
+    action: wait
+    params:
+      ms: 60000
+
+  # ========================================
+  # PHASE 1a: Shopify Login (if needed)
+  # ========================================
+
+  - id: log-check-login
+    action: log
+    params:
+      message: "Checking if Shopify login is required..."
+
+  - id: check-and-fill-email
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const emailInput = document.querySelector('#account_email, input[type="email"], input[name="email"], input[autocomplete="email"]');
+          if (emailInput && emailInput.offsetParent !== null) {
+            console.log('Found email input, filling...');
+            return 'login_required';
+          }
+          return 'no_login';
+        })()
+    output: loginCheck
+    continueOnError: true
+
+  - id: fill-shopify-email
+    action: form.fillSingle
+    params:
+      selector: "#account_email, input[type='email']"
+      value: "{{SHOPIFY_PARTNER_EMAIL}}"
+    continueOnError: true
+
+  - id: click-email-continue
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const btn = document.querySelector('button[type="submit"], button[name="commit"]');
+          if (btn && !btn.disabled) {
+            btn.click();
+            console.log('Clicked continue after email');
+            return true;
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  - id: wait-for-password
+    action: wait
+    params:
+      ms: 3000
+
+  - id: fill-shopify-password
+    action: form.fillSingle
+    params:
+      selector: "#account_password, input[type='password']"
+      value: "{{SHOPIFY_PARTNER_PASSWORD}}"
+    continueOnError: true
+
+  - id: click-login
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const btn = document.querySelector('button[type="submit"], button[name="commit"]');
+          if (btn && !btn.disabled) {
+            btn.click();
+            console.log('Clicked login button');
+            return true;
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  - id: wait-after-login
+    action: wait
+    params:
+      ms: 5000
+
+  # ========================================
+  # PHASE 2: Create Development Store
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Create Development Store"
+
+  # Navigate again if redirected away
+  - id: navigate-store-create-again
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          if (!window.location.href.includes('store-create')) {
+            window.location.href = 'https://admin.shopify.com/store-create/organization/{{SHOPIFY_ORG_ID}}';
+            return 'navigating';
+          }
+          return 'already_on_page';
+        })()
+    continueOnError: true
+
+  - id: wait-store-page
+    action: wait
+    params:
+      ms: 3000
+
+  # Wait for store creation form
+  - id: wait-store-form
+    action: browser.waitForSelector
+    params:
+      selector: "input"
+      timeout: 30000
+
+  # Generate and store unique name
+  - id: generate-store-name
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const suffix = Math.floor(1000 + Math.random() * 9000);
+          const storeName = 'yepai-test-' + suffix;
+          window.__shopifyStoreName = storeName;
+          console.log('Generated store name:', storeName);
+          return storeName;
+        })()
+    output: generatedStoreName
+
+  # Fill store name - find the first text input
+  - id: fill-store-name
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const storeName = window.__shopifyStoreName;
+          // Find text inputs (exclude hidden, email, password)
+          const inputs = document.querySelectorAll('input[type="text"], input:not([type])');
+          for (const input of inputs) {
+            if (input.offsetParent !== null && !input.disabled && !input.readOnly) {
+              input.value = storeName;
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+              console.log('Filled store name input:', storeName);
+              return { filled: true, storeName: storeName };
+            }
+          }
+          return { filled: false };
+        })()
+
+  - id: wait-after-name
+    action: wait
+    params:
+      ms: 1000
+
+  # Select store purpose/type if available
+  - id: select-store-type
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          // Look for radio buttons or selectable options for store type
+          const options = document.querySelectorAll('input[type="radio"], [role="radio"], [role="option"], label[data-polaris-checkbox-labelclassname]');
+          for (const opt of options) {
+            // Look for "test" or "app" related option
+            const label = opt.closest('label') || opt.parentElement;
+            const text = (label?.textContent || opt.textContent || '').toLowerCase();
+            if (text.includes('app') || text.includes('test') || text.includes('build')) {
+              opt.click();
+              console.log('Selected store type:', text.substring(0, 50));
+              return true;
+            }
+          }
+          // Just click first option if no specific match
+          if (options.length > 0) {
+            options[0].click();
+            console.log('Selected first store type option');
+            return true;
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  - id: wait-after-type
+    action: wait
+    params:
+      ms: 500
+
+  # Click Create Store button
+  - id: click-create-store
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const buttons = document.querySelectorAll('button, [role="button"]');
+          for (const btn of buttons) {
+            const text = (btn.textContent || '').toLowerCase();
+            if (text.includes('create') || text.includes('save')) {
+              if (!btn.disabled && btn.offsetParent !== null) {
+                btn.click();
+                console.log('Clicked create button:', text);
+                return true;
+              }
+            }
+          }
+          return false;
+        })()
+
+  - id: log-waiting-creation
+    action: log
+    params:
+      message: "Waiting for store creation (this may take 30-60 seconds)..."
+
+  # Wait for store creation - long wait
+  - id: wait-store-creation
+    action: wait
+    params:
+      ms: 45000
+
+  # Check if store was created successfully
+  - id: check-store-created
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const url = window.location.href;
+          const storeName = window.__shopifyStoreName;
+          console.log('Current URL:', url);
+          console.log('Looking for store:', storeName);
+          
+          // Check URL for store admin
+          if (url.includes('.myshopify.com') || url.includes('/store/')) {
+            return { success: true, url: url, storeName: storeName };
+          }
+          
+          // Check for error messages
+          const error = document.querySelector('[class*="error"], [class*="Error"], [role="alert"]');
+          if (error) {
+            return { success: false, error: error.textContent };
+          }
+          
+          return { success: 'unknown', url: url, storeName: storeName };
+        })()
+    output: storeCreationResult
+
+  # ========================================
+  # PHASE 3: Navigate to OAuth URL
+  # ========================================
+
+  - id: log-phase3
+    action: log
+    params:
+      message: "Phase 3: Navigate to OAuth Installation"
+
+  - id: navigate-oauth
+    action: browser.navigate
+    params:
+      url: "https://admin.shopify.com/?organization_id={{SHOPIFY_ORG_ID}}&no_redirect=true&redirect=/oauth/redirect_from_developer_dashboard?client_id%3D{{YEPAI_CLIENT_ID}}"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-oauth-page
+    action: wait
+    params:
+      ms: 5000
+
+  # ========================================
+  # PHASE 4: Select Store for Installation
+  # ========================================
+
+  - id: log-phase4
+    action: log
+    params:
+      message: "Phase 4: Select Store for App Installation"
+
+  # Select the newly created store
+  - id: select-store
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const storeName = window.__shopifyStoreName || 'yepai-test';
+          console.log('Looking for store:', storeName);
+
+          // Look for store list items
+          const items = document.querySelectorAll('a, button, [role="option"], [role="button"], li, div[data-polaris-unstyled]');
+          for (const item of items) {
+            const text = item.textContent || '';
+            // Match our generated store name pattern
+            if (text.includes(storeName) || text.match(/yepai-test-\d{4}/)) {
+              console.log('Found store:', text.substring(0, 50));
+              item.click();
+              return { found: true, store: text.substring(0, 50) };
+            }
+          }
+
+          // Try clicking any store that looks like a dev store
+          for (const item of items) {
+            const text = item.textContent || '';
+            if (text.includes('yepai') || text.includes('test') || text.includes('dev')) {
+              console.log('Found dev store:', text.substring(0, 50));
+              item.click();
+              return { found: true, store: text.substring(0, 50) };
+            }
+          }
+
+          return { found: false, availableItems: items.length };
+        })()
+    output: selectedStore
+
+  - id: wait-after-select
+    action: wait
+    params:
+      ms: 3000
+
+  # Click Install/Continue if button appears
+  - id: click-install-continue
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const buttons = document.querySelectorAll('button, [role="button"], a');
+          for (const btn of buttons) {
+            const text = (btn.textContent || '').toLowerCase();
+            if ((text.includes('install') || text.includes('continue') || text.includes('select') || text.includes('add')) 
+                && !text.includes('uninstall')) {
+              if (btn.offsetParent !== null && !btn.disabled) {
+                btn.click();
+                console.log('Clicked:', text);
+                return true;
+              }
+            }
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  - id: wait-redirect-to-yepai
+    action: wait
+    params:
+      ms: 5000
+
+  # ========================================
+  # PHASE 5: Handle YepAI Redirect
+  # ========================================
+
+  - id: log-phase5
+    action: log
+    params:
+      message: "Phase 5: Handle YepAI OAuth Callback"
+
+  - id: check-redirect-destination
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const url = window.location.href;
+          console.log('Current URL:', url);
+          return {
+            url: url,
+            isYepAI: url.includes('yepai') || url.includes('localhost'),
+            isShopifyAdmin: url.includes('admin.shopify.com'),
+            isOAuth: url.includes('oauth') || url.includes('callback')
+          };
+        })()
+    output: currentLocation
+
+  # If on YepAI registration, select Shopify platform
+  - id: click-shopify-platform
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          // Look for Shopify option on platform selection
+          const elements = document.querySelectorAll('div, button, [role="button"]');
+          for (const el of elements) {
+            const text = el.textContent || '';
+            if (text.includes('Shopify') && !text.includes('Other')) {
+              // Find clickable parent or element itself
+              const clickable = el.closest('[class*="cursor-pointer"]') || el.closest('button') || el;
+              clickable.click();
+              console.log('Selected Shopify platform');
+              return true;
+            }
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  - id: wait-after-platform
+    action: wait
+    params:
+      ms: 1000
+
+  - id: click-continue
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          const buttons = document.querySelectorAll('button');
+          for (const btn of buttons) {
+            if (btn.textContent.includes('Continue') && btn.offsetParent !== null && !btn.disabled) {
+              btn.click();
+              console.log('Clicked Continue');
+              return true;
+            }
+          }
+          return false;
+        })()
+    continueOnError: true
+
+  # ========================================
+  # FINAL: Log Results
+  # ========================================
+
+  - id: wait-final
+    action: wait
+    params:
+      ms: 3000
+
+  - id: capture-final-state
+    action: browser.execute
+    params:
+      script: |
+        (function() {
+          return {
+            finalUrl: window.location.href,
+            title: document.title,
+            storeName: window.__shopifyStoreName
+          };
+        })()
+    output: finalState
+
+  - id: log-complete
+    action: log
+    params:
+      message: "Shopify store creation and OAuth flow completed!"

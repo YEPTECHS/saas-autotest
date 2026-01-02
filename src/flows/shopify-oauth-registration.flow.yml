@@ -1,0 +1,569 @@
+# YepAI Shopify OAuth Registration Flow
+# 从 Shopify OAuth URL 开始的注册流程
+# 与普通注册不同: 验证码后直接进入 questionnaire，支付后需要完成 product training
+
+name: shopify-oauth-registration
+description: Complete YepAI registration via Shopify OAuth URL with product training
+
+# 需要传入 OAUTH_URL 变量
+# 例: pnpm flow shopify-oauth-registration --var OAUTH_URL="https://bot-test.yepai.io/auth/external-register?code=xxx..."
+#
+# URL 会自动替换为 YEPAI_BASE_URL 的域名
+
+steps:
+  # ========================================
+  # PHASE 1: OAuth URL 导航
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: Navigate to OAuth URL"
+
+  # 先导航到 base URL 以获取浏览器上下文
+  - id: navigate-base
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-base-load
+    action: wait
+    params:
+      ms: 1000
+
+  # 使用 JavaScript 构建并导航到 OAuth URL
+  - id: navigate-oauth
+    action: browser.execute
+    params:
+      script: |
+        // 从 OAuth URL 提取查询参数，替换为 YEPAI_BASE_URL
+        // 使用 decodeURIComponent 处理可能的编码问题
+        const oauthUrlRaw = `{{OAUTH_URL}}`;
+        const baseUrl = `{{YEPAI_BASE_URL}}`;
+
+        console.log('Raw OAuth URL:', oauthUrlRaw);
+        console.log('Base URL:', baseUrl);
+
+        try {
+          // 提取查询参数部分 (从 ? 开始)
+          const queryIndex = oauthUrlRaw.indexOf('?');
+          if (queryIndex === -1) {
+            throw new Error('No query string in OAuth URL');
+          }
+
+          const queryString = oauthUrlRaw.substring(queryIndex); // ?code=xxx&hmac=xxx...
+
+          // 构建新 URL
+          const finalUrl = baseUrl + '/auth/external-register' + queryString;
+          console.log('Final OAuth URL:', finalUrl);
+
+          // 导航到 OAuth URL
+          window.location.href = finalUrl;
+          return finalUrl;
+        } catch (e) {
+          console.error('Error processing OAuth URL:', e);
+          // 如果解析失败，直接使用原始 URL
+          window.location.href = oauthUrlRaw;
+          return oauthUrlRaw;
+        }
+
+  - id: wait-navigation
+    action: browser.waitForUrl
+    params:
+      pattern: "external-register|register"
+      timeout: 30000
+
+  - id: wait-page-load
+    action: wait
+    params:
+      ms: 2000
+
+  - id: log-current-url
+    action: browser.execute
+    params:
+      script: |
+        console.log('Current URL:', window.location.href);
+        return window.location.href;
+
+  # ========================================
+  # PHASE 2: 填写注册表单
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Fill Registration Form"
+
+  # 等待表单加载
+  - id: wait-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Enter your first name'], input#firstName"
+      timeout: 15000
+
+  # 填写表单字段 (注意: 外部注册没有 org 字段)
+  - id: fill-firstName
+    action: form.fillSingle
+    params:
+      selector: "#firstName"
+      value: "{{YEPAI_TEST_FIRST_NAME}}"
+
+  - id: fill-lastName
+    action: form.fillSingle
+    params:
+      selector: "#lastName"
+      value: "{{YEPAI_TEST_LAST_NAME}}"
+
+  # External registration 没有 org 字段，跳过
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "#email"
+      value: "{{YEPAI_TEST_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "#password"
+      value: "{{YEPAI_TEST_PASSWORD}}"
+
+  - id: fill-confirm-password
+    action: form.fillSingle
+    params:
+      selector: "#confirmPassword"
+      value: "{{YEPAI_TEST_PASSWORD}}"
+
+  # 等待按钮启用
+  - id: wait-button-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  # 提交表单
+  - id: submit-registration
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+    waitFor: navigation
+
+  # ========================================
+  # PHASE 3: 邮箱验证
+  # ========================================
+
+  - id: log-phase3
+    action: log
+    params:
+      message: "Phase 3: Email Verification"
+
+  # 等待验证码页面
+  - id: wait-verification-page
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='tel']"
+      timeout: 15000
+
+  # 从 Gmail 获取验证码
+  - id: get-verification-code
+    action: gmail.getVerificationCode
+    params:
+      to: "{{YEPAI_TEST_EMAIL}}"
+      subject: "verification code"
+      codePattern: "\\d{6}"
+      timeout: 60000
+    output: verificationResult
+
+  # 填写验证码
+  - id: fill-verification-code
+    action: form.fillVerificationCode
+    params:
+      selector: "input[type='tel']"
+      code: "{{verificationResult.code}}"
+
+  # ========================================
+  # PHASE 4: Questionnaire (跳过平台选择)
+  # ========================================
+
+  - id: log-phase4
+    action: log
+    params:
+      message: "Phase 4: Questionnaire (Shopify flow skips platform selection)"
+
+  # 等待 questionnaire 页面 (Shopify OAuth 直接跳转到这里)
+  - id: wait-questionnaire
+    action: browser.waitForUrl
+    params:
+      pattern: "questionnaire"
+      timeout: 30000
+
+  - id: wait-questionnaire-load
+    action: wait
+    params:
+      ms: 2000
+
+  # Step 1: 填写 website URL (可能已预填)
+  - id: wait-questionnaire-step1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='example.com']"
+      timeout: 10000
+
+  - id: fill-website-url
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='example.com']"
+      value: "https://test-store.myshopify.com"
+
+  - id: click-questionnaire-continue
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll("button")).find(b =>
+          b.textContent.includes('Continue') && b.offsetParent !== null && !b.disabled
+        );
+        if (btn) btn.click();
+
+  - id: wait-step2
+    action: wait
+    params:
+      ms: 1000
+
+  # Step 2: Business Category
+  - id: click-business-category
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll("button[type='button']");
+        for (const btn of buttons) {
+          if (btn.offsetParent !== null && btn.querySelector('svg, [class*="icon"]')) {
+            btn.click();
+            break;
+          }
+        }
+
+  - id: wait-step3
+    action: wait
+    params:
+      ms: 1000
+
+  # Step 3: Annual Revenue
+  - id: click-annual-revenue
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll("button[type='button']");
+        for (const btn of buttons) {
+          if (btn.offsetParent !== null && btn.querySelector('svg, [class*="icon"]')) {
+            btn.click();
+            break;
+          }
+        }
+
+  - id: wait-step4
+    action: wait
+    params:
+      ms: 1000
+
+  # Step 4: Team Size
+  - id: click-team-size
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll("button[type='button']");
+        for (const btn of buttons) {
+          if (btn.offsetParent !== null && btn.querySelector('svg, [class*="icon"]')) {
+            btn.click();
+            break;
+          }
+        }
+
+  - id: wait-step5
+    action: wait
+    params:
+      ms: 1000
+
+  # Step 5: Referral Source
+  - id: click-referral-dropdown
+    action: browser.execute
+    params:
+      script: |
+        const trigger = document.querySelector("[data-slot='trigger'], button[aria-haspopup='listbox']");
+        if (trigger) trigger.click();
+
+  - id: wait-dropdown-open
+    action: wait
+    params:
+      ms: 500
+
+  - id: select-referral-option
+    action: browser.execute
+    params:
+      script: |
+        const option = document.querySelector("[data-slot='listbox'] li, [role='option']");
+        if (option) option.click();
+
+  - id: wait-after-select
+    action: wait
+    params:
+      ms: 500
+
+  # 点击 "Let's get started"
+  - id: click-lets-get-started
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll("button[type='submit']")).find(b =>
+          b.offsetParent !== null && !b.disabled
+        );
+        if (btn) btn.click();
+
+  # ========================================
+  # PHASE 5: Avatar Configuration
+  # ========================================
+
+  - id: log-phase5
+    action: log
+    params:
+      message: "Phase 5: Avatar Configuration"
+
+  - id: wait-avatar-page
+    action: browser.waitForUrl
+    params:
+      pattern: "configuration-avatar"
+      timeout: 60000
+
+  - id: wait-avatar-load
+    action: wait
+    params:
+      ms: 2000
+
+  # 点击 Finish 按钮
+  - id: click-finish-button
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll('button');
+        for (const btn of buttons) {
+          if (btn.textContent.includes('Finish') && btn.offsetParent !== null) {
+            btn.click();
+            return true;
+          }
+        }
+        const submitBtn = document.querySelector('button[type="submit"]:not([disabled])');
+        if (submitBtn && submitBtn.offsetParent !== null) {
+          submitBtn.click();
+          return true;
+        }
+        return false;
+
+  - id: wait-after-finish
+    action: wait
+    params:
+      ms: 3000
+
+  # ========================================
+  # PHASE 6: Plan Selection
+  # ========================================
+
+  - id: log-phase6
+    action: log
+    params:
+      message: "Phase 6: Plan Selection"
+
+  - id: wait-plan-page
+    action: browser.waitForUrl
+    params:
+      pattern: "plan-details"
+      timeout: 30000
+
+  - id: wait-plan-loaded
+    action: wait
+    params:
+      ms: 3000
+
+  # 选择 Free plan (跳过支付流程)
+  - id: select-plan
+    action: browser.execute
+    params:
+      script: |
+        // 查找 "Continue as free" 按钮
+        const buttons = document.querySelectorAll('button');
+        for (const btn of buttons) {
+          const text = btn.textContent || '';
+          if (text.includes('Continue as free') && btn.offsetParent !== null && !btn.disabled) {
+            btn.click();
+            console.log('Clicked Free plan button:', text);
+            return true;
+          }
+        }
+        console.log('Free plan button not found');
+        return false;
+
+  - id: wait-after-plan-select
+    action: wait
+    params:
+      ms: 3000
+
+  # ========================================
+  # PHASE 7: Product Training (Welcome Onboard)
+  # 选择 Free plan 后直接跳转到 welcome-onboard
+  # ========================================
+
+  - id: log-phase7
+    action: log
+    params:
+      message: "Phase 7: Product Training (Welcome Onboard) - Free Plan"
+
+  # 等待 welcome-onboard 页面
+  - id: wait-welcome-page
+    action: browser.waitForUrl
+    params:
+      pattern: "welcome-onboard"
+      timeout: 30000
+
+  - id: wait-welcome-load
+    action: wait
+    params:
+      ms: 3000
+
+  # 点击 "Start exploring" 按钮
+  - id: click-start-exploring
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll('button');
+        for (const btn of buttons) {
+          if (btn.textContent.includes('Start exploring') && btn.offsetParent !== null) {
+            btn.click();
+            console.log('Clicked Start exploring button');
+            return true;
+          }
+        }
+        return false;
+
+  - id: wait-training-page-load
+    action: wait
+    params:
+      ms: 5000
+
+  # 等待产品训练页面加载 - 使用通用按钮选择器
+  - id: wait-product-training
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='button'], input[type='checkbox']"
+      timeout: 30000
+
+  - id: wait-products-load
+    action: wait
+    params:
+      ms: 3000
+
+  # 点击 "Select All" checkbox
+  - id: click-select-all
+    action: browser.execute
+    params:
+      script: |
+        // 找到 Select All checkbox 并点击
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (const cb of checkboxes) {
+          const label = cb.closest('label') || cb.parentElement;
+          if (label && label.textContent.includes('Select All')) {
+            if (!cb.checked) {
+              cb.click();
+              console.log('Clicked Select All checkbox');
+            }
+            return true;
+          }
+        }
+        // 备选: 直接点击包含 "Select All" 文字的元素
+        const selectAllLabel = Array.from(document.querySelectorAll('span, label')).find(
+          el => el.textContent.trim() === 'Select All'
+        );
+        if (selectAllLabel) {
+          selectAllLabel.click();
+          return true;
+        }
+        return false;
+
+  - id: wait-after-select-all
+    action: wait
+    params:
+      ms: 1000
+
+  # 点击 "Let AI learn my products" 按钮
+  - id: click-train-button
+    action: browser.execute
+    params:
+      script: |
+        const buttons = document.querySelectorAll('button');
+        for (const btn of buttons) {
+          const text = btn.textContent || '';
+          if ((text.includes('Let AI learn') || text.includes('Sync now')) &&
+              btn.offsetParent !== null && !btn.disabled) {
+            btn.click();
+            console.log('Clicked training button:', text);
+            return true;
+          }
+        }
+        return false;
+
+  # 等待训练动画
+  - id: wait-training-animation
+    action: wait
+    params:
+      ms: 5000
+
+  # 等待训练完成或跳转到 dashboard
+  - id: wait-training-complete
+    action: browser.execute
+    params:
+      script: |
+        // 等待最多 5 分钟让训练完成
+        return new Promise((resolve) => {
+          let attempts = 0;
+          const maxAttempts = 60; // 5 minutes with 5 second intervals
+
+          const check = () => {
+            attempts++;
+            const url = window.location.href;
+
+            // 检查是否已到达 dashboard 或训练完成
+            if (url.includes('dashboard') || url.includes('home')) {
+              resolve({ success: true, url: url, message: 'Redirected to dashboard' });
+              return;
+            }
+
+            // 检查是否有完成提示
+            const completeText = document.body.innerText;
+            if (completeText.includes('Analysis Complete') || completeText.includes('Complete')) {
+              resolve({ success: true, message: 'Training complete' });
+              return;
+            }
+
+            if (attempts >= maxAttempts) {
+              resolve({ success: false, message: 'Timeout waiting for training' });
+              return;
+            }
+
+            setTimeout(check, 5000);
+          };
+
+          check();
+        });
+    timeout: 360000
+
+  # ========================================
+  # FINAL: 验证成功
+  # ========================================
+
+  - id: log-complete
+    action: log
+    params:
+      message: "Shopify OAuth Registration completed successfully!"
+
+  - id: final-screenshot
+    action: browser.screenshot
+    params:
+      path: "shopify-oauth-registration-complete.png"

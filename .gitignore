@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+playwright-report/
+test-results/
+screenshots/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Credentials (NEVER commit these)
+credentials.json
+token.json
+*.pem
+*.key

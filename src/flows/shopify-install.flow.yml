@@ -1,0 +1,182 @@
+# YepAI Shopify App Installation Flow
+# Automates complete OAuth app installation on Shopify store
+
+name: shopify-app-installation
+description: Install YepAI app on Shopify store via OAuth flow
+
+prerequisites:
+  - user-logged-in
+
+variables:
+  baseUrl: "{{YEPAI_BASE_URL}}"
+  shopifyStore: "{{SHOPIFY_STORE_URL}}"
+  shopifyEmail: "{{SHOPIFY_EMAIL}}"
+  shopifyPassword: "{{SHOPIFY_PASSWORD}}"
+  selectedPlan: "{{SHOPIFY_SELECTED_PLAN}}"
+
+steps:
+  # Navigate to integration page
+  - id: navigate-integration
+    action: browser.navigate
+    params:
+      url: "{{baseUrl}}/installation"
+
+  - id: wait-integration-page
+    action: browser.waitForSelector
+    params:
+      selector: "[data-tab='shopify'], button:has-text('Shopify')"
+      timeout: 10000
+
+  # Click Shopify tab
+  - id: click-shopify-tab
+    action: browser.click
+    params:
+      selector: "[data-tab='shopify'], button:has-text('Shopify')"
+
+  - id: wait-shopify-content
+    action: wait
+    params:
+      ms: 1000
+
+  # Click Install on Shopify button
+  - id: click-install-button
+    action: browser.click
+    params:
+      selector: "button:has-text('Install'), button:has-text('Connect'), a:has-text('Install')"
+
+  - id: log-oauth-started
+    action: log
+    params:
+      message: "Shopify OAuth flow initiated..."
+
+  # Wait for Shopify login page (popup or redirect)
+  - id: wait-shopify-domain
+    action: browser.waitForUrl
+    params:
+      pattern: "shopify\\.com|myshopify\\.com"
+      timeout: 30000
+
+  # Handle Shopify Store URL input if on app store
+  - id: enter-store-url
+    action: form.fill
+    params:
+      fields:
+        shop: "{{shopifyStore}}"
+        store: "{{shopifyStore}}"
+    continueOnError: true
+
+  - id: submit-store-url
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Install'), button:has-text('Log in')"
+    continueOnError: true
+
+  # Wait for Shopify login form
+  - id: wait-shopify-login
+    action: browser.waitForSelector
+    params:
+      selector: "input[name='account[email]'], input[type='email'], #account_email"
+      timeout: 15000
+    continueOnError: true
+
+  # Fill Shopify login credentials
+  - id: fill-shopify-email
+    action: browser.type
+    params:
+      selector: "input[name='account[email]'], input[type='email'], #account_email"
+      text: "{{shopifyEmail}}"
+    continueOnError: true
+
+  - id: click-continue
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Continue'), button:has-text('Next')"
+    continueOnError: true
+
+  - id: wait-password-field
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='password'], input[name='account[password]']"
+      timeout: 10000
+    continueOnError: true
+
+  - id: fill-shopify-password
+    action: browser.type
+    params:
+      selector: "input[type='password'], input[name='account[password]']"
+      text: "{{shopifyPassword}}"
+    continueOnError: true
+
+  - id: submit-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Log in')"
+    continueOnError: true
+
+  - id: log-login-submitted
+    action: log
+    params:
+      message: "Shopify login submitted, waiting for authorization page..."
+
+  # Wait for OAuth authorization page
+  - id: wait-oauth-page
+    action: browser.waitForSelector
+    params:
+      selector: "button:has-text('Install'), button:has-text('Approve'), [data-testid='app-permissions']"
+      timeout: 30000
+    continueOnError: true
+
+  # Click authorize/install button
+  - id: authorize-app
+    action: browser.click
+    params:
+      selector: "button:has-text('Install app'), button:has-text('Install'), button:has-text('Approve')"
+
+  - id: log-authorized
+    action: log
+    params:
+      message: "App authorization granted, waiting for callback..."
+
+  # Wait for callback redirect back to YepAI
+  - id: wait-callback
+    action: browser.waitForUrl
+    params:
+      pattern: "yepai|callback|installation"
+      timeout: 45000
+
+  # Handle plan selection if needed
+  - id: wait-plan-selection
+    action: browser.waitForSelector
+    params:
+      selector: "[data-plan], .plan-card, button:has-text('Select')"
+      timeout: 10000
+    continueOnError: true
+
+  - id: select-plan
+    action: browser.click
+    params:
+      selector: "[data-plan='{{selectedPlan}}'], button:has-text('{{selectedPlan}}'), button:has-text('Select')"
+    continueOnError: true
+
+  # Verify installation success
+  - id: wait-success-indicator
+    action: browser.waitForSelector
+    params:
+      selector: "[data-status='connected'], .success-message, :has-text('Connected'), :has-text('Installed')"
+      timeout: 30000
+
+  - id: assert-installation-success
+    action: assert.element
+    params:
+      selector: "[data-status='connected'], .success-message, :has-text('Connected')"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Shopify app installation completed successfully!"
+
+  # Take final screenshot
+  - id: final-screenshot
+    action: browser.screenshot
+    params:
+      path: "screenshots/shopify_installation_success.png"
