@@ -540,7 +540,7 @@ function generateHTML(): string {
   <div class="container">
     <header>
       <h1>YepAI E2E Automation</h1>
-      <p class="subtitle">Shopify 商店创建 · 用户注册 · 完整 Onboarding 流程</p>
+      <p class="subtitle">Shopify 商店创建 · OAuth 注册流程</p>
     </header>
 
     <div class="tabs">
@@ -554,66 +554,39 @@ function generateHTML(): string {
     <div id="tab-actions" class="tab-content active">
       <h2 class="section-title">🎯 快速操作</h2>
       <div class="grid-3">
-        <div class="card">
+        <div class="card" style="border-color: rgba(34, 197, 94, 0.3);">
           <h3>🏪 创建 Shopify 商店</h3>
           <p>使用 CDP 模式快速创建 Shopify 开发商店，自动完成 OAuth 授权并获取回调 URL。</p>
           <div class="card-meta">预计耗时: ~40秒</div>
           <button class="btn btn-primary" onclick="createStore()" id="createStoreBtn">创建商店</button>
         </div>
 
-        <div class="card">
-          <h3>📝 用户注册流程</h3>
-          <p>完整的 YepAI 注册流程，包括表单填写、邮箱验证、平台选择、问卷调查等。</p>
-          <div class="card-meta">预计耗时: ~2分钟</div>
-          <button class="btn btn-blue" onclick="runFlow('registration')" id="registrationBtn">运行注册</button>
+        <div class="card" style="border-color: rgba(168, 85, 247, 0.3);">
+          <h3>🛍️ Shopify OAuth 注册</h3>
+          <p>使用已有的 OAuth URL 完成注册（选择 Free Plan，包含 Product Training）。自动使用未使用的商店 URL。</p>
+          <div class="card-meta">预计耗时: ~3分钟</div>
+          <button class="btn btn-purple" onclick="runShopifyOAuthFlow()" id="shopifyOAuthBtn">Shopify 注册</button>
         </div>
 
         <div class="card">
-          <h3>🔗 完整 Onboarding</h3>
-          <p>从 Shopify 商店创建到 YepAI 完整注册的一站式流程。</p>
-          <div class="card-meta">预计耗时: ~3分钟</div>
-          <button class="btn btn-purple" onclick="runFlow('full-onboarding')" id="fullOnboardingBtn">完整流程</button>
+          <h3>⚙️ 自定义 OAuth URL</h3>
+          <p>使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
+          <div class="card-meta">手动输入 URL</div>
+          <button class="btn btn-blue" onclick="runCustomOAuthFlow()">自定义 URL</button>
         </div>
       </div>
 
       <div class="grid-3">
-        <div class="card" style="border-color: rgba(168, 85, 247, 0.3);">
-          <h3>🛍️ Shopify OAuth 注册</h3>
-          <p>使用已有的 OAuth URL 完成注册（包含 Product Training）。自动使用未使用的商店 URL。</p>
-          <div class="card-meta">预计耗时: ~3分钟</div>
-          <button class="btn btn-purple" onclick="runShopifyOAuthFlow()" id="shopifyOAuthBtn">Shopify 注册</button>
+        <div class="card">
+          <h3>📋 获取未使用 URL</h3>
+          <p>获取一个未被标记为已使用的 OAuth 回调 URL，并复制到剪贴板。</p>
+          <button class="btn btn-secondary" onclick="getUnusedUrl()">获取 URL</button>
         </div>
 
         <div class="card">
           <h3>🔄 刷新数据</h3>
           <p>重新加载商店列表和用户数据。</p>
           <button class="btn btn-secondary" onclick="refreshAll()">刷新</button>
-        </div>
-
-        <div class="card">
-          <h3>📋 获取未使用 URL</h3>
-          <p>获取一个未被标记为已使用的 OAuth 回调 URL。</p>
-          <button class="btn btn-secondary" onclick="getUnusedUrl()">获取 URL</button>
-        </div>
-      </div>
-
-      <div class="grid-3">
-        <div class="card">
-          <h3>🛒 Shopify 安装流程</h3>
-          <p>仅执行 Shopify App 安装授权流程（需要已有商店）。</p>
-          <button class="btn btn-secondary" onclick="runFlow('shopify-install')">安装 App</button>
-        </div>
-
-        <div class="card">
-          <h3>📝 普通注册流程</h3>
-          <p>不经过 Shopify 的普通用户注册流程。</p>
-          <button class="btn btn-secondary" onclick="runFlow('registration')">普通注册</button>
-        </div>
-
-        <div class="card">
-          <h3>⚙️ 自定义 OAuth URL</h3>
-          <p>使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
-          <button class="btn btn-secondary" onclick="runCustomOAuthFlow()">自定义 URL</button>
         </div>
       </div>
     </div>
@@ -893,10 +866,8 @@ function generateHTML(): string {
 
     function getFlowIcon(id) {
       const icons = {
-        'registration': '📝',
-        'shopify-install': '🛒',
         'shopify-store-create': '🏪',
-        'full-onboarding': '🔗',
+        'shopify-oauth-registration': '🛍️',
       };
       return icons[id] || '📋';
     }
