@@ -65,6 +65,7 @@ pnpm flow shopify-oauth-registration --var OAUTH_URL="https://..."
 
 | 流程 | 描述 | 用法 |
 |------|------|------|
+| `registration` | 完整用户注册流程（表单、邮箱验证、问卷等） | `pnpm flow registration` |
 | `shopify-store-create` | 创建 Shopify 开发店铺并获取 OAuth URL | `pnpm shopify:create` |
 | `shopify-oauth-registration` | 通过 Shopify OAuth URL 完成 YepAI 注册 | `pnpm flow shopify-oauth-registration --var OAUTH_URL="..."` |
 

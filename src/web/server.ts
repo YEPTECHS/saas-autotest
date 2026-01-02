@@ -540,7 +540,7 @@ function generateHTML(): string {
   <div class="container">
     <header>
       <h1>YepAI E2E Automation</h1>
-      <p class="subtitle">Shopify 商店创建 · OAuth 注册流程</p>
+      <p class="subtitle">Shopify 商店创建 · 用户注册 · OAuth 注册流程</p>
     </header>
 
     <div class="tabs">
@@ -568,15 +568,21 @@ function generateHTML(): string {
           <button class="btn btn-purple" onclick="runShopifyOAuthFlow()" id="shopifyOAuthBtn">Shopify 注册</button>
         </div>
 
-        <div class="card">
-          <h3>⚙️ 自定义 OAuth URL</h3>
-          <p>使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
-          <div class="card-meta">手动输入 URL</div>
-          <button class="btn btn-blue" onclick="runCustomOAuthFlow()">自定义 URL</button>
+        <div class="card" style="border-color: rgba(59, 130, 246, 0.3);">
+          <h3>📝 用户注册流程</h3>
+          <p>完整的 YepAI 注册流程，包括表单填写、邮箱验证、平台选择、问卷调查等。</p>
+          <div class="card-meta">预计耗时: ~2分钟</div>
+          <button class="btn btn-blue" onclick="runFlow('registration')" id="registrationBtn">运行注册</button>
         </div>
       </div>
 
       <div class="grid-3">
+        <div class="card">
+          <h3>⚙️ 自定义 OAuth URL</h3>
+          <p>使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
+          <button class="btn btn-secondary" onclick="runCustomOAuthFlow()">自定义 URL</button>
+        </div>
+
         <div class="card">
           <h3>📋 获取未使用 URL</h3>
           <p>获取一个未被标记为已使用的 OAuth 回调 URL，并复制到剪贴板。</p>
@@ -866,6 +872,7 @@ function generateHTML(): string {
 
     function getFlowIcon(id) {
       const icons = {
+        'registration': '📝',
         'shopify-store-create': '🏪',
         'shopify-oauth-registration': '🛍️',
       };
