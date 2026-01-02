@@ -229,414 +229,559 @@ function generateHTML(): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YepAI E2E Automation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0A0E14;
+      --bg-secondary: #0F1419;
+      --bg-card: rgba(255, 255, 255, 0.02);
+      --bg-card-hover: rgba(255, 255, 255, 0.04);
+      --border-color: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(59, 130, 246, 0.4);
+      --text-primary: #E4E4E7;
+      --text-secondary: #A1A1AA;
+      --text-muted: #71717A;
+      --accent-blue: #2563EB;
+      --accent-blue-light: #3B82F6;
+      --accent-green: #22C55E;
+      --accent-purple: #A855F7;
+      --accent-orange: #F97316;
+      --accent-red: #EF4444;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
       min-height: 100vh;
-      color: #e4e4e7;
-      padding: 20px;
+      color: var(--text-primary);
+      line-height: 1.5;
     }
 
-    .container { max-width: 1400px; margin: 0 auto; }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
 
+    @media (min-width: 768px) { .container { padding: 32px 24px; } }
+    @media (min-width: 1024px) { .container { padding: 40px 32px; } }
+
+    /* Header */
     header {
       text-align: center;
-      padding: 30px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 30px;
+      padding: 32px 0 40px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 32px;
     }
+
+    .logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px; }
+
+    .logo svg { width: 40px; height: 40px; color: var(--accent-blue); }
 
     h1 {
-      font-size: 2.5rem;
-      background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
     }
 
-    .subtitle { color: #a1a1aa; font-size: 1.1rem; }
+    @media (min-width: 768px) { h1 { font-size: 2rem; } }
 
-    .tabs {
+    .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; }
+
+    /* Navigation Tabs */
+    .nav-tabs {
       display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      margin-bottom: 32px;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      display: flex;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      padding-bottom: 16px;
-    }
-
-    .tab {
-      padding: 12px 24px;
+      padding: 10px 16px;
       border: none;
-      background: rgba(255,255,255,0.05);
-      color: #a1a1aa;
-      border-radius: 10px 10px 0 0;
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.875rem;
       font-weight: 500;
-      transition: all 0.2s;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
-    .tab:hover { background: rgba(255,255,255,0.1); color: #e4e4e7; }
-    .tab.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .nav-tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.05); }
+    .nav-tab.active { background: var(--accent-blue); color: white; }
+    .nav-tab svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
+    /* Section Title */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
     .section-title {
-      font-size: 1.3rem;
-      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 10px;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
-    .grid-3 {
+    .section-title svg { width: 22px; height: 22px; color: var(--accent-blue); }
+
+    /* Grid */
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
+    @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Cards */
     .card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
       padding: 20px;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
 
     .card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(59, 130, 246, 0.3);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
     }
 
-    .card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
+    .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
-    .card p {
-      color: #a1a1aa;
-      font-size: 0.85rem;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
+    .card-icon svg { width: 20px; height: 20px; color: white; }
 
-    .card-meta {
-      font-size: 0.8rem;
-      color: #71717a;
-      margin-bottom: 12px;
-    }
+    .card-icon.green { background: linear-gradient(135deg, var(--accent-green), #16A34A); }
+    .card-icon.purple { background: linear-gradient(135deg, var(--accent-purple), #9333EA); }
+    .card-icon.blue { background: linear-gradient(135deg, var(--accent-blue), #1D4ED8); }
+    .card-icon.orange { background: linear-gradient(135deg, var(--accent-orange), #EA580C); }
+    .card-icon.gray { background: rgba(255, 255, 255, 0.1); }
 
+    .card-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .card-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .card-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      padding: 10px 20px;
+      padding: 10px 16px;
       border: none;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
       transition: all 0.2s ease;
       width: 100%;
-      justify-content: center;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      color: white;
-    }
-    .btn-primary:hover { box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); }
+    .btn svg { width: 16px; height: 16px; }
 
-    .btn-blue {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      color: white;
-    }
-    .btn-blue:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+    .btn-primary { background: var(--accent-blue); color: white; }
+    .btn-primary:hover { background: var(--accent-blue-light); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
-    .btn-purple {
-      background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
-      color: white;
-    }
-    .btn-purple:hover { box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4); }
+    .btn-green { background: var(--accent-green); color: white; }
+    .btn-green:hover { box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e4e4e7;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .btn-purple { background: var(--accent-purple); color: white; }
+    .btn-purple:hover { box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
     }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+    .btn-ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
 
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .output-section {
-      background: #0a0a12;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      margin-top: 30px;
-      overflow: hidden;
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
 
-    .output-header {
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue-light); }
+    .badge-green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+    .badge-gray { background: rgba(161, 161, 170, 0.15); color: var(--text-secondary); }
+
+    /* Data Cards */
+    .data-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .data-card:hover { border-color: var(--border-hover); }
+
+    .data-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .data-card-header svg { width: 18px; height: 18px; color: var(--accent-green); }
+
+    .data-card-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .data-card-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    .data-card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 20px;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
     }
 
-    .output-header h3 { font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .copy-btn {
+      width: 100%;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-primary); }
+
+    /* Output Console */
+    .console {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-top: 32px;
+      overflow: hidden;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .console-title { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 500; }
+    .console-title svg { width: 18px; height: 18px; color: var(--accent-blue); }
+
+    .console-actions { display: flex; align-items: center; gap: 8px; }
 
     .status-badge {
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .status-idle { background: rgba(161, 161, 170, 0.2); color: #a1a1aa; }
-    .status-running { background: rgba(59, 130, 246, 0.2); color: #60a5fa; animation: pulse 2s infinite; }
-    .status-success { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .status-error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .status-idle { background: rgba(161, 161, 170, 0.15); color: var(--text-muted); }
+    .status-running { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue-light); animation: pulse 2s infinite; }
+    .status-success { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+    .status-error { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-    .output-content {
-      padding: 16px 20px;
-      font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    .console-body {
+      padding: 16px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
       font-size: 0.8rem;
-      line-height: 1.6;
-      max-height: 350px;
+      line-height: 1.7;
+      max-height: 320px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
     }
 
-    .output-content:empty::before {
-      content: '等待执行...';
-      color: #52525b;
+    .console-body:empty::before { content: '等待执行...'; color: var(--text-muted); }
+
+    .output-line { margin: 2px 0; }
+    .output-stdout { color: var(--text-primary); }
+    .output-stderr { color: #FBBF24; }
+    .output-error { color: var(--accent-red); }
+    .output-success { color: var(--accent-green); font-weight: 500; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
     }
 
-    .output-line { margin: 1px 0; }
-    .output-stdout { color: #d4d4d8; }
-    .output-stderr { color: #fbbf24; }
-    .output-error { color: #ef4444; }
-    .output-success { color: #22c55e; font-weight: 600; }
-
-    .data-section { margin-top: 30px; }
-
-    .data-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-    .badge-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .badge-purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-
-    .data-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 12px;
-    }
-
-    .data-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 14px;
-    }
-
-    .data-card h4 {
-      font-size: 0.95rem;
-      color: #22c55e;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .data-card .subtitle {
-      font-size: 0.8rem;
-      color: #71717a;
-      margin-bottom: 10px;
-    }
-
-    .data-card .meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: #52525b;
-    }
-
-    .copy-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #a1a1aa;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 10px;
-      width: 100%;
-    }
-
-    .copy-btn:hover { background: rgba(255, 255, 255, 0.1); color: #e4e4e7; }
-
-    .loading {
+    /* Loading Spinner */
+    .spinner {
       display: inline-block;
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s linear infinite;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #52525b;
-      font-size: 0.9rem;
-    }
-
-    .flow-badge {
-      display: inline-block;
+    /* Flow Badge */
+    .flow-steps {
+      display: inline-flex;
+      align-items: center;
       padding: 2px 8px;
+      background: rgba(59, 130, 246, 0.1);
       border-radius: 4px;
       font-size: 0.7rem;
+      color: var(--accent-blue-light);
       margin-left: 8px;
     }
-
-    .flow-badge.steps { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>YepAI E2E Automation</h1>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <h1>YepAI E2E Automation</h1>
+      </div>
       <p class="subtitle">Shopify 商店创建 · 用户注册 · OAuth 注册流程</p>
     </header>
 
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('actions')">🚀 操作</button>
-      <button class="tab" onclick="switchTab('flows')">📋 流程</button>
-      <button class="tab" onclick="switchTab('stores')">🏪 商店</button>
-      <button class="tab" onclick="switchTab('users')">👥 用户</button>
-    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('actions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        操作
+      </button>
+      <button class="nav-tab" onclick="switchTab('flows')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        流程
+      </button>
+      <button class="nav-tab" onclick="switchTab('stores')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        商店
+      </button>
+      <button class="nav-tab" onclick="switchTab('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        用户
+      </button>
+    </nav>
 
     <!-- Tab: Actions -->
     <div id="tab-actions" class="tab-content active">
-      <h2 class="section-title">🎯 快速操作</h2>
-      <div class="grid-3">
-        <div class="card" style="border-color: rgba(34, 197, 94, 0.3);">
-          <h3>🏪 创建 Shopify 商店</h3>
-          <p>使用 CDP 模式快速创建 Shopify 开发商店，自动完成 OAuth 授权并获取回调 URL。</p>
-          <div class="card-meta">预计耗时: ~40秒</div>
-          <button class="btn btn-primary" onclick="createStore()" id="createStoreBtn">创建商店</button>
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          快速操作
+        </h2>
+      </div>
+
+      <div class="grid">
+        <div class="card" onclick="createStore()">
+          <div class="card-header">
+            <div class="card-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div class="card-title">创建 Shopify 商店</div>
+              <div class="card-meta">预计耗时 ~40秒</div>
+            </div>
+          </div>
+          <p class="card-desc">使用 CDP 模式快速创建 Shopify 开发商店，自动完成 OAuth 授权并获取回调 URL。</p>
+          <button class="btn btn-green" id="createStoreBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            创建商店
+          </button>
         </div>
 
-        <div class="card" style="border-color: rgba(168, 85, 247, 0.3);">
-          <h3>🛍️ Shopify OAuth 注册</h3>
-          <p>使用已有的 OAuth URL 完成注册（选择 Free Plan，包含 Product Training）。自动使用未使用的商店 URL。</p>
-          <div class="card-meta">预计耗时: ~3分钟</div>
-          <button class="btn btn-purple" onclick="runShopifyOAuthFlow()" id="shopifyOAuthBtn">Shopify 注册</button>
+        <div class="card" onclick="runShopifyOAuthFlow()">
+          <div class="card-header">
+            <div class="card-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Shopify OAuth 注册</div>
+              <div class="card-meta">预计耗时 ~3分钟</div>
+            </div>
+          </div>
+          <p class="card-desc">使用已有的 OAuth URL 完成注册（选择 Free Plan，包含 Product Training）。</p>
+          <button class="btn btn-purple" id="shopifyOAuthBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            开始注册
+          </button>
         </div>
 
-        <div class="card" style="border-color: rgba(59, 130, 246, 0.3);">
-          <h3>📝 用户注册流程</h3>
-          <p>完整的 YepAI 注册流程，包括表单填写、邮箱验证、平台选择、问卷调查等。</p>
-          <div class="card-meta">预计耗时: ~2分钟</div>
-          <button class="btn btn-blue" onclick="runFlow('registration')" id="registrationBtn">运行注册</button>
+        <div class="card" onclick="runFlow('registration')">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+            </div>
+            <div>
+              <div class="card-title">用户注册流程</div>
+              <div class="card-meta">预计耗时 ~2分钟</div>
+            </div>
+          </div>
+          <p class="card-desc">完整的 YepAI 注册流程，包括表单填写、邮箱验证、平台选择、问卷调查等。</p>
+          <button class="btn btn-primary" id="registrationBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行注册
+          </button>
         </div>
       </div>
 
-      <div class="grid-3">
-        <div class="card">
-          <h3>⚙️ 自定义 OAuth URL</h3>
-          <p>使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
-          <button class="btn btn-secondary" onclick="runCustomOAuthFlow()">自定义 URL</button>
+      <div class="grid">
+        <div class="card" onclick="runCustomOAuthFlow()">
+          <div class="card-header">
+            <div class="card-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div>
+              <div class="card-title">自定义 OAuth URL</div>
+              <div class="card-meta">手动输入</div>
+            </div>
+          </div>
+          <p class="card-desc">使用自定义的 OAuth URL 运行 Shopify 注册流程。</p>
+          <button class="btn btn-ghost">输入 URL</button>
         </div>
 
-        <div class="card">
-          <h3>📋 获取未使用 URL</h3>
-          <p>获取一个未被标记为已使用的 OAuth 回调 URL，并复制到剪贴板。</p>
-          <button class="btn btn-secondary" onclick="getUnusedUrl()">获取 URL</button>
+        <div class="card" onclick="getUnusedUrl()">
+          <div class="card-header">
+            <div class="card-icon gray">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </div>
+            <div>
+              <div class="card-title">获取未使用 URL</div>
+              <div class="card-meta">复制到剪贴板</div>
+            </div>
+          </div>
+          <p class="card-desc">获取一个未被标记为已使用的 OAuth 回调 URL。</p>
+          <button class="btn btn-ghost">获取 URL</button>
         </div>
 
-        <div class="card">
-          <h3>🔄 刷新数据</h3>
-          <p>重新加载商店列表和用户数据。</p>
-          <button class="btn btn-secondary" onclick="refreshAll()">刷新</button>
+        <div class="card" onclick="refreshAll()">
+          <div class="card-header">
+            <div class="card-icon gray">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            </div>
+            <div>
+              <div class="card-title">刷新数据</div>
+              <div class="card-meta">重新加载</div>
+            </div>
+          </div>
+          <p class="card-desc">重新加载商店列表、用户数据和可用流程。</p>
+          <button class="btn btn-ghost">刷新</button>
         </div>
       </div>
     </div>
 
     <!-- Tab: Flows -->
     <div id="tab-flows" class="tab-content">
-      <h2 class="section-title">📋 可用流程</h2>
-      <div class="grid-3" id="flowsGrid">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          可用流程
+        </h2>
+      </div>
+      <div class="grid" id="flowsGrid">
         <div class="empty-state">加载中...</div>
       </div>
     </div>
 
     <!-- Tab: Stores -->
     <div id="tab-stores" class="tab-content">
-      <div class="data-header">
-        <h2 class="section-title">🏪 已创建的商店</h2>
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          已创建的商店
+        </h2>
         <span class="badge badge-green" id="storeCount">0 个</span>
       </div>
-      <div class="data-grid" id="storesGrid">
+      <div class="grid" id="storesGrid">
         <div class="empty-state">加载中...</div>
       </div>
     </div>
 
     <!-- Tab: Users -->
     <div id="tab-users" class="tab-content">
-      <div class="data-header">
-        <h2 class="section-title">👥 测试用户</h2>
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          测试用户
+        </h2>
         <span class="badge badge-purple" id="userCount">0 个</span>
       </div>
-      <div class="data-grid" id="usersGrid">
+      <div class="grid" id="usersGrid">
         <div class="empty-state">加载中...</div>
       </div>
     </div>
 
-    <!-- Output Section -->
-    <div class="output-section">
-      <div class="output-header">
-        <h3>📟 执行输出</h3>
-        <div>
-          <button class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="clearOutput()">清空</button>
+    <!-- Console -->
+    <div class="console">
+      <div class="console-header">
+        <div class="console-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          执行输出
+        </div>
+        <div class="console-actions">
+          <button class="btn btn-ghost" style="width:auto;padding:6px 12px;font-size:0.75rem" onclick="clearOutput()">清空</button>
           <span class="status-badge status-idle" id="statusBadge">待命</span>
         </div>
       </div>
-      <div class="output-content" id="outputContent"></div>
+      <div class="console-body" id="outputContent"></div>
     </div>
   </div>
 
@@ -644,12 +789,11 @@ function generateHTML(): string {
     const output = document.getElementById('outputContent');
     const statusBadge = document.getElementById('statusBadge');
     let isRunning = false;
-    let currentBtn = null;
 
     function switchTab(tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelector(\`.tab[onclick*="\${tabId}"]\`).classList.add('active');
+      document.querySelector(\`.nav-tab[onclick*="\${tabId}"]\`).classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
     }
 
@@ -668,21 +812,20 @@ function generateHTML(): string {
 
     function clearOutput() { output.innerHTML = ''; setStatus('idle', '待命'); }
 
-    function setButtonLoading(btn, loading, text) {
+    function setButtonLoading(btn, loading) {
       if (loading) {
         btn.disabled = true;
         btn.dataset.originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loading"></span> 执行中...';
+        btn.innerHTML = '<span class="spinner"></span> 执行中...';
       } else {
         btn.disabled = false;
-        btn.innerHTML = btn.dataset.originalText || text;
+        btn.innerHTML = btn.dataset.originalText || '';
       }
     }
 
     async function executeStream(url, btn) {
       if (isRunning) return;
       isRunning = true;
-      currentBtn = btn;
 
       setButtonLoading(btn, true);
       clearOutput();
@@ -709,10 +852,10 @@ function generateHTML(): string {
                 else if (data.type === 'exit') {
                   if (data.code === 0) {
                     setStatus('success', '成功');
-                    appendOutput('\\n✅ 执行完成', 'success');
+                    appendOutput('\\n✓ 执行完成', 'success');
                   } else {
                     setStatus('error', '失败');
-                    appendOutput('\\n❌ 执行失败 (code: ' + data.code + ')', 'error');
+                    appendOutput('\\n✗ 执行失败 (code: ' + data.code + ')', 'error');
                   }
                 } else if (data.type === 'error') {
                   appendOutput('错误: ' + data.text, 'error');
@@ -736,45 +879,35 @@ function generateHTML(): string {
       executeStream('/api/create-store', document.getElementById('createStoreBtn'));
     }
 
-    function runFlow(flowId, extraParams = '') {
-      const btn = document.querySelector(\`[onclick*="\${flowId}"]\`) || document.getElementById(flowId + 'Btn');
-      executeStream('/api/run-flow?flow=' + flowId + extraParams, btn);
+    function runFlow(flowId) {
+      const btn = document.getElementById(flowId + 'Btn') || document.querySelector(\`[onclick*="\${flowId}"]\`);
+      executeStream('/api/run-flow?flow=' + flowId, btn);
     }
 
     async function runShopifyOAuthFlow() {
-      // 获取未使用的 OAuth URL
       try {
         const res = await fetch('/api/stores');
         const data = await res.json();
-
-        console.log('All stores:', data.records);
-        console.log('Used status:', data.records.map(r => ({ name: r.storeName, used: r.used })));
-
         const unused = data.records.find(r => !r.used);
 
         if (!unused) {
           clearOutput();
-          appendOutput('❌ 没有未使用的 OAuth URL', 'error');
+          appendOutput('✗ 没有未使用的 OAuth URL', 'error');
           appendOutput('请先创建一个新的 Shopify 商店', 'stderr');
-          appendOutput('\\n所有商店状态: ' + JSON.stringify(data.records.map(r => ({ name: r.storeName, used: r.used })), null, 2), 'stderr');
           setStatus('error', '无 URL');
           return;
         }
 
         clearOutput();
         appendOutput('使用商店: ' + unused.storeName, 'stdout');
-        appendOutput('完整 OAuth URL:\\n' + unused.oauthCallbackUrl + '\\n', 'stdout');
+        appendOutput('OAuth URL: ' + unused.oauthCallbackUrl.substring(0, 60) + '...\\n', 'stdout');
 
-        // 立即标记为已使用，防止重复使用
         await fetch('/api/mark-used?store=' + encodeURIComponent(unused.storeName), { method: 'POST' });
-        appendOutput('✓ 已标记 OAuth URL 为已使用\\n', 'stdout');
-
-        // 刷新商店列表显示
+        appendOutput('✓ 已标记为已使用\\n', 'stdout');
         refreshStores();
 
         const btn = document.getElementById('shopifyOAuthBtn');
         const encodedUrl = encodeURIComponent(unused.oauthCallbackUrl);
-        console.log('Encoded URL:', encodedUrl);
         executeStream('/api/run-flow?flow=shopify-oauth-registration&oauth_url=' + encodedUrl, btn);
       } catch (err) {
         appendOutput('获取 OAuth URL 失败: ' + err.message, 'error');
@@ -785,18 +918,14 @@ function generateHTML(): string {
     function runCustomOAuthFlow() {
       const url = prompt('请输入 OAuth 回调 URL:');
       if (!url) return;
-
       if (!url.includes('yepai.io') && !url.includes('localhost')) {
-        alert('URL 格式不正确，请输入有效的 OAuth 回调 URL');
+        alert('URL 格式不正确');
         return;
       }
-
       clearOutput();
-      appendOutput('使用自定义 OAuth URL:\\n' + url.substring(0, 80) + '...\\n', 'stdout');
-
+      appendOutput('使用自定义 OAuth URL:\\n' + url.substring(0, 60) + '...\\n', 'stdout');
       const btn = document.querySelector('[onclick*="runCustomOAuthFlow"]');
-      const encodedUrl = encodeURIComponent(url);
-      executeStream('/api/run-flow?flow=shopify-oauth-registration&oauth_url=' + encodedUrl, btn);
+      executeStream('/api/run-flow?flow=shopify-oauth-registration&oauth_url=' + encodeURIComponent(url), btn);
     }
 
     async function refreshStores() {
@@ -811,13 +940,16 @@ function generateHTML(): string {
         } else {
           grid.innerHTML = data.records.map(s => \`
             <div class="data-card">
-              <h4>🏪 \${s.storeName}</h4>
-              <div class="subtitle">\${s.storeUrl}</div>
-              <div class="meta">
-                <span>\${new Date(s.createdAt).toLocaleString('zh-CN')}</span>
-                <span class="badge \${s.used ? '' : 'badge-green'}">\${s.used ? '已使用' : '未使用'}</span>
+              <div class="data-card-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span class="data-card-title">\${s.storeName}</span>
               </div>
-              <button class="copy-btn" onclick="copyUrl('\${s.oauthCallbackUrl}')">复制 OAuth URL</button>
+              <div class="data-card-subtitle">\${s.storeUrl}</div>
+              <div class="data-card-footer">
+                <span>\${new Date(s.createdAt).toLocaleString('zh-CN')}</span>
+                <span class="badge \${s.used ? 'badge-gray' : 'badge-green'}">\${s.used ? '已使用' : '未使用'}</span>
+              </div>
+              <button class="copy-btn" onclick="event.stopPropagation();copyUrl('\${s.oauthCallbackUrl}')">复制 OAuth URL</button>
             </div>
           \`).join('');
         }
@@ -837,13 +969,16 @@ function generateHTML(): string {
         } else {
           grid.innerHTML = users.map(u => \`
             <div class="data-card">
-              <h4>👤 \${u.firstName} \${u.lastName}</h4>
-              <div class="subtitle">\${u.email}</div>
-              <div class="meta">
-                <span>\${u.organization}</span>
-                <span class="badge badge-purple">\${u.status}</span>
+              <div class="data-card-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="data-card-title">\${u.firstName} \${u.lastName}</span>
               </div>
-              <button class="copy-btn" onclick="copyText('\${u.email}')">复制邮箱</button>
+              <div class="data-card-subtitle">\${u.email}</div>
+              <div class="data-card-footer">
+                <span>\${u.organization || '-'}</span>
+                <span class="badge badge-purple">\${u.status || 'active'}</span>
+              </div>
+              <button class="copy-btn" onclick="event.stopPropagation();copyText('\${u.email}')">复制邮箱</button>
             </div>
           \`).join('');
         }
@@ -860,30 +995,24 @@ function generateHTML(): string {
           grid.innerHTML = '<div class="empty-state">暂无可用流程</div>';
         } else {
           grid.innerHTML = flows.map(f => \`
-            <div class="card">
-              <h3>\${getFlowIcon(f.id)} \${f.name} <span class="flow-badge steps">\${f.steps} 步骤</span></h3>
-              <p>\${f.description || '无描述'}</p>
-              <button class="btn btn-secondary" onclick="runFlow('\${f.id}')">运行</button>
+            <div class="card" onclick="runFlow('\${f.id}')">
+              <div class="card-header">
+                <div class="card-icon blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+                <div>
+                  <div class="card-title">\${f.name} <span class="flow-steps">\${f.steps} 步骤</span></div>
+                </div>
+              </div>
+              <p class="card-desc">\${f.description || '无描述'}</p>
+              <button class="btn btn-ghost">运行流程</button>
             </div>
           \`).join('');
         }
       } catch {}
     }
 
-    function getFlowIcon(id) {
-      const icons = {
-        'registration': '📝',
-        'shopify-store-create': '🏪',
-        'shopify-oauth-registration': '🛍️',
-      };
-      return icons[id] || '📋';
-    }
-
-    function refreshAll() {
-      refreshStores();
-      refreshUsers();
-      refreshFlows();
-    }
+    function refreshAll() { refreshStores(); refreshUsers(); refreshFlows(); }
 
     async function getUnusedUrl() {
       try {
@@ -897,8 +1026,8 @@ function generateHTML(): string {
           appendOutput('商店: ' + unused.storeName, 'stdout');
           appendOutput('URL: ' + unused.oauthCallbackUrl, 'stdout');
           await navigator.clipboard.writeText(unused.oauthCallbackUrl);
-          appendOutput('\\n✅ 已复制到剪贴板', 'success');
-          setStatus('success', '找到');
+          appendOutput('\\n✓ 已复制到剪贴板', 'success');
+          setStatus('success', '已复制');
         } else {
           appendOutput('没有未使用的 OAuth URL，请先创建新商店', 'stderr');
           setStatus('idle', '无结果');
@@ -919,7 +1048,6 @@ function generateHTML(): string {
       catch { prompt('复制:', text); }
     }
 
-    // Initial load
     refreshAll();
   </script>
 </body>
