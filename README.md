@@ -1,202 +1,227 @@
 # YepAI E2E Automation Framework
 
-AI-driven end-to-end automation framework for YepAI testing. Supports email verification via Gmail API, Shopify OAuth flows, and integration with multiple AI assistants.
+声明式 E2E 自动化框架，支持 YAML 流程定义、Gmail API 邮箱验证、Shopify OAuth 流程。
 
-## Features
+## 架构
 
-- **Flow-based Testing** - YAML-defined test flows that are human-readable and AI-parseable
-- **Gmail Integration** - Automated email verification code retrieval
-- **Shopify OAuth** - Complete app installation automation
-- **AI Tool Support** - Works with Claude, GPT-4, and any AI with tool calling
-- **Claude Skills** - Ready-to-use skills for Claude Code
+```
+┌─────────────────────────────────────────┐
+│  Interface Layer (接口层)                │
+│  - CLI: pnpm flow <name>                │
+│  - Web UI: pnpm shopify:ui              │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Flow Definition (流程定义层)            │
+│  - YAML 声明式配置                       │
+│  - 变量插值 {{VAR}}                      │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Executor (执行引擎)                     │
+│  - 解析 YAML → 执行 Actions              │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Actions (原子操作层)                    │
+│  - browser.*, form.*, gmail.*, log, wait│
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Core (核心层)                           │
+│  - Playwright 浏览器控制                 │
+│  - Gmail API 邮件读取                    │
+└─────────────────────────────────────────┘
+```
 
-## Quick Start
+## 快速开始
 
-### 1. Install Dependencies
+### 1. 安装依赖
 
 ```bash
-cd /Users/i7ove/Documents/YepAI/yepai-e2e-automation
 pnpm install
 npx playwright install chromium
 ```
 
-### 2. Configure Environment
+### 2. 配置环境变量
 
 ```bash
 cp .env.example .env
-# Edit .env with your credentials
+# 编辑 .env 填写凭据
 ```
 
-### 3. Run a Flow
+### 3. 运行流程
 
 ```bash
-# List available flows
-pnpm run flow list
+# 启动 Web UI
+pnpm shopify:ui
+# 访问 http://localhost:3456
 
-# Run registration flow
-pnpm run flow run registration
-
-# Run with custom email
-pnpm run flow run registration --email "test@gmail.com"
-
-# Run Shopify installation
-pnpm run flow run shopify-install
-
-# Run full onboarding
-pnpm run flow run full-onboarding
+# 或使用 CLI
+pnpm flow shopify-oauth-registration --var OAUTH_URL="https://..."
 ```
 
-## Available Flows
+## 可用流程
 
-| Flow | Description |
-|------|-------------|
-| `registration` | User signup with email verification |
-| `shopify-install` | Shopify OAuth app installation |
-| `full-onboarding` | Complete user journey |
+| 流程 | 描述 | 用法 |
+|------|------|------|
+| `shopify-store-create` | 创建 Shopify 开发店铺并获取 OAuth URL | `pnpm shopify:create` |
+| `shopify-oauth-registration` | 通过 Shopify OAuth URL 完成 YepAI 注册 | `pnpm flow shopify-oauth-registration --var OAUTH_URL="..."` |
 
-## Project Structure
+## 项目结构
 
 ```
 yepai-e2e-automation/
 ├── src/
-│   ├── core/           # Core modules (browser, gmail, executor)
-│   ├── flows/          # YAML flow definitions
-│   ├── tools/          # AI tool definitions
-│   └── cli/            # Command-line interface
-├── skills/             # Claude Code skills
-├── docs/               # Setup guides
-└── tests/              # Test files
+│   ├── core/              # 核心模块
+│   │   ├── browser.ts     # Playwright 浏览器封装
+│   │   ├── gmail.ts       # Gmail API 封装
+│   │   ├── executor.ts    # 流程执行器
+│   │   └── storage.ts     # 数据存储
+│   ├── flows/             # YAML 流程定义
+│   │   ├── shopify-store-create.flow.yml
+│   │   └── shopify-oauth-registration.flow.yml
+│   ├── actions/           # 原子操作
+│   │   ├── auth/          # 认证相关
+│   │   ├── gmail/         # 邮件相关
+│   │   └── shopify/       # Shopify 相关
+│   ├── tools/             # AI 工具定义
+│   ├── cli/               # CLI 入口
+│   └── web/               # Web UI 服务器
+├── skills/                # Claude Code Skills
+├── data/                  # 运行时数据 (OAuth URLs)
+├── docs/                  # 文档
+└── scripts/               # 辅助脚本
 ```
 
-## Configuration
-
-### Environment Variables
+## 环境变量
 
 ```env
-# YepAI
-YEPAI_BASE_URL=https://app.yepai.io
+# YepAI 测试环境
+YEPAI_BASE_URL=https://bot-test.yepai.io
 YEPAI_TEST_EMAIL=test@gmail.com
 YEPAI_TEST_PASSWORD=SecurePassword123!
+YEPAI_TEST_FIRST_NAME=Test
+YEPAI_TEST_LAST_NAME=User
 
-# Gmail API
+# Gmail API (用于获取验证码)
 GMAIL_CLIENT_ID=xxx
 GMAIL_CLIENT_SECRET=xxx
 GMAIL_REFRESH_TOKEN=xxx
 
-# Shopify
-SHOPIFY_STORE_URL=store.myshopify.com
-SHOPIFY_EMAIL=partner@email.com
-SHOPIFY_PASSWORD=xxx
+# Shopify Partner (用于创建开发店铺)
+SHOPIFY_PARTNER_EMAIL=partner@email.com
+SHOPIFY_PARTNER_PASSWORD=xxx
 ```
 
-See [docs/setup-gmail-api.md](docs/setup-gmail-api.md) for Gmail setup.
-See [docs/setup-shopify-dev.md](docs/setup-shopify-dev.md) for Shopify setup.
+详细设置指南:
+- [Gmail API 设置](docs/setup-gmail-api.md)
+- [Shopify 开发者设置](docs/setup-shopify-dev.md)
 
-## AI Integration
+## CLI 命令
+
+```bash
+# 流程执行
+pnpm flow <flowName> [options]
+pnpm flow shopify-oauth-registration --var OAUTH_URL="..."
+
+# Shopify 相关
+pnpm shopify:ui          # 启动 Web UI
+pnpm shopify:create      # 创建开发店铺 (CDP 模式)
+pnpm shopify:create:fast # 快速创建 (直接 API)
+
+# 选项
+--var KEY=VALUE    # 设置变量
+--headless         # 无头模式
+--slow-mo <ms>     # 慢动作模式
+```
+
+## 流程编写
+
+### YAML 流程示例
+
+```yaml
+name: my-flow
+description: 自定义流程
+
+steps:
+  - id: navigate
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/login"
+
+  - id: fill-form
+    action: form.fillSingle
+    params:
+      selector: "#email"
+      value: "{{YEPAI_TEST_EMAIL}}"
+
+  - id: submit
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-redirect
+    action: browser.waitForUrl
+    params:
+      pattern: "dashboard"
+      timeout: 30000
+
+  - id: get-code
+    action: gmail.getVerificationCode
+    params:
+      to: "{{YEPAI_TEST_EMAIL}}"
+      subject: "verification"
+      codePattern: "\\d{6}"
+    output: verificationResult
+```
+
+### 可用 Actions
+
+| Action | 描述 |
+|--------|------|
+| `browser.navigate` | 导航到 URL |
+| `browser.click` | 点击元素 |
+| `browser.execute` | 执行 JavaScript |
+| `browser.waitForSelector` | 等待元素出现 |
+| `browser.waitForUrl` | 等待 URL 匹配 |
+| `browser.screenshot` | 截图 |
+| `form.fillSingle` | 填写单个表单字段 |
+| `form.fillVerificationCode` | 填写验证码 |
+| `gmail.getVerificationCode` | 从 Gmail 获取验证码 |
+| `wait` | 等待指定毫秒 |
+| `log` | 打印日志 |
+
+## AI 集成
+
+本框架设计为可被任何支持 tool calling 的 AI 执行:
 
 ### Claude Code Skills
-
-Copy skills to your Claude configuration:
 
 ```bash
 cp -r skills/* ~/.claude/skills/
 ```
 
-Then use natural language:
-- "Register a new test user"
-- "Install the Shopify app"
-- "Run the full E2E test"
-
-### OpenAI / GPT-4
+### OpenAI / Claude API
 
 ```typescript
-import { getOpenAITools } from 'yepai-e2e-automation/tools/openai-tools';
+import { getOpenAITools } from './src/tools/openai-tools';
+import { getClaudeTools } from './src/tools/claude-tools';
 
-const tools = getOpenAITools();
-// Use with OpenAI API
+// 获取工具定义用于 AI API 调用
+const tools = getOpenAITools(); // or getClaudeTools()
 ```
 
-### Claude API
+详见 [AI 集成指南](docs/ai-integration-guide.md)
 
-```typescript
-import { getClaudeTools } from 'yepai-e2e-automation/tools/claude-tools';
-
-const tools = getClaudeTools();
-// Use with Anthropic API
-```
-
-See [docs/ai-integration-guide.md](docs/ai-integration-guide.md) for detailed integration examples.
-
-## CLI Commands
+## 开发
 
 ```bash
-# Run a flow
-pnpm run flow run <flowName> [options]
+# 类型检查
+pnpm tsc --noEmit
 
-# List flows
-pnpm run flow list
-
-# Get flow details
-pnpm run flow info <flowName>
-
-# Execute single tool
-pnpm run flow tool <toolName> --args '{"key":"value"}'
-```
-
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `-e, --email` | Override test email |
-| `-h, --headless` | Run in headless mode |
-| `-s, --slow-mo` | Slow down (ms) |
-| `--var key=value` | Set variables |
-
-## Creating Custom Flows
-
-Create a new `.flow.yml` file in `src/flows/`:
-
-```yaml
-name: my-custom-flow
-description: My custom test flow
-
-variables:
-  baseUrl: "{{YEPAI_BASE_URL}}"
-
-steps:
-  - id: step-1
-    action: browser.navigate
-    params:
-      url: "{{baseUrl}}/some-page"
-
-  - id: step-2
-    action: browser.click
-    params:
-      selector: "button.submit"
-```
-
-### Available Actions
-
-- `browser.navigate`, `browser.click`, `browser.type`
-- `form.fill`, `browser.waitForSelector`, `browser.waitForUrl`
-- `gmail.waitForEmail`, `gmail.extractCode`
-- `assert.url`, `assert.element`, `assert.text`
-- `wait`, `log`, `setVariable`
-
-## Development
-
-```bash
-# Development mode
-pnpm dev
-
-# Build
-pnpm build
-
-# Type check
-pnpm typecheck
-
-# Lint
-pnpm lint
+# 开发模式运行
+pnpm tsx src/cli/index.ts flow <name>
 ```
 
 ## License

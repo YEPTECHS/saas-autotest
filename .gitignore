@@ -32,3 +32,10 @@ credentials.json
 token.json
 *.pem
 *.key
+
+# Screenshots
+*.png
+
+# Data files (contain OAuth URLs)
+data/*.json
+!data/.gitkeep
