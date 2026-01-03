@@ -776,16 +776,85 @@ function generateHTML(): string {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             </div>
             <div>
-              <div class="card-title">AI Training 测试</div>
+              <div class="card-title">AI Training 全套</div>
               <div class="card-meta">知识库 · 产品训练 · 预览</div>
             </div>
           </div>
           <p class="card-desc">测试 AI Training 模块所有页面：Knowledge Base、Product Training、Preview & Test。</p>
           <button class="btn btn-purple" id="test-ai-trainingBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            运行 AI 测试
+            运行全套测试
           </button>
         </div>
+      </div>
+
+      <!-- AI Training Granular Tests -->
+      <div class="section-header" style="margin-top: 24px;">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          AI Training 细分测试
+        </h2>
+      </div>
+
+      <div class="grid">
+        <div class="card" onclick="runFlow('test-ai-training-knowledge')">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Knowledge Base</div>
+              <div class="card-meta">文档上传 · 知识管理</div>
+            </div>
+          </div>
+          <p class="card-desc">测试知识库页面：文档上传区域、文档列表、管理功能。</p>
+          <button class="btn btn-primary" id="test-ai-training-knowledgeBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-ai-training-product')">
+          <div class="card-header">
+            <div class="card-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Product Training</div>
+              <div class="card-meta">产品同步 · 集合管理</div>
+            </div>
+          </div>
+          <p class="card-desc">测试产品训练页面：产品计数、搜索、集合列表、展开/收起、同步按钮。</p>
+          <button class="btn btn-green" id="test-ai-training-productBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-ai-training-preview')">
+          <div class="card-header">
+            <div class="card-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Preview & Test</div>
+              <div class="card-meta">AI 聊天预览</div>
+            </div>
+          </div>
+          <p class="card-desc">测试预览页面：聊天界面、消息输入、发送按钮、设置面板。</p>
+          <button class="btn btn-purple" id="test-ai-training-previewBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行测试
+          </button>
+        </div>
+      </div>
+
+      <!-- Other Page Tests -->
+      <div class="section-header" style="margin-top: 24px;">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          其他页面测试
+        </h2>
       </div>
 
       <div class="grid">
