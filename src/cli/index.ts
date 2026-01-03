@@ -62,6 +62,10 @@ program
     const variables: Record<string, string> = {
       // Load from environment - YepAI
       YEPAI_BASE_URL: process.env.YEPAI_BASE_URL || 'https://bot-test.yepai.io',
+      // Login credentials (for page testing flows)
+      YEPAI_LOGIN_EMAIL: process.env.YEPAI_LOGIN_EMAIL || '',
+      YEPAI_LOGIN_PASSWORD: process.env.YEPAI_LOGIN_PASSWORD || '',
+      // Registration test credentials
       YEPAI_TEST_EMAIL: randomEmail, // 动态生成随机邮箱
       YEPAI_TEST_PASSWORD: process.env.YEPAI_TEST_PASSWORD || 'Test@12345678',
       YEPAI_TEST_FIRST_NAME: process.env.YEPAI_TEST_FIRST_NAME || 'Test',
