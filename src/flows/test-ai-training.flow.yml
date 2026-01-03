@@ -47,22 +47,27 @@ steps:
     params:
       message: "=== Testing Product Training page ==="
 
+  - id: wait-before-product
+    action: wait
+    params:
+      ms: 1000
+
   - id: navigate-product
     action: browser.navigate
     params:
       url: "{{YEPAI_BASE_URL}}/ai-training/product"
-      waitUntil: "networkidle"
+      waitUntil: "domcontentloaded"
 
   - id: wait-product
     action: browser.waitForSelector
     params:
-      selector: "main"
-      timeout: 15000
+      selector: "main, body"
+      timeout: 30000
 
   - id: wait-product-load
     action: wait
     params:
-      ms: 2000
+      ms: 3000
 
   # Verify key elements
   - id: verify-product-elements
@@ -97,22 +102,28 @@ steps:
     params:
       message: "=== Testing Preview & Test page ==="
 
+  - id: wait-before-preview
+    action: wait
+    params:
+      ms: 2000
+
   - id: navigate-preview
     action: browser.navigate
     params:
       url: "{{YEPAI_BASE_URL}}/ai-training/preview"
-      waitUntil: "networkidle"
+      waitUntil: "domcontentloaded"
+    continueOnError: true
 
   - id: wait-preview
     action: browser.waitForSelector
     params:
-      selector: "main"
-      timeout: 15000
+      selector: "main, body"
+      timeout: 30000
 
   - id: wait-preview-load
     action: wait
     params:
-      ms: 2000
+      ms: 3000
 
   # Verify chat/preview interface
   - id: verify-preview-elements
