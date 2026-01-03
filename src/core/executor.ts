@@ -489,9 +489,8 @@ export class FlowExecutor {
    * Load shared steps from include file
    */
   private loadInclude(includePath: string, baseDir: string): FlowStep[] {
-    // Resolve include path relative to flows directory
-    const flowsDir = join(baseDir, '..');
-    const fullPath = join(flowsDir, includePath);
+    // Resolve include path relative to the flow file's directory
+    const fullPath = join(baseDir, includePath);
 
     if (!existsSync(fullPath)) {
       throw new Error(`Include file not found: ${includePath}`);
