@@ -1,0 +1,170 @@
+# YepAI Settings & Integrations Pages Test Flow
+# Tests Integrations, Subscription, and Live Chat Config pages
+
+name: test-settings
+description: Test Settings and Integrations pages
+
+prerequisites:
+  - login
+
+steps:
+  # ========================================
+  # TEST 1: Integrations Page
+  # ========================================
+
+  - id: log-integrations-start
+    action: log
+    params:
+      message: "Testing Integrations page..."
+
+  - id: navigate-integrations
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/integrations"
+      waitUntil: "networkidle"
+
+  - id: wait-integrations-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='integration'], [class*='connect']"
+      timeout: 15000
+
+  - id: screenshot-integrations
+    action: browser.screenshot
+    params:
+      name: "settings-integrations"
+
+  - id: log-integrations-done
+    action: log
+    params:
+      message: "Integrations page loaded successfully"
+
+  # ========================================
+  # TEST 2: Subscription & Billing Page
+  # ========================================
+
+  - id: log-subscription-start
+    action: log
+    params:
+      message: "Testing Subscription & Billing page..."
+
+  - id: navigate-subscription
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/subscription"
+      waitUntil: "networkidle"
+
+  - id: wait-subscription-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='subscription'], [class*='billing'], [class*='plan']"
+      timeout: 15000
+
+  - id: screenshot-subscription
+    action: browser.screenshot
+    params:
+      name: "settings-subscription"
+
+  - id: log-subscription-done
+    action: log
+    params:
+      message: "Subscription & Billing page loaded successfully"
+
+  # ========================================
+  # TEST 3: Live Chat Config Page
+  # ========================================
+
+  - id: log-config-start
+    action: log
+    params:
+      message: "Testing Live Chat Config page..."
+
+  - id: navigate-config
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/config"
+      waitUntil: "networkidle"
+
+  - id: wait-config-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='config'], [class*='chat'], [class*='settings']"
+      timeout: 15000
+
+  - id: screenshot-config
+    action: browser.screenshot
+    params:
+      name: "settings-config"
+
+  - id: log-config-done
+    action: log
+    params:
+      message: "Live Chat Config page loaded successfully"
+
+  # ========================================
+  # TEST 4: Customisation Page
+  # ========================================
+
+  - id: log-customisation-start
+    action: log
+    params:
+      message: "Testing Customisation page..."
+
+  - id: navigate-customisation
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/customisation"
+      waitUntil: "networkidle"
+
+  - id: wait-customisation-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='customis'], [class*='theme'], [class*='brand']"
+      timeout: 15000
+
+  - id: screenshot-customisation
+    action: browser.screenshot
+    params:
+      name: "settings-customisation"
+
+  - id: log-customisation-done
+    action: log
+    params:
+      message: "Customisation page loaded successfully"
+
+  # ========================================
+  # TEST 5: Flows Page
+  # ========================================
+
+  - id: log-flows-start
+    action: log
+    params:
+      message: "Testing Flows page..."
+
+  - id: navigate-flows
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/flow"
+      waitUntil: "networkidle"
+
+  - id: wait-flows-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='flow'], [class*='workflow']"
+      timeout: 15000
+
+  - id: screenshot-flows
+    action: browser.screenshot
+    params:
+      name: "settings-flows"
+
+  - id: log-flows-done
+    action: log
+    params:
+      message: "Flows page loaded successfully"
+
+  # Final summary
+  - id: log-settings-complete
+    action: log
+    params:
+      message: "All Settings & Integrations pages tested successfully!"

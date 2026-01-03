@@ -1,0 +1,66 @@
+# YepAI Login Flow
+# Base flow for authentication - used by other page test flows
+
+name: login
+description: Login to YepAI dashboard
+
+steps:
+  # STEP 1: Navigate to login page
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  # STEP 2: Wait for login form
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  # STEP 3: Fill email
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  # STEP 4: Fill password
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  # STEP 5: Wait for submit button to be enabled
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  # STEP 6: Click login button
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  # STEP 7: Wait for dashboard redirect
+  - id: wait-dashboard
+    action: browser.waitForUrl
+    params:
+      pattern: "dashboard|home|/"
+      timeout: 30000
+
+  # STEP 8: Verify login success - check for sidebar or dashboard element
+  - id: verify-login
+    action: browser.waitForSelector
+    params:
+      selector: "[data-testid='sidebar'], nav, .sidebar, [class*='sidebar']"
+      timeout: 10000
+
+  - id: log-success
+    action: log
+    params:
+      message: "Login successful!"

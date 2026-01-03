@@ -599,7 +599,7 @@ function generateHTML(): string {
         </svg>
         <h1>YepAI E2E Automation</h1>
       </div>
-      <p class="subtitle">Shopify 商店创建 · 用户注册 · OAuth 注册流程</p>
+      <p class="subtitle">Shopify OAuth · 用户注册 · 页面测试 · E2E 自动化</p>
     </header>
 
     <nav class="nav-tabs">
@@ -724,6 +724,120 @@ function generateHTML(): string {
           </div>
           <p class="card-desc">重新加载商店列表、用户数据和可用流程。</p>
           <button class="btn btn-ghost">刷新</button>
+        </div>
+      </div>
+
+      <!-- Page Testing Section -->
+      <div class="section-header" style="margin-top: 32px;">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          页面测试
+        </h2>
+      </div>
+
+      <div class="grid">
+        <div class="card" onclick="runFlow('login')">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            </div>
+            <div>
+              <div class="card-title">登录测试</div>
+              <div class="card-meta">基础认证流程</div>
+            </div>
+          </div>
+          <p class="card-desc">测试用户登录功能，验证认证流程正常工作。</p>
+          <button class="btn btn-primary" id="loginBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行登录测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-home')">
+          <div class="card-header">
+            <div class="card-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div class="card-title">首页测试</div>
+              <div class="card-meta">Dashboard 主页</div>
+            </div>
+          </div>
+          <p class="card-desc">测试首页加载和主要组件渲染。</p>
+          <button class="btn btn-green" id="test-homeBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行首页测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-ai-training')">
+          <div class="card-header">
+            <div class="card-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </div>
+            <div>
+              <div class="card-title">AI Training 测试</div>
+              <div class="card-meta">知识库 · 产品训练 · 预览</div>
+            </div>
+          </div>
+          <p class="card-desc">测试 AI Training 模块所有页面：Knowledge Base、Product Training、Preview & Test。</p>
+          <button class="btn btn-purple" id="test-ai-trainingBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行 AI 测试
+          </button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card" onclick="runFlow('test-customers')">
+          <div class="card-header">
+            <div class="card-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Customers 测试</div>
+              <div class="card-meta">Leads · 对话历史</div>
+            </div>
+          </div>
+          <p class="card-desc">测试客户管理模块：Leads 列表、Conversation History。</p>
+          <button class="btn btn-ghost" style="background:var(--accent-orange);color:white" id="test-customersBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行客户测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-analytics')">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Analytics 测试</div>
+              <div class="card-meta">概览 · 性能 · 洞察 · 热力图</div>
+            </div>
+          </div>
+          <p class="card-desc">测试分析模块：Overview、Support Performance、Insights、Busiest Time。</p>
+          <button class="btn btn-primary" id="test-analyticsBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行分析测试
+          </button>
+        </div>
+
+        <div class="card" onclick="runFlow('test-settings')">
+          <div class="card-header">
+            <div class="card-icon gray">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Settings 测试</div>
+              <div class="card-meta">集成 · 订阅 · 配置 · 自定义</div>
+            </div>
+          </div>
+          <p class="card-desc">测试设置模块：Integrations、Subscription、Config、Customisation、Flows。</p>
+          <button class="btn btn-ghost" id="test-settingsBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行设置测试
+          </button>
         </div>
       </div>
     </div>

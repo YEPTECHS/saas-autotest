@@ -1,0 +1,139 @@
+# YepAI Analytics Pages Test Flow
+# Tests Overview, Support Performance, Chat Summary, and Busiest Time pages
+
+name: test-analytics
+description: Test all Analytics section pages
+
+prerequisites:
+  - login
+
+steps:
+  # ========================================
+  # TEST 1: Analytics Overview Page
+  # ========================================
+
+  - id: log-overview-start
+    action: log
+    params:
+      message: "Testing Analytics Overview page..."
+
+  - id: navigate-overview
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/analytics"
+      waitUntil: "networkidle"
+
+  - id: wait-overview-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='analytics'], [class*='overview'], [class*='chart']"
+      timeout: 15000
+
+  - id: screenshot-overview
+    action: browser.screenshot
+    params:
+      name: "analytics-overview"
+
+  - id: log-overview-done
+    action: log
+    params:
+      message: "Analytics Overview page loaded successfully"
+
+  # ========================================
+  # TEST 2: Support Performance Page
+  # ========================================
+
+  - id: log-support-start
+    action: log
+    params:
+      message: "Testing Support Performance page..."
+
+  - id: navigate-support
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/analytics/support-performance"
+      waitUntil: "networkidle"
+
+  - id: wait-support-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='performance'], [class*='support']"
+      timeout: 15000
+
+  - id: screenshot-support
+    action: browser.screenshot
+    params:
+      name: "analytics-support-performance"
+
+  - id: log-support-done
+    action: log
+    params:
+      message: "Support Performance page loaded successfully"
+
+  # ========================================
+  # TEST 3: Chat Summary (Insights) Page
+  # ========================================
+
+  - id: log-insights-start
+    action: log
+    params:
+      message: "Testing Chat Summary page..."
+
+  - id: navigate-insights
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/analytics/insights"
+      waitUntil: "networkidle"
+
+  - id: wait-insights-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='insights'], [class*='summary']"
+      timeout: 15000
+
+  - id: screenshot-insights
+    action: browser.screenshot
+    params:
+      name: "analytics-insights"
+
+  - id: log-insights-done
+    action: log
+    params:
+      message: "Chat Summary page loaded successfully"
+
+  # ========================================
+  # TEST 4: Busiest Time Page
+  # ========================================
+
+  - id: log-busiest-start
+    action: log
+    params:
+      message: "Testing Busiest Time page..."
+
+  - id: navigate-busiest
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/analytics/busiest-time"
+      waitUntil: "networkidle"
+
+  - id: wait-busiest-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='busiest'], [class*='time'], [class*='heatmap']"
+      timeout: 15000
+
+  - id: screenshot-busiest
+    action: browser.screenshot
+    params:
+      name: "analytics-busiest-time"
+
+  - id: log-busiest-done
+    action: log
+    params:
+      message: "Busiest Time page loaded successfully"
+
+  # Final summary
+  - id: log-analytics-complete
+    action: log
+    params:
+      message: "All Analytics pages tested successfully!"

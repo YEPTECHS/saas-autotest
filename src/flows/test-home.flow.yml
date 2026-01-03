@@ -1,0 +1,41 @@
+# YepAI Home Page Test Flow
+# Tests the main dashboard/home page
+
+name: test-home
+description: Test Home page loads correctly after login
+
+prerequisites:
+  - login
+
+steps:
+  # Navigate to home
+  - id: navigate-home
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/"
+      waitUntil: "networkidle"
+
+  # Wait for main content to load
+  - id: wait-main-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='dashboard'], [class*='home']"
+      timeout: 15000
+
+  # Verify sidebar is present
+  - id: verify-sidebar
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='sidebar'], nav"
+      timeout: 5000
+
+  # Take screenshot for verification
+  - id: screenshot-home
+    action: browser.screenshot
+    params:
+      name: "home-page"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Home page test completed successfully!"

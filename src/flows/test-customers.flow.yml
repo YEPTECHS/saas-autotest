@@ -1,0 +1,77 @@
+# YepAI Customers Pages Test Flow
+# Tests Leads and Conversation History pages
+
+name: test-customers
+description: Test all Customers section pages
+
+prerequisites:
+  - login
+
+steps:
+  # ========================================
+  # TEST 1: Leads Page
+  # ========================================
+
+  - id: log-leads-start
+    action: log
+    params:
+      message: "Testing Leads page..."
+
+  - id: navigate-leads
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/customers/leads"
+      waitUntil: "networkidle"
+
+  - id: wait-leads-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='leads'], [class*='customer'], table, [class*='list']"
+      timeout: 15000
+
+  - id: screenshot-leads
+    action: browser.screenshot
+    params:
+      name: "customers-leads"
+
+  - id: log-leads-done
+    action: log
+    params:
+      message: "Leads page loaded successfully"
+
+  # ========================================
+  # TEST 2: Conversation History Page
+  # ========================================
+
+  - id: log-conversation-start
+    action: log
+    params:
+      message: "Testing Conversation History page..."
+
+  - id: navigate-conversation
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/customers/conversation-logs"
+      waitUntil: "networkidle"
+
+  - id: wait-conversation-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='conversation'], [class*='logs'], [class*='history']"
+      timeout: 15000
+
+  - id: screenshot-conversation
+    action: browser.screenshot
+    params:
+      name: "customers-conversation-logs"
+
+  - id: log-conversation-done
+    action: log
+    params:
+      message: "Conversation History page loaded successfully"
+
+  # Final summary
+  - id: log-customers-complete
+    action: log
+    params:
+      message: "All Customers pages tested successfully!"
