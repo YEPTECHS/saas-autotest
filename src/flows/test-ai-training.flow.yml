@@ -1,11 +1,10 @@
-# YepAI AI Training Pages Test Flow
-# Tests Knowledge Base, Product Training, and Preview & Test pages
+# YepAI AI Training Full Test Suite
+# Tests all AI Training section pages: Knowledge, Product, Preview
 
 name: test-ai-training
-description: Test all AI Training section pages
+description: Full test suite for all AI Training pages
 
 steps:
-  # Include shared login steps
   - include: _shared/login.steps.yml
 
   # ========================================
@@ -15,7 +14,7 @@ steps:
   - id: log-knowledge-start
     action: log
     params:
-      message: "Testing Knowledge Base page..."
+      message: "=== Testing Knowledge Base page ==="
 
   - id: navigate-knowledge
     action: browser.navigate
@@ -23,10 +22,10 @@ steps:
       url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
       waitUntil: "networkidle"
 
-  - id: wait-knowledge-content
+  - id: wait-knowledge
     action: browser.waitForSelector
     params:
-      selector: "main, [class*='knowledge'], [class*='content']"
+      selector: "main"
       timeout: 15000
 
   - id: screenshot-knowledge
@@ -37,7 +36,7 @@ steps:
   - id: log-knowledge-done
     action: log
     params:
-      message: "Knowledge Base page loaded successfully"
+      message: "Knowledge Base page loaded"
 
   # ========================================
   # TEST 2: Product Training Page
@@ -46,7 +45,7 @@ steps:
   - id: log-product-start
     action: log
     params:
-      message: "Testing Product Training page..."
+      message: "=== Testing Product Training page ==="
 
   - id: navigate-product
     action: browser.navigate
@@ -54,11 +53,30 @@ steps:
       url: "{{YEPAI_BASE_URL}}/ai-training/product"
       waitUntil: "networkidle"
 
-  - id: wait-product-content
+  - id: wait-product
     action: browser.waitForSelector
     params:
-      selector: "main, [class*='product'], [class*='training']"
+      selector: "main"
       timeout: 15000
+
+  - id: wait-product-load
+    action: wait
+    params:
+      ms: 2000
+
+  # Verify key elements
+  - id: verify-product-elements
+    action: browser.execute
+    params:
+      script: |
+        const elements = {
+          checkbox: !!document.querySelector('input[type="checkbox"]'),
+          search: !!document.querySelector('input[type="text"], input[type="search"]'),
+          button: !!document.querySelector('button'),
+          cards: document.querySelectorAll('[class*="card"], [class*="Card"]').length
+        };
+        console.log('Product Training elements:', JSON.stringify(elements));
+        return elements.checkbox || elements.search || elements.button;
 
   - id: screenshot-product
     action: browser.screenshot
@@ -68,7 +86,7 @@ steps:
   - id: log-product-done
     action: log
     params:
-      message: "Product Training page loaded successfully"
+      message: "Product Training page loaded"
 
   # ========================================
   # TEST 3: Preview & Test Page
@@ -77,7 +95,7 @@ steps:
   - id: log-preview-start
     action: log
     params:
-      message: "Testing Preview & Test page..."
+      message: "=== Testing Preview & Test page ==="
 
   - id: navigate-preview
     action: browser.navigate
@@ -85,11 +103,29 @@ steps:
       url: "{{YEPAI_BASE_URL}}/ai-training/preview"
       waitUntil: "networkidle"
 
-  - id: wait-preview-content
+  - id: wait-preview
     action: browser.waitForSelector
     params:
-      selector: "main, [class*='preview'], [class*='test']"
+      selector: "main"
       timeout: 15000
+
+  - id: wait-preview-load
+    action: wait
+    params:
+      ms: 2000
+
+  # Verify chat/preview interface
+  - id: verify-preview-elements
+    action: browser.execute
+    params:
+      script: |
+        const elements = {
+          input: !!document.querySelector('input, textarea'),
+          chat: !!document.querySelector('[class*="chat"], [class*="message"], [class*="preview"]'),
+          button: !!document.querySelector('button')
+        };
+        console.log('Preview elements:', JSON.stringify(elements));
+        return elements.input || elements.chat;
 
   - id: screenshot-preview
     action: browser.screenshot
@@ -99,9 +135,13 @@ steps:
   - id: log-preview-done
     action: log
     params:
-      message: "Preview & Test page loaded successfully"
+      message: "Preview & Test page loaded"
 
-  - id: log-ai-training-complete
+  # ========================================
+  # SUMMARY
+  # ========================================
+
+  - id: log-complete
     action: log
     params:
-      message: "All AI Training pages tested successfully!"
+      message: "=== All AI Training pages tested successfully! ==="

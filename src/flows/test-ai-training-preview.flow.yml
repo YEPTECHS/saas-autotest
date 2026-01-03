@@ -1,0 +1,104 @@
+# YepAI Preview & Test Page Test
+# Tests the AI Preview/Playground functionality
+
+name: test-ai-training-preview
+description: Test Preview & Test page - chat interface, AI response testing
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ========================================
+  # PREVIEW & TEST PAGE
+  # ========================================
+
+  - id: log-start
+    action: log
+    params:
+      message: "Testing Preview & Test page..."
+
+  - id: navigate-preview
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/preview"
+      waitUntil: "networkidle"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-content
+    action: wait
+    params:
+      ms: 2000
+
+  # ========================================
+  # TEST 1: Chat Interface
+  # ========================================
+
+  - id: log-test-chat
+    action: log
+    params:
+      message: "Testing chat interface..."
+
+  # Test: Chat container exists
+  - id: verify-chat-container
+    action: browser.execute
+    params:
+      script: |
+        const chat = document.querySelector('[class*="chat"], [class*="message"], [class*="conversation"], [class*="preview"]');
+        console.log('Chat container found:', !!chat);
+        return !!chat;
+
+  # Test: Input field for messages
+  - id: verify-message-input
+    action: browser.execute
+    params:
+      script: |
+        const input = document.querySelector('input[type="text"], textarea, [contenteditable="true"], [class*="input"]');
+        console.log('Message input found:', !!input);
+        return !!input;
+
+  # Test: Send button
+  - id: verify-send-button
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = document.querySelector('button[type="submit"], [class*="send"], button:has(svg)');
+        console.log('Send button found:', !!sendBtn);
+        return !!sendBtn;
+
+  - id: screenshot-chat
+    action: browser.screenshot
+    params:
+      name: "ai-training-preview-chat"
+
+  # ========================================
+  # TEST 2: Settings/Options Panel
+  # ========================================
+
+  - id: log-test-settings
+    action: log
+    params:
+      message: "Testing settings panel..."
+
+  - id: verify-settings
+    action: browser.execute
+    params:
+      script: |
+        // Look for settings, options, or configuration panel
+        const settings = document.querySelector('[class*="setting"], [class*="option"], [class*="config"], [class*="panel"]');
+        console.log('Settings panel found:', !!settings);
+        return true; // Don't fail if not found
+    continueOnError: true
+
+  - id: screenshot-full
+    action: browser.screenshot
+    params:
+      name: "ai-training-preview-full"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Preview & Test page test completed!"

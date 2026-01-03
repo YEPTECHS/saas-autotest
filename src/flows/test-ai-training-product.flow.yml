@@ -1,0 +1,200 @@
+# YepAI Product Training Page Test
+# Tests the Product Training functionality in detail
+
+name: test-ai-training-product
+description: Test Product Training page - collections, products, search, sync
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ========================================
+  # PRODUCT TRAINING PAGE TEST
+  # ========================================
+
+  - id: log-start
+    action: log
+    params:
+      message: "Testing Product Training page..."
+
+  - id: navigate-product
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/product"
+      waitUntil: "networkidle"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  # Wait for content to load (loading state to finish)
+  - id: wait-content-load
+    action: wait
+    params:
+      ms: 2000
+
+  # ========================================
+  # TEST 1: Header Elements
+  # ========================================
+
+  - id: log-test-header
+    action: log
+    params:
+      message: "Testing header elements..."
+
+  # Test: Product count display
+  - id: verify-product-count
+    action: browser.execute
+    params:
+      script: |
+        const countElement = document.querySelector('[class*="text-lg"], span:has-text("products"), [class*="count"]');
+        console.log('Product count element:', countElement?.textContent);
+        return !!countElement;
+
+  # Test: Select All checkbox
+  - id: verify-select-all
+    action: browser.execute
+    params:
+      script: |
+        const selectAll = document.querySelector('input[type="checkbox"], [class*="checkbox"]');
+        console.log('Select all found:', !!selectAll);
+        return !!selectAll;
+
+  # Test: Sync Now button
+  - id: verify-sync-button
+    action: browser.execute
+    params:
+      script: |
+        const syncBtn = Array.from(document.querySelectorAll('button')).find(b =>
+          b.textContent?.toLowerCase().includes('sync') ||
+          b.textContent?.toLowerCase().includes('train')
+        );
+        console.log('Sync button:', syncBtn?.textContent);
+        return !!syncBtn;
+
+  - id: screenshot-header
+    action: browser.screenshot
+    params:
+      name: "ai-training-product-header"
+
+  # ========================================
+  # TEST 2: Search Functionality
+  # ========================================
+
+  - id: log-test-search
+    action: log
+    params:
+      message: "Testing search functionality..."
+
+  # Test: Search input exists
+  - id: verify-search-input
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='text'], input[type='search'], input[placeholder*='search' i], input[placeholder*='Search' i]"
+      timeout: 5000
+
+  - id: screenshot-search
+    action: browser.screenshot
+    params:
+      name: "ai-training-product-search"
+
+  # ========================================
+  # TEST 3: Collection List
+  # ========================================
+
+  - id: log-test-collections
+    action: log
+    params:
+      message: "Testing collections display..."
+
+  # Test: Collections or products displayed
+  - id: verify-collections
+    action: browser.execute
+    params:
+      script: |
+        const cards = document.querySelectorAll('[class*="card"], [class*="Card"], [class*="collection"]');
+        console.log('Found cards/collections:', cards.length);
+        return cards.length > 0;
+
+  # Test: Collection checkboxes
+  - id: verify-collection-checkboxes
+    action: browser.execute
+    params:
+      script: |
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        console.log('Found checkboxes:', checkboxes.length);
+        return checkboxes.length > 0;
+
+  - id: screenshot-collections
+    action: browser.screenshot
+    params:
+      name: "ai-training-product-collections"
+
+  # ========================================
+  # TEST 4: Expand Collection (if available)
+  # ========================================
+
+  - id: log-test-expand
+    action: log
+    params:
+      message: "Testing collection expansion..."
+
+  # Try to expand first collection
+  - id: expand-collection
+    action: browser.execute
+    params:
+      script: |
+        // Look for expand button (chevron icon or expandable header)
+        const expandBtn = document.querySelector('[class*="chevron"], button[aria-expanded], [class*="expand"]');
+        if (expandBtn) {
+          expandBtn.click();
+          return true;
+        }
+        // Alternative: click on card header
+        const cardHeader = document.querySelector('[class*="CardBody"] > div:first-child, [class*="card-header"]');
+        if (cardHeader) {
+          cardHeader.click();
+          return true;
+        }
+        return false;
+    continueOnError: true
+
+  - id: wait-expand
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-expanded
+    action: browser.screenshot
+    params:
+      name: "ai-training-product-expanded"
+
+  # ========================================
+  # TEST 5: Product Items (if visible)
+  # ========================================
+
+  - id: log-test-products
+    action: log
+    params:
+      message: "Testing product items..."
+
+  - id: verify-products
+    action: browser.execute
+    params:
+      script: |
+        // Check for product items
+        const products = document.querySelectorAll('[class*="product"], [class*="item"], img[class*="object-cover"]');
+        console.log('Found product elements:', products.length);
+        return products.length > 0;
+    continueOnError: true
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "ai-training-product-final"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Product Training page test completed!"

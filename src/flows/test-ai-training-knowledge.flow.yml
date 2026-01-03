@@ -1,0 +1,62 @@
+# YepAI Knowledge Base Page Test
+# Tests the Knowledge Base functionality
+
+name: test-ai-training-knowledge
+description: Test Knowledge Base page - document upload, list, and management
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ========================================
+  # KNOWLEDGE BASE PAGE TEST
+  # ========================================
+
+  - id: log-start
+    action: log
+    params:
+      message: "Testing Knowledge Base page..."
+
+  - id: navigate-knowledge
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "networkidle"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  # Test: Page title/header exists
+  - id: verify-header
+    action: browser.waitForSelector
+    params:
+      selector: "h1, [class*='title'], [class*='header']"
+      timeout: 5000
+
+  # Test: Upload area or button exists
+  - id: verify-upload-area
+    action: browser.execute
+    params:
+      script: |
+        const uploadArea = document.querySelector('[class*="upload"], [class*="drop"], button:has-text("Upload"), input[type="file"]');
+        return !!uploadArea;
+
+  # Test: Document list or empty state exists
+  - id: verify-content-area
+    action: browser.execute
+    params:
+      script: |
+        const hasContent = document.querySelector('[class*="list"], [class*="table"], [class*="empty"], [class*="document"]');
+        return !!hasContent;
+
+  - id: screenshot-knowledge
+    action: browser.screenshot
+    params:
+      name: "ai-training-knowledge-full"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Knowledge Base page test completed!"
