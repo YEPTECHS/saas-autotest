@@ -3,8 +3,9 @@
  * Parses and executes YAML flow definitions
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { parse as parseYaml } from 'yaml';
+import { join, dirname } from 'path';
 import { z } from 'zod';
 import { BrowserManager, getBrowser, closeBrowser } from './browser.js';
 import { GmailClient, createGmailClient } from './gmail.js';
@@ -13,8 +14,9 @@ import { GmailClient, createGmailClient } from './gmail.js';
 const StepParamsSchema = z.record(z.unknown());
 
 const FlowStepSchema = z.object({
-  id: z.string(),
-  action: z.string(),
+  id: z.string().optional(),
+  action: z.string().optional(),
+  include: z.string().optional(), // Include shared steps from another file
   params: StepParamsSchema.optional(),
   waitFor: z.string().optional(),
   output: z.string().optional(),
@@ -484,12 +486,59 @@ export class FlowExecutor {
   }
 
   /**
+   * Load shared steps from include file
+   */
+  private loadInclude(includePath: string, baseDir: string): FlowStep[] {
+    // Resolve include path relative to flows directory
+    const flowsDir = join(baseDir, '..');
+    const fullPath = join(flowsDir, includePath);
+
+    if (!existsSync(fullPath)) {
+      throw new Error(`Include file not found: ${includePath}`);
+    }
+
+    const content = readFileSync(fullPath, 'utf-8');
+    const parsed = parseYaml(content);
+
+    if (!parsed.steps || !Array.isArray(parsed.steps)) {
+      throw new Error(`Include file must have a 'steps' array: ${includePath}`);
+    }
+
+    return parsed.steps;
+  }
+
+  /**
+   * Process steps and expand includes
+   */
+  private expandIncludes(steps: FlowStep[], baseDir: string): FlowStep[] {
+    const expandedSteps: FlowStep[] = [];
+
+    for (const step of steps) {
+      if (step.include) {
+        // Load and expand included steps
+        const includedSteps = this.loadInclude(step.include, baseDir);
+        expandedSteps.push(...includedSteps);
+      } else {
+        expandedSteps.push(step);
+      }
+    }
+
+    return expandedSteps;
+  }
+
+  /**
    * Load flow from YAML file
    */
   loadFlow(filePath: string): FlowDefinition {
     const content = readFileSync(filePath, 'utf-8');
     const parsed = parseYaml(content);
-    return FlowDefinitionSchema.parse(parsed);
+    const flow = FlowDefinitionSchema.parse(parsed);
+
+    // Expand includes in steps
+    const baseDir = dirname(filePath);
+    flow.steps = this.expandIncludes(flow.steps, baseDir);
+
+    return flow;
   }
 
   /**
