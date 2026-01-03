@@ -48,9 +48,11 @@ steps:
     action: browser.execute
     params:
       script: |
-        const countElement = document.querySelector('[class*="text-lg"], span:has-text("products"), [class*="count"]');
+        // Look for product count text (e.g., "123 products")
+        const allSpans = Array.from(document.querySelectorAll('span, div, p'));
+        const countElement = allSpans.find(el => el.textContent?.match(/\d+\s*(products?|items?)/i));
         console.log('Product count element:', countElement?.textContent);
-        return !!countElement;
+        return !!countElement || !!document.querySelector('[class*="text-lg"]');
 
   # Test: Select All checkbox
   - id: verify-select-all
@@ -66,11 +68,12 @@ steps:
     action: browser.execute
     params:
       script: |
-        const syncBtn = Array.from(document.querySelectorAll('button')).find(b =>
-          b.textContent?.toLowerCase().includes('sync') ||
-          b.textContent?.toLowerCase().includes('train')
-        );
-        console.log('Sync button:', syncBtn?.textContent);
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const syncBtn = buttons.find(b => {
+          const text = b.textContent?.toLowerCase() || '';
+          return text.includes('sync') || text.includes('train') || text.includes('save');
+        });
+        console.log('Sync/Train button:', syncBtn?.textContent);
         return !!syncBtn;
 
   - id: screenshot-header

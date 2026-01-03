@@ -40,7 +40,14 @@ steps:
     action: browser.execute
     params:
       script: |
-        const uploadArea = document.querySelector('[class*="upload"], [class*="drop"], button:has-text("Upload"), input[type="file"]');
+        // Check for upload area, dropzone, file input, or upload button
+        let uploadArea = document.querySelector('[class*="upload"], [class*="drop"], input[type="file"]');
+        if (!uploadArea) {
+          // Look for button with "Upload" text
+          const buttons = Array.from(document.querySelectorAll('button'));
+          uploadArea = buttons.find(b => b.textContent?.toLowerCase().includes('upload'));
+        }
+        console.log('Upload area found:', !!uploadArea);
         return !!uploadArea;
 
   # Test: Document list or empty state exists
