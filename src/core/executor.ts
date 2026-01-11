@@ -78,6 +78,31 @@ export class FlowExecutor {
       return { url };
     });
 
+    // Special action for OAuth URL navigation
+    // Extracts query string from OAuth URL and combines with base URL
+    this.registerAction('browser.navigateOAuth', async (ctx, params) => {
+      const oauthUrl = this.interpolate(params.oauthUrl as string, ctx);
+      const baseUrl = this.interpolate(params.baseUrl as string, ctx);
+      const path = this.interpolate((params.path as string) || '/auth/external-register', ctx);
+
+      console.log(`[navigateOAuth] OAuth URL length: ${oauthUrl.length}`);
+      console.log(`[navigateOAuth] Base URL: ${baseUrl}`);
+
+      // Extract query string from OAuth URL
+      const queryIndex = oauthUrl.indexOf('?');
+      if (queryIndex === -1) {
+        throw new Error('OAuth URL does not contain query string');
+      }
+
+      const queryString = oauthUrl.substring(queryIndex);
+      const finalUrl = baseUrl + path + queryString;
+
+      console.log(`[navigateOAuth] Final URL: ${finalUrl}`);
+
+      await ctx.browser.navigate(finalUrl);
+      return { url: finalUrl, queryString };
+    });
+
     this.registerAction('browser.click', async (ctx, params) => {
       const selector = this.interpolate(params.selector as string, ctx);
       await ctx.browser.click(selector, {

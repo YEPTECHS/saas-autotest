@@ -20,64 +20,22 @@ steps:
     params:
       message: "Phase 1: Navigate to OAuth URL"
 
-  # 先导航到 base URL 以获取浏览器上下文
-  - id: navigate-base
-    action: browser.navigate
-    params:
-      url: "{{YEPAI_BASE_URL}}"
-      waitUntil: "domcontentloaded"
-
-  - id: wait-base-load
-    action: wait
-    params:
-      ms: 1000
-
-  # 使用 JavaScript 构建并导航到 OAuth URL
+  # 直接使用 browser.navigateOAuth action 处理 OAuth URL
+  # 这个 action 会：
+  # 1. 提取 OAuth URL 中的 query string
+  # 2. 用 YEPAI_BASE_URL 替换域名
+  # 3. 导航到最终 URL
   - id: navigate-oauth
-    action: browser.execute
+    action: browser.navigateOAuth
     params:
-      script: |
-        // 从 OAuth URL 提取查询参数，替换为 YEPAI_BASE_URL
-        // 使用 decodeURIComponent 处理可能的编码问题
-        const oauthUrlRaw = `{{OAUTH_URL}}`;
-        const baseUrl = `{{YEPAI_BASE_URL}}`;
-
-        console.log('Raw OAuth URL:', oauthUrlRaw);
-        console.log('Base URL:', baseUrl);
-
-        try {
-          // 提取查询参数部分 (从 ? 开始)
-          const queryIndex = oauthUrlRaw.indexOf('?');
-          if (queryIndex === -1) {
-            throw new Error('No query string in OAuth URL');
-          }
-
-          const queryString = oauthUrlRaw.substring(queryIndex); // ?code=xxx&hmac=xxx...
-
-          // 构建新 URL
-          const finalUrl = baseUrl + '/auth/external-register' + queryString;
-          console.log('Final OAuth URL:', finalUrl);
-
-          // 导航到 OAuth URL
-          window.location.href = finalUrl;
-          return finalUrl;
-        } catch (e) {
-          console.error('Error processing OAuth URL:', e);
-          // 如果解析失败，直接使用原始 URL
-          window.location.href = oauthUrlRaw;
-          return oauthUrlRaw;
-        }
-
-  - id: wait-navigation
-    action: browser.waitForUrl
-    params:
-      pattern: "external-register|register"
-      timeout: 30000
+      oauthUrl: "{{OAUTH_URL}}"
+      baseUrl: "{{YEPAI_BASE_URL}}"
+      path: "/auth/external-register"
 
   - id: wait-page-load
     action: wait
     params:
-      ms: 2000
+      ms: 3000
 
   - id: log-current-url
     action: browser.execute
@@ -448,11 +406,11 @@ steps:
     params:
       ms: 5000
 
-  # 等待产品训练页面加载 - 使用通用按钮选择器
+  # 等待产品训练页面加载
   - id: wait-product-training
     action: browser.waitForSelector
     params:
-      selector: "button[type='button'], input[type='checkbox']"
+      selector: "input[type='checkbox']"
       timeout: 30000
 
   - id: wait-products-load
@@ -460,110 +418,145 @@ steps:
     params:
       ms: 3000
 
+  # 截图当前状态
+  - id: screenshot-before-select
+    action: browser.screenshot
+    params:
+      name: "product-training-before-select"
+
   # 点击 "Select All" checkbox
   - id: click-select-all
     action: browser.execute
     params:
       script: |
-        // 找到 Select All checkbox 并点击
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        for (const cb of checkboxes) {
-          const label = cb.closest('label') || cb.parentElement;
-          if (label && label.textContent.includes('Select All')) {
-            if (!cb.checked) {
-              cb.click();
-              console.log('Clicked Select All checkbox');
+        // 找到包含 "Select All" 文字的元素
+        const labels = Array.from(document.querySelectorAll('span, label, div'));
+        for (const label of labels) {
+          if (label.textContent.trim().includes('Select All')) {
+            // 找到附近的 checkbox
+            const container = label.closest('label') || label.parentElement;
+            const checkbox = container?.querySelector('input[type="checkbox"]');
+            if (checkbox && !checkbox.checked) {
+              checkbox.click();
+              console.log('Clicked Select All checkbox via label');
+              return { clicked: true, method: 'label' };
             }
-            return true;
+            // 或者直接点击 label
+            label.click();
+            console.log('Clicked Select All label');
+            return { clicked: true, method: 'label-click' };
           }
         }
-        // 备选: 直接点击包含 "Select All" 文字的元素
-        const selectAllLabel = Array.from(document.querySelectorAll('span, label')).find(
-          el => el.textContent.trim() === 'Select All'
-        );
-        if (selectAllLabel) {
-          selectAllLabel.click();
-          return true;
+
+        // 备选: 点击第一个 checkbox（通常是 Select All）
+        const firstCheckbox = document.querySelector('input[type="checkbox"]');
+        if (firstCheckbox && !firstCheckbox.checked) {
+          firstCheckbox.click();
+          console.log('Clicked first checkbox as fallback');
+          return { clicked: true, method: 'first-checkbox' };
         }
-        return false;
+
+        return { clicked: false };
 
   - id: wait-after-select-all
     action: wait
     params:
-      ms: 1000
+      ms: 2000
 
-  # 点击 "Let AI learn my products" 按钮
+  # 截图选择后状态
+  - id: screenshot-after-select
+    action: browser.screenshot
+    params:
+      name: "product-training-after-select"
+
+  # 查找并点击训练按钮
   - id: click-train-button
     action: browser.execute
     params:
       script: |
         const buttons = document.querySelectorAll('button');
+        const trainKeywords = ['train', 'sync', 'learn', 'start', 'save'];
+
         for (const btn of buttons) {
-          const text = btn.textContent || '';
-          if ((text.includes('Let AI learn') || text.includes('Sync now')) &&
-              btn.offsetParent !== null && !btn.disabled) {
-            btn.click();
-            console.log('Clicked training button:', text);
-            return true;
+          const text = (btn.textContent || '').toLowerCase();
+          const isVisible = btn.offsetParent !== null && !btn.disabled;
+
+          if (isVisible) {
+            for (const keyword of trainKeywords) {
+              if (text.includes(keyword)) {
+                console.log('Found train button:', btn.textContent);
+                btn.click();
+                return { clicked: true, text: btn.textContent };
+              }
+            }
           }
         }
-        return false;
 
-  # 等待训练动画
-  - id: wait-training-animation
+        // 找不到特定按钮，尝试点击主要的 submit 按钮
+        const submitBtn = document.querySelector('button[type="submit"]:not([disabled])');
+        if (submitBtn && submitBtn.offsetParent !== null) {
+          console.log('Clicking submit button as fallback:', submitBtn.textContent);
+          submitBtn.click();
+          return { clicked: true, text: submitBtn.textContent, fallback: true };
+        }
+
+        return { clicked: false };
+
+  - id: wait-training-start
     action: wait
     params:
       ms: 5000
 
-  # 等待训练完成或跳转到 dashboard
-  - id: wait-training-complete
+  # 截图训练状态
+  - id: screenshot-training
+    action: browser.screenshot
+    params:
+      name: "product-training-in-progress"
+
+  # ========================================
+  # PHASE 8: 等待训练完成并进入 Dashboard
+  # ========================================
+
+  - id: log-phase8
+    action: log
+    params:
+      message: "Phase 8: Wait for Training and Navigate to Dashboard"
+
+  # 等待一段时间让训练开始
+  - id: wait-for-training
+    action: wait
+    params:
+      ms: 10000
+
+  # 检查是否有进度指示器或完成状态
+  - id: check-training-status
     action: browser.execute
     params:
       script: |
-        // 等待最多 5 分钟让训练完成
-        return new Promise((resolve) => {
-          let attempts = 0;
-          const maxAttempts = 60; // 5 minutes with 5 second intervals
+        // 检查各种可能的状态
+        const progressBar = document.querySelector('[class*="progress"], [role="progressbar"]');
+        const scanningText = Array.from(document.querySelectorAll('*')).find(el =>
+          el.textContent?.includes('Scanning') || el.textContent?.includes('Training')
+        );
+        const completeText = Array.from(document.querySelectorAll('*')).find(el =>
+          el.textContent?.includes('Complete') || el.textContent?.includes('Done')
+        );
 
-          const check = () => {
-            attempts++;
-            const url = window.location.href;
+        return {
+          hasProgress: !!progressBar,
+          isScanning: !!scanningText,
+          isComplete: !!completeText,
+          url: window.location.href
+        };
+    continueOnError: true
 
-            // 检查是否已到达 dashboard 或训练完成
-            if (url.includes('dashboard') || url.includes('home')) {
-              resolve({ success: true, url: url, message: 'Redirected to dashboard' });
-              return;
-            }
-
-            // 检查是否有完成提示
-            const completeText = document.body.innerText;
-            if (completeText.includes('Analysis Complete') || completeText.includes('Complete')) {
-              resolve({ success: true, message: 'Training complete' });
-              return;
-            }
-
-            if (attempts >= maxAttempts) {
-              resolve({ success: false, message: 'Timeout waiting for training' });
-              return;
-            }
-
-            setTimeout(check, 5000);
-          };
-
-          check();
-        });
-    timeout: 360000
-
-  # ========================================
-  # FINAL: 验证成功
-  # ========================================
+  # 最终截图
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "registration-complete"
 
   - id: log-complete
     action: log
     params:
-      message: "Shopify OAuth Registration completed successfully!"
-
-  - id: final-screenshot
-    action: browser.screenshot
-    params:
-      path: "shopify-oauth-registration-complete.png"
+      message: "=== Shopify OAuth Registration Complete ==="
