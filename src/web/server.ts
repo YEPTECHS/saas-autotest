@@ -3,6 +3,9 @@
  * YepAI E2E Automation Web UI Server
  */
 
+import { config } from 'dotenv';
+config(); // Load .env file
+
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
