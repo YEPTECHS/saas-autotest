@@ -1,0 +1,58 @@
+[
+  {
+    "id": "SA-01",
+    "category": "SA",
+    "q": "What color scheme works best for a luxury fashion brand?",
+    "a": "I'll research current trends in luxury fashion branding to provide you with the most effective color schemes.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-02",
+    "category": "SA",
+    "q": "How do I improve my store's SEO to rank higher on Google?",
+    "a": "I'm analyzing luxury color trends and designing a sample palette for you. This will include classic staples and emerging 2026 trends.",
+    "status": "FAIL"
+  },
+  {
+    "id": "SA-03",
+    "category": "SA",
+    "q": "Write a product description for a handmade ceramic mug",
+    "a": "I'll start by researching the best SEO keywords for handmade ceramic mugs to ensure your product description ranks well and attracts the right customers.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-04",
+    "category": "SA",
+    "q": "What hashtags should I use for my summer sale campaign on Instagram?",
+    "a": "I'm researching the most effective and trending hashtags for a summer sale on Instagram for 2026. I'll also take a look at your products to make sure they're tailored to your store!",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-05",
+    "category": "SA",
+    "q": "How often should I post on social media for my Shopify store?",
+    "a": "I'm researching the most effective and trending hashtags for a summer sale on Instagram for 2026. I'll also take a look at your products to make sure they're tailored to your store!",
+    "status": "FAIL"
+  },
+  {
+    "id": "SA-06",
+    "category": "SA",
+    "q": "What's the best time of year to run a discount campaign?",
+    "a": "I'm analyzing your store's specific niche (winter sports) alongside general retail trends to determine the most profitable windows for your discount campaigns.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-07",
+    "category": "SA",
+    "q": "Help me plan a content calendar for next month",
+    "a": "I'm building a May 2026 content calendar for you! I'll be looking for key dates, off-season snowboarding trends, and the start of the Southern Hemisphere winter season to keep your brand relevant.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-08",
+    "category": "SA",
+    "q": "Analyze what marketing strategies are working best for my store",
+    "a": "I'm analyzing your store's performance data to identify which marketing strategies are driving the best results for you right now.",
+    "status": "PASS"
+  }
+]

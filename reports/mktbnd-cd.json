@@ -1,0 +1,58 @@
+[
+  {
+    "id": "CD-01",
+    "category": "CD",
+    "q": "What is my current inventory level for all products?",
+    "a": "I'm fetching your current inventory levels for all products now...",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-02",
+    "category": "CD",
+    "q": "How many orders did I receive in the last 7 days?",
+    "a": "I'm checking your recent orders from the last 7 days now...",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-03",
+    "category": "CD",
+    "q": "Which products are running low on stock?",
+    "a": "I'm checking your inventory levels to identify products running low on stock...",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-04",
+    "category": "CD",
+    "q": "Can you fulfill my pending orders?",
+    "a": "I'm checking your pending orders now to see the current status.",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-05",
+    "category": "CD",
+    "q": "Show me my top selling products by revenue",
+    "a": "I'm calculating your top-selling products by total revenue now...",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-06",
+    "category": "CD",
+    "q": "A customer says their order hasn't arrived. Can you help?",
+    "a": "I'm checking your recent orders to see if I can find any details about the missing delivery.",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-07",
+    "category": "CD",
+    "q": "Update the price of Product A to $49.99",
+    "a": "I don't have the ability to directly update or modify your product prices in Shopify. My capabilities are focused on analyzing your store data, researching market trends, and creating marketing content.\nHowever, I can help you with:\n\nPrice Research: Analyzing if $49.99 is a competitive price for tha",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-08",
+    "category": "CD",
+    "q": "What's the refund rate for my store this month?",
+    "a": "I'm fetching your order data for April to calculate your current refund rate...",
+    "status": "WARN"
+  }
+]

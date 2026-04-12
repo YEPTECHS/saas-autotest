@@ -1,0 +1,176 @@
+# Shopify Store Chatbot Test
+# Test case to verify chatbot functionality on Shopify store
+
+name: test-shopify-chatbot
+description: Test chatbot widget on Shopify store (pauck1702.myshopify.com)
+
+steps:
+  # ========================================
+  # PHASE 1: Access Store
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: Access Shopify Store"
+
+  - id: navigate-store
+    action: browser.navigate
+    params:
+      url: "https://pauck1702.myshopify.com/"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-password-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='password'], input[name='password']"
+      timeout: 10000
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password']"
+      value: "1234"
+
+  - id: click-enter-button
+    action: browser.click
+    params:
+      selector: "button:has-text('Enter'), input[type='submit'], button[type='submit']"
+
+  - id: wait-store-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "body"
+      timeout: 10000
+
+  - id: screenshot-store-loaded
+    action: browser.screenshot
+    params:
+      name: "shopify-store-loaded"
+
+  # ========================================
+  # PHASE 2: Locate and Open Chatbot
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Locate Chatbot Widget"
+
+  - id: wait-for-page-settle
+    action: wait
+    params:
+      milliseconds: 3000
+
+  - id: screenshot-looking-for-widget
+    action: browser.screenshot
+    params:
+      name: "looking-for-chatbot-widget"
+
+  - id: wait-for-chatbot-iframe
+    action: browser.waitForSelector
+    params:
+      selector: "iframe#chatbot-widget-iframe-prod"
+      timeout: 15000
+
+  - id: screenshot-chatbot-found
+    action: browser.screenshot
+    params:
+      name: "chatbot-iframe-found"
+
+  - id: log-chatbot-found
+    action: log
+    params:
+      message: "Chatbot iframe found, waiting for avatar to be visible"
+
+  - id: wait-for-avatar-visible
+    action: browser.waitForSelector
+    params:
+      selector: "iframe#chatbot-widget-iframe-prod"
+      timeout: 10000
+
+  - id: screenshot-avatar-ready
+    action: browser.screenshot
+    params:
+      name: "avatar-ready"
+
+  - id: click-avatar-to-open
+    action: browser.clickIframe
+    params:
+      iframeSelector: "#chatbot-widget-iframe-prod"
+      elementSelector: "button, div[class*='cursor-pointer'], img[alt*='Avatar']"
+
+  - id: log-waiting-load
+    action: log
+    params:
+      message: "Avatar clicked, waiting for chatbot to load..."
+
+  - id: wait-for-chat-load
+    action: wait
+    params:
+      milliseconds: 5000
+
+  - id: screenshot-after-click
+    action: browser.screenshot
+    params:
+      name: "after-avatar-click"
+
+  - id: fill-email-prompt
+    action: form.fillIframe
+    params:
+      iframeSelector: "#chatbot-widget-iframe-prod"
+      elementSelector: "input[type='email'], input[type='text'], input"
+      value: "test@example.com"
+
+  - id: wait-after-email
+    action: wait
+    params:
+      milliseconds: 2000
+
+  - id: press-enter-email
+    action: browser.pressIframe
+    params:
+      iframeSelector: "#chatbot-widget-iframe-prod"
+      elementSelector: "input[type='email'], input[type='text'], input"
+      key: "Enter"
+
+  - id: wait-for-chat-interface
+    action: wait
+    params:
+      milliseconds: 3000
+
+  - id: screenshot-chat-opened
+    action: browser.screenshot
+    params:
+      name: "chat-interface-opened"
+
+  - id: log-clicking-recommendation
+    action: log
+    params:
+      message: "Clicking on 'What's recommended?' option"
+
+  - id: click-whats-recommended
+    action: browser.clickIframe
+    params:
+      iframeSelector: "#chatbot-widget-iframe-prod"
+      elementSelector: "span:has-text('recommended'), div:has-text('🛒')"
+
+  - id: wait-after-recommendation-click
+    action: wait
+    params:
+      milliseconds: 8000
+
+  - id: screenshot-after-recommendation
+    action: browser.screenshot
+    params:
+      name: "after-recommendation-click"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Chatbot test completed! Chatbot widget is open. Check the browser window."
+
+  - id: keep-browser-open
+    action: wait
+    params:
+      milliseconds: 3600000

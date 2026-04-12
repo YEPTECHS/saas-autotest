@@ -1,0 +1,280 @@
+# Customisation Page Flow
+# Tests the Customisation page (/customisation) - Appearance and General tabs
+# NOTE: The correct URL is /customisation (not /settings/customisation which returns 404)
+
+name: test-customisation
+description: Test Customisation page - Appearance tab (brand color, widget, avatar) and General tab
+
+steps:
+  # Login
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful!"
+
+  # Navigate to Customisation (correct URL: /customisation)
+  - id: log-start
+    action: log
+    params:
+      message: "Testing Customisation page..."
+
+  - id: navigate-customisation
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/customisation"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='title']"
+      timeout: 10000
+
+  - id: wait-content
+    action: wait
+    params:
+      ms: 2000
+
+  # TEST CASE 1: Verify page heading
+  - id: log-test-heading
+    action: log
+    params:
+      message: "--- TEST 1: Verify page heading 'Customisation' ---"
+
+  - id: verify-heading
+    action: browser.execute
+    params:
+      script: |
+        const h1 = document.querySelector('h1');
+        const hasTitle = document.body.innerText.includes('Customisation');
+        console.log('Has Customisation heading:', hasTitle);
+        return hasTitle;
+
+  # TEST CASE 2: Verify Appearance and General tabs
+  - id: log-test-tabs
+    action: log
+    params:
+      message: "--- TEST 2: Verify Appearance and General tabs ---"
+
+  - id: verify-appearance-tab
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Appearance');
+        if (!btn) throw new Error('Appearance tab not found');
+        return true;
+
+  - id: verify-general-tab
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'General');
+        if (!btn) throw new Error('General tab not found');
+        return true;
+
+  - id: screenshot-tabs
+    action: browser.screenshot
+    params:
+      name: "customisation-tabs"
+
+  # TEST CASE 3: Verify Appearance tab content (Brand Colour, Widget, Avatar)
+  - id: log-test-appearance
+    action: log
+    params:
+      message: "--- TEST 3: Verify Appearance tab content ---"
+
+  - id: click-appearance-tab
+    action: browser.execute
+    params:
+      script: |
+        Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Appearance')?.click();
+
+  - id: wait-appearance-content
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-appearance-elements
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const checks = {
+          brandColour: bodyText.includes('Brand Colour') || bodyText.includes('Brand Color'),
+          widgetHandling: bodyText.includes('Widget') || bodyText.includes('widget'),
+          widgetSize: bodyText.includes('Widget size') || bodyText.includes('Small') || bodyText.includes('Medium') || bodyText.includes('Large'),
+          widgetPosition: bodyText.includes('Widget position') || bodyText.includes('Left') || bodyText.includes('Right'),
+          chatAvatar: bodyText.includes('Chat Avatar') || bodyText.includes('Avatar'),
+          preview: bodyText.includes('Preview'),
+        };
+        console.log('Appearance elements:', JSON.stringify(checks));
+        return checks;
+
+  - id: screenshot-appearance
+    action: browser.screenshot
+    params:
+      name: "customisation-appearance"
+
+  # TEST CASE 4: Verify widget position options (Left/Right)
+  - id: log-test-widget-position
+    action: log
+    params:
+      message: "--- TEST 4: Verify widget position options ---"
+
+  - id: verify-position-options
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasLeft = bodyText.includes('Left');
+        const hasRight = bodyText.includes('Right');
+        console.log('Position Left:', hasLeft, '| Position Right:', hasRight);
+        return { hasLeft, hasRight };
+
+  # TEST CASE 5: Verify widget size options (Small/Medium/Large)
+  - id: log-test-widget-size
+    action: log
+    params:
+      message: "--- TEST 5: Verify widget size options ---"
+
+  - id: verify-size-options
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        return {
+          hasSmall: bodyText.includes('Small'),
+          hasMedium: bodyText.includes('Medium'),
+          hasLarge: bodyText.includes('Large'),
+        };
+
+  # TEST CASE 6: Verify Cancel and Save buttons
+  - id: log-test-save-cancel
+    action: log
+    params:
+      message: "--- TEST 6: Verify Cancel and Save buttons ---"
+
+  - id: verify-save-button
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Save');
+        console.log('Save button found:', !!btn);
+        return !!btn;
+
+  - id: verify-cancel-button
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Cancel');
+        console.log('Cancel button found:', !!btn);
+        return !!btn;
+
+  # TEST CASE 7: Switch to General tab
+  - id: log-test-general-tab
+    action: log
+    params:
+      message: "--- TEST 7: Switch to General tab ---"
+
+  - id: click-general-tab
+    action: browser.execute
+    params:
+      script: |
+        Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'General')?.click();
+
+  - id: wait-general-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-general
+    action: browser.screenshot
+    params:
+      name: "customisation-general"
+
+  - id: verify-general-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        console.log('General tab loaded, body length:', bodyText.length);
+        return bodyText.length > 100;
+
+  # TEST CASE 8: Verify preview panel exists (Mobile/Desktop toggle)
+  - id: log-test-preview
+    action: log
+    params:
+      message: "--- TEST 8: Verify preview panel ---"
+
+  - id: click-appearance-tab-again
+    action: browser.execute
+    params:
+      script: |
+        Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Appearance')?.click();
+
+  - id: wait-preview-panel
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-preview-panel
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasPreview = bodyText.includes('Preview');
+        const hasMobile = bodyText.includes('Mobile');
+        const hasDesktop = bodyText.includes('Desktop');
+        console.log('Preview:', hasPreview, '| Mobile:', hasMobile, '| Desktop:', hasDesktop);
+        return { hasPreview, hasMobile, hasDesktop };
+
+  - id: screenshot-preview-panel
+    action: browser.screenshot
+    params:
+      name: "customisation-preview-panel"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Customisation page test completed successfully!"

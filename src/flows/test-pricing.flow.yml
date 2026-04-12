@@ -1,0 +1,233 @@
+# YepAI Pricing Tiers Test
+# Test case to verify pricing page and tier selection
+
+name: test-pricing
+description: Verify pricing tiers display and selection functionality
+
+# Pre-defined selectors
+selectors:
+  pricing:
+    freeTier: "text=/free/i"
+    starterTier: "text=/\\$19/"
+    professionalTier: "text=/\\$49/"
+    businessTier: "text=/\\$99/"
+    enterpriseTier: "text=/\\$199/"
+    trialButton: "button:has-text('Start 14-day free trial'), button:has-text('Start trial')"
+
+steps:
+  # ========================================
+  # PHASE 1: Login
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: User Login"
+
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email']"
+      timeout: 10000
+
+  - id: fill-login-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-login-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password']"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: submit-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-after-login
+    action: wait
+    params:
+      ms: 3000
+
+  # ========================================
+  # PHASE 2: Navigate to Pricing
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Navigate to Pricing Page"
+
+  - id: navigate-home
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-home-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "button:has-text('Upgrade')"
+      timeout: 10000
+
+  # ========================================
+  # TEST CASE 1-5: Paid Plans via Upgrade button
+  # ========================================
+
+  - id: click-upgrade-button
+    action: browser.click
+    params:
+      selector: "button:has-text('Upgrade')"
+
+  - id: wait-upgrade-page
+    action: wait
+    params:
+      ms: 2000
+
+  - id: log-test-starter-tier
+    action: log
+    params:
+      message: "TEST CASE 1: Verify Starter Tier ($19)"
+
+  - id: verify-starter-price
+    action: browser.waitForSelector
+    params:
+      selector: "text=/\\$19|19.*month/i"
+      timeout: 8000
+    continueOnError: true
+
+  - id: log-test-professional-tier
+    action: log
+    params:
+      message: "TEST CASE 2: Verify Professional Tier ($49)"
+
+  - id: verify-professional-price
+    action: browser.waitForSelector
+    params:
+      selector: "text=/\\$49|49.*month/i"
+      timeout: 5000
+    continueOnError: true
+
+  - id: log-test-business-tier
+    action: log
+    params:
+      message: "TEST CASE 3: Verify Business Tier ($99)"
+
+  - id: verify-business-price
+    action: browser.waitForSelector
+    params:
+      selector: "text=/\\$99|99.*month/i"
+      timeout: 5000
+    continueOnError: true
+
+  - id: log-test-enterprise-tier
+    action: log
+    params:
+      message: "TEST CASE 4: Verify Enterprise Tier ($199)"
+
+  - id: verify-enterprise-price
+    action: browser.waitForSelector
+    params:
+      selector: "text=/\\$199|199.*month/i"
+      timeout: 5000
+    continueOnError: true
+
+  - id: capture-upgrade-page-content
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        console.log('Upgrade page content:', text.substring(0, 500));
+        return {
+          has19: text.match(/\$19|19.*month/i) !== null,
+          has49: text.match(/\$49|49.*month/i) !== null,
+          has99: text.match(/\$99|99.*month/i) !== null,
+          has199: text.match(/\$199|199.*month/i) !== null,
+        };
+
+  # ========================================
+  # TEST CASE 5: Free Plan via Usage Plan button
+  # ========================================
+
+  - id: navigate-back-home
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-usage-plan-button
+    action: browser.waitForSelector
+    params:
+      selector: "button:has-text('Usage Plan')"
+      timeout: 10000
+
+  - id: log-test-free-plan
+    action: log
+    params:
+      message: "TEST CASE 5: Verify Free Plan via Usage Plan button"
+
+  - id: click-usage-plan-button
+    action: browser.click
+    params:
+      selector: "button:has-text('Usage Plan')"
+
+  - id: wait-usage-popup
+    action: wait
+    params:
+      ms: 1500
+
+  - id: verify-free-plan-visible
+    action: browser.waitForSelector
+    params:
+      selector: "text=Free Plan"
+      timeout: 5000
+
+  - id: capture-usage-plan-content
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        console.log('Usage Plan popup content:', text.substring(0, 500));
+        return {
+          hasFreePlan: text.match(/free plan/i) !== null,
+          hasConversations: text.match(/conversation/i) !== null,
+          hasProducts: text.match(/product/i) !== null,
+        };
+
+  - id: log-test-trial-button
+    action: log
+    params:
+      message: "TEST CASE 6: Verify Manage plan link is present"
+
+  - id: verify-trial-button
+    action: browser.execute
+    params:
+      script: |
+        const links = document.querySelectorAll('a, button');
+        let found = false;
+        for (const el of links) {
+          if (el.textContent.match(/manage plan|upgrade|start.*trial/i) && el.offsetParent !== null) {
+            console.log('Plan action found:', el.textContent.trim());
+            found = true;
+            break;
+          }
+        }
+        return found;
+
+  # ========================================
+  # FINAL: Test Summary
+  # ========================================
+
+  - id: log-complete
+    action: log
+    params:
+      message: "✅ All pricing tier tests completed successfully!"

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "SA-01",
+    "category": "SA",
+    "q": "How many products do I currently have in my store?",
+    "a": "You currently have a total of 22 products in your store.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-02",
+    "category": "SA",
+    "q": "Which product has the highest inventory right now?",
+    "a": "The products with the highest inventory are The Multi-location Snowboard and The Multi-managed Snowboard, both having 100 units in stock.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-03",
+    "category": "SA",
+    "q": "How many orders were placed this week?",
+    "a": "There have been 0 orders placed so far this week. In fact, it appears there are currently no orders recorded in the store.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-04",
+    "category": "SA",
+    "q": "What is the total revenue from fulfilled orders this month?",
+    "a": "The total revenue from fulfilled orders this month is $0.00, as there are currently no orders recorded in the store for this period.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-05",
+    "category": "SA",
+    "q": "Show me all orders that are currently pending fulfillment",
+    "a": "There are currently no orders in your store, so there are no orders pending fulfillment.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-06",
+    "category": "SA",
+    "q": "Which products have zero inventory?",
+    "a": "The following products currently have zero inventory:\n\npau no prod\nThe Inventory Not Tracked Snowboard\nThe Out of Stock Snowboard\nGift Card",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-07",
+    "category": "SA",
+    "q": "What's the average order value this month?",
+    "a": "Since there have been no orders placed so far this month (March 2026), the average order value is currently $0.00.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-08",
+    "category": "SA",
+    "q": "List all products added to the store in the last 30 days",
+    "a": "All 22 products in your store were added in the last 30 days (since February 1, 2026):\n\nThe Collection Snowboard: Oxygen (Added: Feb 5)\nThe Collection Snowboard: Liquid (Added: Feb 5)\npppppppp (Added: Mar 2)\nThe Videographer Snowboard (Added: Feb 5)\nprod 16022 (Added: Feb 15)\nThe Collection Snowboar",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-09",
+    "category": "SA",
+    "q": "How many customers have placed more than 3 orders?",
+    "a": "There are currently 0 customers who have placed more than 3 orders. In fact, all 3 customers currently in your store have not placed any orders yet.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-10",
+    "category": "SA",
+    "q": "What was the best selling product last month?",
+    "a": "I couldn't find any orders in your store, so I'm unable to determine the best-selling product for last month. Once you have some sales data, I'll be able to analyze it for you!",
+    "status": "PASS"
+  }
+]

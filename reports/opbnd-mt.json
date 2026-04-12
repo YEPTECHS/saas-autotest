@@ -1,0 +1,37 @@
+[
+  {
+    "id": "MT-01",
+    "category": "MT",
+    "q": "Which ones are running low on stock?",
+    "a": "Since I couldn't find any products in the \"Electronics\" category, I've checked your entire catalog for low-stock items.\nHere are the products that are currently running low or are out of stock:\n📉 Low Stock (5 or fewer)\nProduct NameLocationAvailableThe Videographer SnowboardShop location2\n🚫 Out of ",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-02",
+    "category": "MT",
+    "q": "What is the status of this order?",
+    "a": "I've checked the system again, but it appears there are currently no orders recorded in this store (total order count is 0).\nBecause of this, I cannot provide a status for order #1002. Could you please verify if the order was placed in this specific store or if it might be under a different account/",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-03",
+    "category": "MT",
+    "q": "How many pending orders do I have?",
+    "a": "您的商店目前没有任何订单记录（总订单数为 0），因此也没有待处理（pending）的订单。\n如果您刚刚收到了新订单，可能需要几分钟时间同步。或者，请确认您是否在正确的商店账号下。如果您需要我协助查询其他信息（如库存或产品），请随时告诉我。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-04",
+    "category": "MT",
+    "q": "Give me the order summary",
+    "a": "抱歉，经过多次核查，您的商店目前没有任何订单记录（订单总数为 0）。因此，我无法为您提供订单摘要、待处理订单或订单 #1002 的相关信息。\n如果这不符合您的预期，请确认：\n\n您是否在正确的商店账号下。\n订单是否已成功从您的销售渠道同步到后台。\n\n如果您想查看产品库存摘要或其他信息，请随时告诉我。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-05",
+    "category": "MT",
+    "q": "Is SKU-TEST-LOW still low stock?",
+    "a": "目前在系统中仍然找不到 SKU 为 SKU-TEST-LOW 的商品。\n由于系统数据库中没有该 SKU 的记录，我无法查询它的库存状态，也无法判断它是否处于低库存状态。即使您在系统外进行了补货，只要该 SKU 未在 Shopify 中创建或同步，系统中的状态就不会发生变化。\n建议您核对一下 SKU 名称是否正确，或者告诉我该产品的标题（Title），我可以用产品名称来为您查询。",
+    "status": "PASS"
+  }
+]

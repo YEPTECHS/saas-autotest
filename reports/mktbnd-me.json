@@ -1,0 +1,44 @@
+[
+  {
+    "id": "ME-01",
+    "category": "ME",
+    "q": "?",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-02",
+    "category": "ME",
+    "q": "help",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-03",
+    "category": "ME",
+    "q": "Your suggestions are terrible and completely useless. Try again.",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-04",
+    "category": "ME",
+    "q": "marketing marketing marketing marketing marketing",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-05",
+    "category": "ME",
+    "q": "Why are my sales down this month?",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections...",
+    "status": "WARN"
+  },
+  {
+    "id": "ME-06",
+    "category": "ME",
+    "q": "What was my best performing campaign last quarter?",
+    "a": "I'm analyzing your store data for the last quarter (Q1 2026) to identify your best performing campaign. Gathering products, orders, customers, and collections now...",
+    "status": "WARN"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "DI-01",
+    "category": "DI",
+    "q": "What is the inventory for SKU-DOES-NOT-EXIST-99999?",
+    "a": "系统中找不到 SKU 为 SKU-DOES-NOT-EXIST-99999 的商品。由于该 SKU 不存在，我无法提供其库存详情。请确认 SKU 是否输入正确。",
+    "status": "PASS"
+  },
+  {
+    "id": "DI-02",
+    "category": "DI",
+    "q": "Show me details for order #ORDER-FAKE-00000",
+    "a": "抱歉，我在系统中无法找到订单 #ORDER-FAKE-00000。\n如前所述，目前的商店记录显示订单总数为 0。由于系统中没有任何订单数据，我无法为您提供该订单的详细信息。\n请确认订单号是否正确，或该订单是否在其他商店中。如果您有其他问题，请随时告诉我。",
+    "status": "WARN"
+  },
+  {
+    "id": "DI-03",
+    "category": "DI",
+    "q": "What were my total sales in 1985?",
+    "a": "系统中没有查询到 1985年 的任何销售记录。\n目前的订单总数为 0，且 Shopify 平台通常不会包含早于其成立时间（2006年）的历史数据。如果您需要查询其他年份或特定时间段的销售额，请随时告诉我。",
+    "status": "PASS"
+  },
+  {
+    "id": "DI-04",
+    "category": "DI",
+    "q": "How many orders were placed on February 30th?",
+    "a": "2月30日不是一个有效的日期，因此无法查询该日期的订单。\n此外，由于目前商店系统中的订单总数为 0，任何日期的订单查询结果都将为空。如果您有其他日期需要查询，或者有关于产品库存的问题，请随时告诉我。",
+    "status": "PASS"
+  },
+  {
+    "id": "DI-05",
+    "category": "DI",
+    "q": "Tell me the inventory for all 10,000 of my products",
+    "a": "我为您检索了库存列表。目前系统中实际共有 22 种产品/变体，以下是详细的库存分布情况（每页最多显示 250 条）：\n📦 库存概览表\n产品名称 - 变体SKU地点可用库存 (Available)The Videographer Snowboard-Shop location2The Complete Snowboard (Ice/Dawn/Powder/Electric/Sunset)-Shop location每款 10Selling Plans Ski Wax (3种变体)-Shop location每款 10The Collection Snowboard: Hydrogen-Shop",
+    "status": "PASS"
+  },
+  {
+    "id": "DI-06",
+    "category": "DI",
+    "q": "What is the profit margin for each of my products?",
+    "a": "抱歉，我目前无法为您计算利润率。\n虽然我可以获取产品的销售价格，但目前的系统工具**无法查询到产品的成本（Cost of Goods Sold）**数据。由于缺少成本信息，我无法计算每个产品的利润或利润率。\n如果您能提供产品的成本信息，我非常乐意为您进行计算。目前我可以为您提供产品的价格范围和库存情况，需要查看这些信息吗？",
+    "status": "PASS"
+  }
+]

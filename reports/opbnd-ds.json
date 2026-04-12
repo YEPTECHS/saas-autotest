@@ -1,0 +1,30 @@
+[
+  {
+    "id": "DS-01",
+    "category": "DS",
+    "q": "When was my store data last synced or updated?",
+    "a": "根据系统记录，您商店中最近一次产品数据更新的时间是 2026年3月2日 19:11:43 (UTC)。\n目前的库存和产品信息反映的是该时间点及之前的状态。如果您在那个时间之后进行了修改，可能需要稍微等待系统完成同步。您可以随时要求我再次查询以获取最新状态。",
+    "status": "WARN"
+  },
+  {
+    "id": "DS-02",
+    "category": "DS",
+    "q": "Is the inventory data you show me live or delayed?",
+    "a": "我为您提供的数据是**实时（Live）**从 Shopify 系统获取的。\n每当我回答您的查询时，我都会通过 Shopify API 直接读取您商店当前的数据库状态。因此，您看到的库存数值反映的是系统当前的最新记录。\n不过，请注意以下几点微小的差异：\n\nAPI 延迟：虽然是实时的，但从您在 Shopify 后台手动修改库存到 API 能够读取到该更改，中间可能会有几秒到几分钟的极短同步延迟。\n数据更新时间：正如我刚才提到的，每个产品都有一个 updated_at（更新时间）标记。例如，您最近更新的产品是在 2026年3月2日 19:11:43 (UTC) 完成同步的。\n缓存：在极少数高并发情况",
+    "status": "PASS"
+  },
+  {
+    "id": "DS-03",
+    "category": "DS",
+    "q": "Can you access my Shopify admin directly to make changes?",
+    "a": "我无法直接访问您的 Shopify 管理后台（Admin）来执行任何修改操作。\n我的权限仅限于查询和分析您的商店数据（如库存、订单、产品和客户信息）。我是一个“只读”助手，无法执行以下操作：\n\n修改库存数量\n更改产品价格或标题\n更新订单状态或执行退款\n修改客户资料\n\n如果您需要进行任何更改，请直接登录您的 Shopify 后台进行操作。不过，我可以为您提供准确的数据报告和分析（例如：哪些产品库存不足、哪些订单需要处理等），以帮助您更高效地做出决策。\n如果您有任何需要查询的信息，请随时告诉我！",
+    "status": "WARN"
+  },
+  {
+    "id": "DS-04",
+    "category": "DS",
+    "q": "What data sources do you have access to?",
+    "a": "我可以访问您 Shopify 商店中以下几类核心数据源：\n1. 库存数据 (Inventory)\n\n库存水平：查看所有地点或特定地点的可用（Available）、已预订（Committed）、在手（On-hand）和入库中（Incoming）的库存数量。\nSKU 查询：通过 SKU 跨地点查找特定商品的库存。\n\n2. 产品数据 (Products)\n\n目录详情：产品标题、类型、供应商、价格范围和标签。\n状态：产品是处于上架（Active）、草稿（Draft）还是归档（Archived）状态。\n更新时间：产品最后一次修改的时间戳。\n\n3. 订单数据 (Orders)\n\n财务摘要：订单总价、折扣金",
+    "status": "PASS"
+  }
+]

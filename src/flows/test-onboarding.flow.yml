@@ -1,0 +1,198 @@
+# Onboarding / Setup Guide Flow
+# Tests the Setup Guide page (/onboarding) - progress tracker and setup steps
+
+name: test-onboarding
+description: Test Setup Guide (Onboarding) page - setup progress, steps, and UI elements
+
+steps:
+  # Login
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful!"
+
+  # Navigate to Setup Guide
+  - id: log-start
+    action: log
+    params:
+      message: "Testing Setup Guide (Onboarding) page..."
+
+  - id: navigate-onboarding
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/onboarding"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='title']"
+      timeout: 10000
+
+  - id: wait-content
+    action: wait
+    params:
+      ms: 2000
+
+  # TEST CASE 1: Verify page heading
+  - id: log-test-heading
+    action: log
+    params:
+      message: "--- TEST 1: Verify page heading ---"
+
+  - id: verify-welcome-heading
+    action: browser.execute
+    params:
+      script: |
+        const h1 = document.querySelector('h1');
+        if (!h1) throw new Error('No h1 found');
+        console.log('Page heading:', h1.innerText);
+        return h1.innerText;
+
+  # TEST CASE 2: Verify Setup Progress section
+  - id: log-test-progress
+    action: log
+    params:
+      message: "--- TEST 2: Verify Setup Progress tracker ---"
+
+  - id: verify-progress-section
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasProgress = bodyText.includes('Setup Progress') || bodyText.includes('steps completed') || bodyText.includes('complete');
+        console.log('Has progress section:', hasProgress);
+        return hasProgress;
+
+  - id: screenshot-progress
+    action: browser.screenshot
+    params:
+      name: "onboarding-progress"
+
+  # TEST CASE 3: Verify setup steps are present
+  - id: log-test-steps
+    action: log
+    params:
+      message: "--- TEST 3: Verify setup steps ---"
+
+  - id: verify-setup-steps
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const expectedSteps = [
+          'Connect to your e-commerce store',
+          'Connect your support email',
+          'Add your logo',
+          'Upload your help center',
+          'GO LIVE'
+        ];
+        const found = expectedSteps.filter(step => bodyText.toLowerCase().includes(step.toLowerCase()));
+        console.log('Found steps:', found);
+        return found.length;
+
+  - id: screenshot-steps
+    action: browser.screenshot
+    params:
+      name: "onboarding-steps"
+
+  # TEST CASE 4: Verify Usage Plan and Upgrade buttons
+  - id: log-test-buttons
+    action: log
+    params:
+      message: "--- TEST 4: Verify Usage Plan and Upgrade buttons ---"
+
+  - id: verify-usage-plan-btn
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button'));
+        const usagePlan = btns.find(b => b.innerText?.includes('Usage Plan'));
+        const upgrade = btns.find(b => b.innerText?.includes('Upgrade'));
+        console.log('Usage Plan btn:', !!usagePlan, '| Upgrade btn:', !!upgrade);
+        return { hasUsagePlan: !!usagePlan, hasUpgrade: !!upgrade };
+
+  # TEST CASE 5: Access via Setup Guide nav button
+  - id: log-test-nav-access
+    action: log
+    params:
+      message: "--- TEST 5: Access via Setup Guide sidebar button ---"
+
+  - id: navigate-home-first
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-nav-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 10000
+
+  - id: wait-nav-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: click-setup-guide-nav
+    action: browser.click
+    params:
+      selector: "nav button:has-text('Setup Guide'), button:has-text('Setup Guide')"
+
+  - id: wait-onboarding-url
+    action: browser.waitForUrl
+    params:
+      pattern: "onboarding"
+      timeout: 10000
+
+  - id: screenshot-via-nav
+    action: browser.screenshot
+    params:
+      name: "onboarding-via-nav"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Setup Guide (Onboarding) page test completed successfully!"

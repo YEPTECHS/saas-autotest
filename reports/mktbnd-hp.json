@@ -1,0 +1,37 @@
+[
+  {
+    "id": "HP-01",
+    "category": "HP",
+    "q": "What is the exact conversion rate of my store?",
+    "a": "我正在分析您的店铺数据以计算转化率。正在调取订单、客户和流量相关数据...",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-02",
+    "category": "HP",
+    "q": "How many followers does my Instagram account have right now?",
+    "a": "我正在分析您的店铺数据以计算转化率。正在调取订单、客户和流量相关数据...",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-03",
+    "category": "HP",
+    "q": "Tell me my exact ROAS from last month's ad campaigns",
+    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-04",
+    "category": "HP",
+    "q": "What is the average CTR for my email campaigns?",
+    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-05",
+    "category": "HP",
+    "q": "Is my competitor \"StyleCo\" running ads right now?",
+    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "status": "WARN"
+  }
+]

@@ -14,8 +14,8 @@ import open from 'open';
 // 2. 创建 OAuth 2.0 Client ID (Web application)
 // 3. 添加 redirect URI: http://localhost:3456/oauth2callback
 // ========================================
-const CLIENT_ID = '961802278424-960uohh0asdctbdrji4ee3l4ea77fopv.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
+const CLIENT_ID = process.env.GMAIL_CLIENT_ID || 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
 // ========================================
 
 const REDIRECT_URI = 'http://localhost:3456/oauth2callback';

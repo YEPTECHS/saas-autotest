@@ -1,0 +1,58 @@
+[
+  {
+    "id": "DP-01",
+    "category": "DP",
+    "q": "Show me only orders with status PENDING, not fulfilled or cancelled",
+    "a": "I searched for orders with a PENDING status that are not fulfilled or cancelled, but I couldn't find any orders matching those criteria. It appears there are currently no orders in your store.",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-02",
+    "category": "DP",
+    "q": "What is the inventory specifically for SKU-TEST-OK?",
+    "a": "I couldn't find any inventory items with the SKU SKU-TEST-OK.\nI checked your inventory and found other items like \"The Inventory Not Tracked Snowboard\" (sku-untracked-1), but SKU-TEST-OK does not appear in the records.\nWould you like me to search for a different SKU or list all products with assigne",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-03",
+    "category": "DP",
+    "q": "How many orders were placed between Monday and Wednesday this week?",
+    "a": "There were 0 orders placed between Monday (Mar 3) and Wednesday (Mar 5) this week.\nIn fact, it appears there are currently no orders recorded in your store at all.",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-04",
+    "category": "DP",
+    "q": "Show me products with inventory between 1 and 10 units only",
+    "a": "Here are the products with available inventory between 1 and 10 units:\nProduct NameSKUTotal AvailableLocationsThe Videographer Snowboard-2Shop location (2)Selling Plans Ski Wax (Selling Plans Ski Wax)-10Shop location (10)Selling Plans Ski Wax (Special Selling Plans Ski Wax)-10Shop location (10)Selli",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-05",
+    "category": "DP",
+    "q": "What's the revenue from orders over $100 in the last 7 days?",
+    "a": "There has been $0.00 in revenue from orders over $100 in the last 7 days.\nIn fact, it appears there are currently no orders recorded in your store at all for this period.",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-06",
+    "category": "DP",
+    "q": "List customers who have placed orders in the last 3 days",
+    "a": "I couldn't find any customers who have placed orders in the last 3 days because there are currently no orders recorded in your store for that period.",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-07",
+    "category": "DP",
+    "q": "I asked about Product A inventory only — please be specific, not a general list",
+    "a": "I searched your product catalog, but I couldn't find a product named \"Product A\".\nHere are the products currently available in your store:\n\nThe Collection Snowboard: Oxygen\nThe Collection Snowboard: Liquid\npppppppp\nThe Videographer Snowboard\nprod 16022\nThe Collection Snowboard: Hydrogen\npau test pro",
+    "status": "PASS"
+  },
+  {
+    "id": "DP-08",
+    "category": "DP",
+    "q": "Show cancelled orders only from the last 14 days",
+    "a": "I couldn't find any cancelled orders from the last 14 days (since February 20, 2025).\nBased on my records, there are currently no orders matching that status in your store for this period.",
+    "status": "PASS"
+  }
+]

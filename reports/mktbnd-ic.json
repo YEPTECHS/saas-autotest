@@ -1,0 +1,58 @@
+[
+  {
+    "id": "IC-01",
+    "category": "IC",
+    "q": "Write a blog post about eco-friendly packaging in exactly 3 paragraphs",
+    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "status": "FAIL"
+  },
+  {
+    "id": "IC-02",
+    "category": "IC",
+    "q": "Give me exactly 5 SEO keywords for \"organic face cream\" — numbered list only",
+    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "status": "WARN"
+  },
+  {
+    "id": "IC-03",
+    "category": "IC",
+    "q": "Write an Instagram caption for summer sale in under 50 words",
+    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "status": "PASS"
+  },
+  {
+    "id": "IC-04",
+    "category": "IC",
+    "q": "Write product descriptions for a leather wallet in both English and Chinese",
+    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "status": "FAIL"
+  },
+  {
+    "id": "IC-05",
+    "category": "IC",
+    "q": "Give me a marketing strategy for my store using bullet points only, no paragraphs",
+    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "status": "WARN"
+  },
+  {
+    "id": "IC-06",
+    "category": "IC",
+    "q": "Write a blog title and ONE sentence summary for 5 different blog topics about skincare",
+    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "status": "WARN"
+  },
+  {
+    "id": "IC-07",
+    "category": "IC",
+    "q": "Suggest 3 Instagram post ideas for my coffee brand — keep each idea under 20 words",
+    "a": "I'm researching current Instagram engagement trends for coffee brands in 2026 to provide you with high-performing post ideas.",
+    "status": "WARN"
+  },
+  {
+    "id": "IC-08",
+    "category": "IC",
+    "q": "Write a promotional email subject line for a flash sale — no more than 8 words",
+    "a": "Rare Opportunity: 30% Off The Oxygen Series",
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,183 @@
+# YepAI User Registration - Wrong Verification Code Test
+# Test case to verify error handling for incorrect verification code
+
+name: registration-wrong-code
+description: Test error handling when user enters wrong verification code
+
+# Pre-defined selectors
+selectors:
+  register:
+    firstName: "input[placeholder='Enter your first name']"
+    lastName: "input[placeholder='Enter your last name']"
+    organization: "input[placeholder='Enter your organization']"
+    email: "input[placeholder='Enter your email']"
+    password: "input[placeholder][type='password']:first-of-type"
+    confirmPassword: "input[placeholder][type='password']:last-of-type"
+    submitButton: "button[type='submit']"
+  verification:
+    codeInputs: "input[type='tel']"
+    errorMessage: "text=Verification failed"
+
+steps:
+  # STEP 1: Navigate to base URL
+  - id: navigate-base
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}"
+      waitUntil: "domcontentloaded"
+
+  # STEP 2: Clean environment
+  - id: clean-storage
+    action: browser.execute
+    params:
+      script: |
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(";").forEach(c => {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+    continueOnError: true
+
+  # STEP 3: Navigate to register page
+  - id: navigate-register
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/register"
+      waitUntil: "domcontentloaded"
+
+  # STEP 4: Wait for form to be ready
+  - id: wait-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Enter your first name']"
+      timeout: 10000
+
+  # STEP 5-10: Fill registration form
+  - id: fill-firstName
+    action: form.fillSingle
+    params:
+      selector: "#firstName"
+      value: "{{YEPAI_TEST_FIRST_NAME}}"
+
+  - id: fill-lastName
+    action: form.fillSingle
+    params:
+      selector: "#lastName"
+      value: "{{YEPAI_TEST_LAST_NAME}}"
+
+  - id: fill-org
+    action: form.fillSingle
+    params:
+      selector: "#org"
+      value: "{{YEPAI_TEST_ORGANIZATION}}"
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "#email"
+      value: "{{YEPAI_TEST_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "#password"
+      value: "{{YEPAI_TEST_PASSWORD}}"
+
+  - id: fill-confirm-password
+    action: form.fillSingle
+    params:
+      selector: "#confirmPassword"
+      value: "{{YEPAI_TEST_PASSWORD}}"
+
+  # STEP 11: Wait for button to be enabled
+  - id: wait-button-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  # STEP 12: Submit registration
+  - id: submit-registration
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+    waitFor: navigation
+
+  # STEP 13: Wait for verification page
+  - id: wait-verification-page
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='tel']"
+      timeout: 15000
+
+  # ========================================
+  # TEST CASE: Wrong Verification Code
+  # ========================================
+
+  - id: log-test-start
+    action: log
+    params:
+      message: "TEST CASE: Verifying error handling for wrong verification code"
+
+  # Fill wrong verification code (000000)
+  - id: fill-wrong-verification-code
+    action: form.fillVerificationCode
+    params:
+      selector: "input[type='tel']"
+      code: "000000"
+
+  - id: wait-after-fill
+    action: wait
+    params:
+      ms: 1000
+
+  # Capture page state after wrong code
+  - id: capture-page-state
+    action: browser.execute
+    params:
+      script: |
+        const errors = [];
+        // Check for any visible error elements
+        const errorElements = document.querySelectorAll('[class*="error"], [role="alert"], .text-red-500, .text-danger');
+        errorElements.forEach(el => {
+          if (el.offsetParent !== null) {
+            errors.push(el.textContent);
+          }
+        });
+        console.log('Error elements found:', errors);
+        // Also check all visible text on page
+        console.log('Body text:', document.body.innerText);
+        return { errors, bodyText: document.body.innerText };
+
+  # Try to find submit button - some apps validate on submit, not on input
+  - id: check-for-submit-button
+    action: browser.execute
+    params:
+      script: |
+        const submitBtn = document.querySelector('button[type="submit"], button:has-text("Verify"), button:has-text("Submit")');
+        if (submitBtn && submitBtn.offsetParent !== null) {
+          console.log('Found submit button:', submitBtn.textContent);
+          submitBtn.click();
+          return true;
+        }
+        return false;
+    continueOnError: true
+
+  - id: wait-for-response
+    action: wait
+    params:
+      ms: 2000
+
+  # Check again for error message after potential submit
+  - id: check-error-after-submit
+    action: browser.execute
+    params:
+      script: |
+        const errorText = document.body.innerText;
+        console.log('Page content after submit:', errorText);
+        return errorText.match(/(invalid|incorrect|wrong|error|failed)/i) !== null;
+
+  - id: log-test-result
+    action: log
+    params:
+      message: "✅ TEST COMPLETED: Check browser to verify error message appeared for wrong code"

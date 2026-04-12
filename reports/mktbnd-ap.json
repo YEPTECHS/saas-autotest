@@ -1,0 +1,72 @@
+[
+  {
+    "id": "AP-01",
+    "category": "AP",
+    "q": "My product photos look dull. How can I improve them?",
+    "a": "High-end product photography is all about lighting, texture, and storytelling. I'll research some professional techniques and generate a \"before and after\" style concept to show you how to make your gear pop.",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-02",
+    "category": "AP",
+    "q": "My Instagram engagement is low. What should I change?",
+    "a": "I'm analyzing your current product catalog and researching 2026 Instagram engagement trends to give you a specific strategy to boost your numbers.",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-03",
+    "category": "AP",
+    "q": "I want more traffic to my store. What's the best channel?",
+    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "status": "FAIL"
+  },
+  {
+    "id": "AP-04",
+    "category": "AP",
+    "q": "Why is my email open rate so low?",
+    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "status": "FAIL"
+  },
+  {
+    "id": "AP-05",
+    "category": "AP",
+    "q": "What's the difference between a campaign and a promotion?",
+    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "status": "FAIL"
+  },
+  {
+    "id": "AP-06",
+    "category": "AP",
+    "q": "Should I use Facebook Ads or Google Ads for my fashion store?",
+    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "status": "FAIL"
+  },
+  {
+    "id": "AP-07",
+    "category": "AP",
+    "q": "How do I measure the ROI of my marketing campaigns?",
+    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "status": "FAIL"
+  },
+  {
+    "id": "AP-08",
+    "category": "AP",
+    "q": "My competitor has better product images. How do I compete?",
+    "a": "I'm developing a visual strategy to help you outshine your competitors. Instead of just trying to match their high-gloss photos, I'll show you how to leverage 'Technical Mastery' and 'Quiet Luxury' to build more trust with premium buyers. I'm also generating a sample 'Technical Macro' shot to show y",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-09",
+    "category": "AP",
+    "q": "What tone of voice should I use in my marketing copy?",
+    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-10",
+    "category": "AP",
+    "q": "I sell luxury watches. What marketing approach fits best?",
+    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "status": "PASS"
+  }
+]

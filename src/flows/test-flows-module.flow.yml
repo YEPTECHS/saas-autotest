@@ -1,0 +1,541 @@
+# Flows Module Test
+# Tests the Flows page (/flow) - 4 workflows:
+# Email collection, Abandoned cart recovery, Welcome message, Multilingual Support
+
+name: test-flows-module
+description: Test Flows module - verify all 4 workflows exist, status, and Manage expand/collapse
+
+steps:
+  # Login
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful!"
+
+  # Navigate to Flows
+  - id: navigate-flows
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/flow"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1"
+      timeout: 10000
+
+  - id: wait-content
+    action: wait
+    params:
+      ms: 2000
+
+  # TEST CASE 1: Verify page heading
+  - id: log-test-heading
+    action: log
+    params:
+      message: "--- TEST 1: Verify page heading ---"
+
+  - id: verify-heading
+    action: browser.execute
+    params:
+      script: |
+        const hasFlows = document.body.innerText.includes('Flows');
+        console.log('Has Flows heading:', hasFlows);
+        return hasFlows;
+
+  - id: screenshot-page
+    action: browser.screenshot
+    params:
+      name: "flows-module-page"
+
+  # TEST CASE 2: Verify all 4 workflows exist
+  - id: log-test-workflows
+    action: log
+    params:
+      message: "--- TEST 2: Verify all 4 workflows exist ---"
+
+  - id: verify-all-workflows
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const workflows = [
+          'Email collection',
+          'Abandoned cart recovery',
+          'Welcome message',
+          'Multilingual Support'
+        ];
+        const found = workflows.filter(w => bodyText.includes(w));
+        console.log('Workflows found:', found);
+        if (found.length !== 4) throw new Error(`Expected 4 workflows, found: ${found.length}. Missing: ${workflows.filter(w => !found.includes(w))}`);
+        return found.length;
+
+  # TEST CASE 3: Verify all workflows are Active
+  - id: log-test-status
+    action: log
+    params:
+      message: "--- TEST 3: Verify workflow Active status ---"
+
+  - id: verify-active-status
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const activeCount = (bodyText.match(/Active/g) || []).length;
+        console.log('Active statuses found:', activeCount);
+        return activeCount >= 4;
+
+  # TEST CASE 4: Verify 4 Manage buttons exist
+  - id: log-test-manage-buttons
+    action: log
+    params:
+      message: "--- TEST 4: Verify Manage buttons ---"
+
+  - id: verify-manage-buttons
+    action: browser.execute
+    params:
+      script: |
+        const manageBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        console.log('Manage buttons count:', manageBtns.length);
+        return manageBtns.length;
+
+  # TEST CASE 5: Expand Email collection workflow
+  - id: log-test-email-collection
+    action: log
+    params:
+      message: "--- TEST 5: Expand Email collection Manage ---"
+
+  - id: click-email-collection-manage
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        if (btns.length === 0) throw new Error('No Manage buttons found');
+        btns[0].click();
+
+  - id: wait-email-collection-expand
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-email-collection-options
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasTrigger = bodyText.includes('Trigger') || bodyText.includes('trigger');
+        const hasCancel = bodyText.includes('Cancel');
+        const hasConfirm = bodyText.includes('Confirm');
+        console.log('Trigger settings:', hasTrigger, '| Cancel:', hasCancel, '| Confirm:', hasConfirm);
+        return { hasTrigger, hasCancel, hasConfirm };
+
+  - id: screenshot-email-collection-expanded
+    action: browser.screenshot
+    params:
+      name: "flows-email-collection-expanded"
+
+  # TEST CASE 6: Change radio option and Confirm (save)
+  - id: log-test-change-radio
+    action: log
+    params:
+      message: "--- TEST 6: Change trigger to 'Show immediately' and Confirm ---"
+
+  - id: click-radio-immediately
+    action: browser.execute
+    params:
+      script: |
+        const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
+        const immediatelyRadio = radios.find(r => r.value === 'yes');
+        if (!immediatelyRadio) throw new Error('Radio "Show immediately" not found');
+        immediatelyRadio.click();
+
+  - id: wait-after-radio-change
+    action: wait
+    params:
+      ms: 500
+
+  - id: verify-radio-changed
+    action: browser.execute
+    params:
+      script: |
+        const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
+        const immediately = radios.find(r => r.value === 'yes');
+        console.log('Show immediately selected:', immediately?.checked);
+        return immediately?.checked;
+
+  - id: screenshot-radio-changed
+    action: browser.screenshot
+    params:
+      name: "flows-email-radio-changed"
+
+  - id: click-confirm-save
+    action: browser.execute
+    params:
+      script: |
+        const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Confirm');
+        if (!confirmBtn) throw new Error('Confirm button not found');
+        confirmBtn.click();
+
+  - id: wait-after-confirm
+    action: wait
+    params:
+      ms: 1500
+
+  - id: verify-saved-collapsed
+    action: browser.execute
+    params:
+      script: |
+        const manageBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        console.log('Manage buttons after Confirm:', manageBtns.length);
+        return manageBtns.length >= 4;
+
+  - id: screenshot-after-confirm
+    action: browser.screenshot
+    params:
+      name: "flows-email-after-confirm"
+
+  # Revert back to original setting
+  - id: log-revert-radio
+    action: log
+    params:
+      message: "Reverting Email collection trigger back to original..."
+
+  - id: click-email-manage-again
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        btns[0].click();
+
+  - id: wait-reopen
+    action: wait
+    params:
+      ms: 1000
+
+  - id: revert-radio-to-original
+    action: browser.execute
+    params:
+      script: |
+        const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
+        const afterRadio = radios.find(r => r.value === 'no');
+        if (afterRadio) afterRadio.click();
+
+  - id: click-confirm-revert
+    action: browser.execute
+    params:
+      script: |
+        const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Confirm');
+        if (confirmBtn) confirmBtn.click();
+
+  - id: wait-after-revert
+    action: wait
+    params:
+      ms: 1000
+
+  # TEST CASE 7: Abandoned cart recovery - open modal, edit message, save
+  - id: log-test-abandoned-cart
+    action: log
+    params:
+      message: "--- TEST 7: Abandoned cart recovery - edit message and Save ---"
+
+  - id: click-abandoned-cart-manage
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        if (btns.length < 2) throw new Error('Not enough Manage buttons');
+        btns[1].click();
+
+  - id: wait-modal-open
+    action: wait
+    params:
+      ms: 3000
+
+  - id: wait-modal-selector
+    action: browser.waitForSelector
+    params:
+      selector: "[data-slot='wrapper']"
+      timeout: 8000
+
+  - id: screenshot-modal-opened
+    action: browser.screenshot
+    params:
+      name: "flows-abandoned-cart-modal"
+
+  - id: verify-modal-content
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[data-slot="wrapper"]');
+        if (!modal) throw new Error('Modal not found');
+        // Try to find textarea - may need to expand accordion first
+        let textarea = modal.querySelector('textarea[placeholder="Enter your message"]') || modal.querySelector('textarea');
+        if (!textarea) {
+          // Try expanding first message section
+          const firstMsgBtn = Array.from(modal.querySelectorAll('button')).find(b => b.innerText?.includes('First message'));
+          if (firstMsgBtn) firstMsgBtn.click();
+          textarea = modal.querySelector('textarea[placeholder="Enter your message"]') || modal.querySelector('textarea');
+        }
+        if (!textarea) throw new Error('Textarea not found in modal');
+        console.log('Current message:', textarea.value);
+        return textarea.value;
+
+  - id: wait-after-modal-check
+    action: wait
+    params:
+      ms: 800
+
+  - id: log-test-edit-message
+    action: log
+    params:
+      message: "--- TEST 7a: Edit first message text ---"
+
+  - id: clear-and-edit-textarea
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[data-slot="wrapper"]');
+        const textarea = modal.querySelector('textarea[placeholder="Enter your message"]');
+        if (!textarea) throw new Error('Message textarea not found');
+        textarea.focus();
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+        nativeInputValueSetter.call(textarea, 'Order is almost complete! Tell us why you abandoned the cart and get 10% off!');
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        console.log('Textarea updated to:', textarea.value);
+        return textarea.value;
+
+  - id: wait-after-edit
+    action: wait
+    params:
+      ms: 500
+
+  - id: screenshot-message-edited
+    action: browser.screenshot
+    params:
+      name: "flows-abandoned-cart-message-edited"
+
+  - id: click-save-modal
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[data-slot="wrapper"]');
+        const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Save');
+        if (!saveBtn) throw new Error('Save button not found in modal');
+        saveBtn.click();
+
+  - id: wait-after-save
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-after-save
+    action: browser.screenshot
+    params:
+      name: "flows-abandoned-cart-after-save"
+
+  # Revert - reopen modal and restore original message
+  - id: log-revert-message
+    action: log
+    params:
+      message: "Reverting abandoned cart message to original..."
+
+  - id: reopen-abandoned-cart
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        btns[1].click();
+
+  - id: wait-modal-reopen
+    action: wait
+    params:
+      ms: 3000
+
+  - id: restore-original-message
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[data-slot="wrapper"]');
+        if (!modal) throw new Error('Modal not found for revert');
+        let textarea = modal.querySelector('textarea[placeholder="Enter your message"]') || modal.querySelector('textarea');
+        if (!textarea) {
+          const firstMsgBtn = Array.from(modal.querySelectorAll('button')).find(b => b.innerText?.includes('First message'));
+          if (firstMsgBtn) firstMsgBtn.click();
+          textarea = modal.querySelector('textarea[placeholder="Enter your message"]') || modal.querySelector('textarea');
+        }
+        if (!textarea) throw new Error('Message textarea not found for revert');
+        textarea.focus();
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+        nativeInputValueSetter.call(textarea, 'Order is almost complete! Can you tell us why you abandoned the cart, please');
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+  - id: click-save-revert
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[data-slot="wrapper"]');
+        const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Save');
+        if (saveBtn) saveBtn.click();
+
+  - id: wait-after-revert-save
+    action: wait
+    params:
+      ms: 1500
+
+  # TEST CASE 8: Expand Welcome message
+  - id: log-test-welcome
+    action: log
+    params:
+      message: "--- TEST 8: Expand Welcome message ---"
+
+  - id: click-welcome-manage
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        if (btns.length < 3) throw new Error('Not enough Manage buttons');
+        btns[2].click();
+
+  - id: wait-welcome-expand
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-welcome
+    action: browser.screenshot
+    params:
+      name: "flows-welcome-message-expanded"
+
+  - id: click-cancel-3
+    action: browser.execute
+    params:
+      script: |
+        const cancelBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Cancel');
+        if (cancelBtn) cancelBtn.click();
+
+  - id: wait-after-cancel-3
+    action: wait
+    params:
+      ms: 500
+
+  # TEST CASE 9: Expand Multilingual Support
+  - id: log-test-multilingual
+    action: log
+    params:
+      message: "--- TEST 9: Expand Multilingual Support ---"
+
+  - id: click-multilingual-manage
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText?.trim() === 'Manage');
+        if (btns.length < 4) throw new Error('Not enough Manage buttons');
+        btns[3].click();
+
+  - id: wait-multilingual-expand
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-multilingual
+    action: browser.screenshot
+    params:
+      name: "flows-multilingual-expanded"
+
+  - id: click-cancel-4
+    action: browser.execute
+    params:
+      script: |
+        const cancelBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Cancel');
+        if (cancelBtn) cancelBtn.click();
+
+  - id: wait-after-cancel-4
+    action: wait
+    params:
+      ms: 500
+
+  # TEST CASE 10: Access Flows via sidebar nav
+  - id: log-test-nav-access
+    action: log
+    params:
+      message: "--- TEST 10: Access Flows via sidebar ---"
+
+  - id: navigate-home-first
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-nav-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 10000
+
+  - id: wait-nav-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: click-flows-nav
+    action: browser.click
+    params:
+      selector: "nav button:has-text('Flows')"
+
+  - id: wait-flows-url
+    action: browser.waitForUrl
+    params:
+      pattern: "flow"
+      timeout: 10000
+
+  - id: screenshot-via-nav
+    action: browser.screenshot
+    params:
+      name: "flows-via-nav"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Flows module test completed successfully!"

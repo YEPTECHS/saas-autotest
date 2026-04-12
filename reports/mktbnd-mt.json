@@ -1,0 +1,37 @@
+[
+  {
+    "id": "MT-01",
+    "category": "MT",
+    "q": "Write me an Instagram caption for a new product",
+    "a": "I'm researching current Instagram engagement trends for luxury technical brands and generating a custom image for your new product announcement. I'll have that caption ready for you in a moment!",
+    "status": "FAIL"
+  },
+  {
+    "id": "MT-02",
+    "category": "MT",
+    "q": "Write a short product description",
+    "a": "I'm digging up some high-performance keywords for your Oxygen series snowboard to make sure this description hits the mark! 🏂✨ I'll have a playful and punchy description ready for you in a flash. ⚡️",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-03",
+    "category": "MT",
+    "q": "What SEO keywords should I focus on?",
+    "a": "I've been digging through the deepest snowbanks of search data to find the golden keywords for your brand! 🏔️✨ Since it's off-season for half the world but prime-time for the other half, I've built a strategy that captures both. I'm putting the finishing touches on your tailored SEO roadmap now! 🚀",
+    "status": "FAIL"
+  },
+  {
+    "id": "MT-04",
+    "category": "MT",
+    "q": "Help me write a marketing message for our launch announcement",
+    "a": "I'll help you craft a high-impact launch message in Japanese, blending your playful brand voice with the technical authority Japanese luxury consumers expect. I'm also generating a celebration-themed visual to mark this milestone!",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-05",
+    "category": "MT",
+    "q": "Recommend a marketing plan for me",
+    "a": "I'll help you craft a high-impact launch message in Japanese, blending your playful brand voice with the technical authority Japanese luxury consumers expect. I'm also generating a celebration-themed visual to mark this milestone!",
+    "status": "WARN"
+  }
+]

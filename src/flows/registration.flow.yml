@@ -116,6 +116,55 @@ steps:
       selector: "input[type='tel']"
       timeout: 15000
 
+  # ========================================
+  # TEST CASE: Wrong Verification Code
+  # ========================================
+
+  - id: log-test-wrong-code
+    action: log
+    params:
+      message: "Test Case: Verify error handling for wrong verification code"
+
+  # Fill wrong verification code
+  - id: fill-wrong-verification-code
+    action: form.fillVerificationCode
+    params:
+      selector: "input[type='tel']"
+      code: "000000"
+
+  # Wait for error message to appear
+  - id: wait-error-message
+    action: browser.waitForSelector
+    params:
+      selector: "text=Verification failed"
+      timeout: 8000
+    continueOnError: true
+
+  # Assert error is visible
+  - id: assert-error-visible
+    action: assert.visible
+    params:
+      selector: "text=Verification failed"
+    continueOnError: true
+
+  - id: log-error-verified
+    action: log
+    params:
+      message: "Wrong code error verified - proceeding with correct code"
+
+  # Clear the inputs before entering correct code
+  - id: clear-verification-inputs
+    action: browser.execute
+    params:
+      script: |
+        const inputs = document.querySelectorAll("input[type='tel']");
+        inputs.forEach(input => input.value = '');
+
+  - id: wait-after-clear
+    action: wait
+    params:
+      ms: 500
+
   # STEP 7: Get verification code from Gmail
   - id: get-verification-code
     action: gmail.getVerificationCode

@@ -39,6 +39,7 @@ program
   .option('-h, --headless', 'Run in headless mode', false)
   .option('-s, --slow-mo <ms>', 'Slow down operations', '100')
   .option('-t, --timeout <ms>', 'Default timeout', '30000')
+  .option('--keep-open', 'Keep browser open after test completes', false)
   .option('--var <vars...>', 'Additional variables (key=value)')
   .action(async (flowName: string, options) => {
     console.log(chalk.blue(`\n🚀 YepAI E2E Automation\n`));
@@ -153,7 +154,13 @@ program
       console.error(error instanceof Error ? error.message : error);
       process.exitCode = 1;
     } finally {
-      await closeBrowser();
+      if (!options.keepOpen) {
+        await closeBrowser();
+      } else {
+        console.log(chalk.yellow(`\n⏸️  Browser left open. Press Ctrl+C to close when done.`));
+        // Keep process alive
+        await new Promise(() => {});
+      }
     }
   });
 

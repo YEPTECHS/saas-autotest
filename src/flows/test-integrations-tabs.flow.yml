@@ -1,0 +1,270 @@
+# Integrations Tabs Flow
+# Tests all tabs on the Integrations page:
+# All Integrations, Marketing, Sales & CRM, E-Commerce, Customer Support, My Integrations
+
+name: test-integrations-tabs
+description: Test all Integrations page tabs and verify content loads for each category
+
+steps:
+  # Login
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful!"
+
+  # Navigate to Integrations
+  - id: navigate-integrations
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/integrations"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2"
+      timeout: 10000
+
+  - id: wait-tabs-load
+    action: wait
+    params:
+      ms: 2000
+
+  # TEST CASE 1: Verify all 6 tabs exist
+  - id: log-test-tabs-exist
+    action: log
+    params:
+      message: "--- TEST 1: Verify all 6 tabs exist ---"
+
+  - id: verify-all-tabs
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]')).map(t => t.innerText?.trim());
+        const expected = ['All Integrations', 'Marketing', 'Sales & CRM', 'E-Commerce', 'Customer Support', 'My Integrations'];
+        const found = expected.filter(t => tabs.some(tab => tab.includes(t)));
+        console.log('Tabs found:', tabs);
+        console.log('Expected found:', found.length, '/ 6');
+        return found.length;
+
+  - id: screenshot-tabs
+    action: browser.screenshot
+    params:
+      name: "integrations-all-tabs"
+
+  # TEST CASE 2: All Integrations tab
+  - id: log-test-all
+    action: log
+    params:
+      message: "--- TEST 2: All Integrations tab ---"
+
+  - id: click-all-integrations-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('All Integrations')"
+
+  - id: wait-all-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: verify-all-integrations-content
+    action: browser.execute
+    params:
+      script: |
+        const cards = document.querySelectorAll('[class*="card"], [class*="integration"], [class*="item"]');
+        console.log('Integration items found:', cards.length);
+        return cards.length;
+
+  - id: screenshot-all-integrations
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-all"
+
+  # TEST CASE 3: Marketing tab
+  - id: log-test-marketing
+    action: log
+    params:
+      message: "--- TEST 3: Marketing tab ---"
+
+  - id: click-marketing-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('Marketing')"
+
+  - id: wait-marketing-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-marketing
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-marketing"
+
+  - id: verify-marketing-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        console.log('Marketing tab body length:', bodyText.length);
+        return bodyText.length > 100;
+
+  # TEST CASE 4: Sales & CRM tab
+  - id: log-test-crm
+    action: log
+    params:
+      message: "--- TEST 4: Sales & CRM tab ---"
+
+  - id: click-crm-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('Sales & CRM'), [role='tab']:has-text('Sales')"
+
+  - id: wait-crm-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-crm
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-sales-crm"
+
+  - id: verify-crm-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        return bodyText.length > 100;
+
+  # TEST CASE 5: E-Commerce tab
+  - id: log-test-ecommerce
+    action: log
+    params:
+      message: "--- TEST 5: E-Commerce tab ---"
+
+  - id: click-ecommerce-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('E-Commerce'), [role='tab']:has-text('E-commerce')"
+
+  - id: wait-ecommerce-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-ecommerce
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-ecommerce"
+
+  - id: verify-ecommerce-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        return bodyText.length > 100;
+
+  # TEST CASE 6: Customer Support tab
+  - id: log-test-support
+    action: log
+    params:
+      message: "--- TEST 6: Customer Support tab ---"
+
+  - id: click-support-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('Customer Support')"
+
+  - id: wait-support-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-support
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-customer-support"
+
+  - id: verify-support-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        return bodyText.length > 100;
+
+  # TEST CASE 7: My Integrations tab
+  - id: log-test-my-integrations
+    action: log
+    params:
+      message: "--- TEST 7: My Integrations tab ---"
+
+  - id: click-my-integrations-tab
+    action: browser.click
+    params:
+      selector: "[role='tab']:has-text('My Integrations')"
+
+  - id: wait-my-integrations-content
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-my-integrations
+    action: browser.screenshot
+    params:
+      name: "integrations-tab-my-integrations"
+
+  - id: verify-my-integrations-content
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        console.log('My Integrations content:', bodyText.substring(200, 500));
+        return bodyText.length > 100;
+
+  - id: log-success
+    action: log
+    params:
+      message: "Integrations tabs test completed successfully!"

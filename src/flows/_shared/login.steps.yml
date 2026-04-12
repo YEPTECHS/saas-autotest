@@ -40,7 +40,7 @@ steps:
   - id: wait-dashboard
     action: browser.waitForUrl
     params:
-      pattern: "dashboard|home|ai-training|analytics|customers"
+      pattern: "dashboard|home|ai-training|analytics|customers|onboarding"
       timeout: 30000
 
   - id: log-login-success

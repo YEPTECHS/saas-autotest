@@ -1,0 +1,37 @@
+[
+  {
+    "id": "LC-01",
+    "category": "LC",
+    "q": "请帮我写一段Instagram的文案，主题是秋季新品",
+    "a": "好的！针对您的奢侈品定位和“技术型专业”受众，我为您准备了三段不同风格的秋季新品Instagram文案。我会结合 2026 年的“静奢风 (Quiet Luxury)”趋势和您的品牌特色，并为您生成一张极具质感的秋季氛围视觉图。",
+    "status": "PASS"
+  },
+  {
+    "id": "LC-02",
+    "category": "LC",
+    "q": "Write me a blog post title about winter skincare",
+    "a": "好的！针对您的奢侈品定位和“技术型专业”受众，我为您准备了三段不同风格的秋季新品Instagram文案。我会结合 2026 年的“静奢风 (Quiet Luxury)”趋势和您的品牌特色，并为您生成一张极具质感的秋季氛围视觉图。",
+    "status": "PASS"
+  },
+  {
+    "id": "LC-03",
+    "category": "LC",
+    "q": "我的品牌风格是高端简约，帮我生成5个关键词",
+    "a": "好的！针对您的奢侈品定位和“技术型专业”受众，我为您准备了三段不同风格的秋季新品Instagram文案。我会结合 2026 年的“静奢风 (Quiet Luxury)”趋势和您的品牌特色，并为您生成一张极具质感的秋季氛围视觉图。",
+    "status": "PASS"
+  },
+  {
+    "id": "LC-04",
+    "category": "LC",
+    "q": "What are the best marketing strategies?",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "PASS"
+  },
+  {
+    "id": "LC-05",
+    "category": "LC",
+    "q": "Can you mix Chinese and English in your marketing suggestions? 用中英文混合回答",
+    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "status": "WARN"
+  }
+]

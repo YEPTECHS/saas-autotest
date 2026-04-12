@@ -1,0 +1,375 @@
+# Live Chat Module Test
+# Tests the Live Chat: Human Agent Setup page (/settings/config)
+# Covers: page structure, setup form, language dropdown, phone input,
+#         passcode button state, Your Agents section, Refresh button
+
+name: test-live-chat
+description: Test Live Chat Human Agent Setup page - form fields, agent list, and interactions
+
+steps:
+  # Login
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful!"
+
+  # Navigate to Live Chat Config
+  - id: navigate-live-chat
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/config"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1"
+      timeout: 10000
+
+  - id: wait-content
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-page
+    action: browser.screenshot
+    params:
+      name: "live-chat-page"
+
+  # TEST CASE 1: Verify page heading and description
+  - id: log-test-heading
+    action: log
+    params:
+      message: "--- TEST 1: Verify page heading ---"
+
+  - id: verify-heading
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasHeading = bodyText.includes('Live Chat: Human Agent Setup');
+        const hasDesc = bodyText.includes('Bind WhatsApp') || bodyText.includes('human agents');
+        console.log('Heading:', hasHeading, '| Description:', hasDesc);
+        return { hasHeading, hasDesc };
+
+  # TEST CASE 2: Verify Name input field
+  - id: log-test-name-field
+    action: log
+    params:
+      message: "--- TEST 2: Verify Name input field ---"
+
+  - id: verify-name-input
+    action: browser.execute
+    params:
+      script: |
+        const input = document.querySelector('input[placeholder="Enter agent name"]');
+        if (!input) throw new Error('Name input not found');
+        console.log('Name input found, placeholder:', input.placeholder);
+        return true;
+
+  - id: fill-agent-name
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Enter agent name']"
+      value: "Test Agent"
+
+  - id: screenshot-name-filled
+    action: browser.screenshot
+    params:
+      name: "live-chat-name-filled"
+
+  # TEST CASE 3: Verify Preferred Language dropdown
+  - id: log-test-language
+    action: log
+    params:
+      message: "--- TEST 3: Verify Preferred Language dropdown ---"
+
+  - id: verify-language-dropdown
+    action: browser.execute
+    params:
+      script: |
+        const selects = Array.from(document.querySelectorAll('select'));
+        const langSelect = selects.find(s => s.value === 'english' || Array.from(s.options).some(o => o.text === 'English'));
+        if (!langSelect) throw new Error('Language dropdown not found');
+        const options = Array.from(langSelect.options).map(o => o.text);
+        console.log('Language options:', options);
+        return options;
+
+  - id: change-language-to-spanish
+    action: browser.execute
+    params:
+      script: |
+        const selects = Array.from(document.querySelectorAll('select'));
+        const langSelect = selects.find(s => s.value === 'english' || Array.from(s.options).some(o => o.text === 'English'));
+        if (!langSelect) throw new Error('Language dropdown not found');
+        langSelect.value = 'spanish';
+        langSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('Changed to Spanish, value:', langSelect.value);
+        return langSelect.value;
+
+  - id: wait-after-language-change
+    action: wait
+    params:
+      ms: 500
+
+  - id: screenshot-language-changed
+    action: browser.screenshot
+    params:
+      name: "live-chat-language-changed"
+
+  - id: revert-language-to-english
+    action: browser.execute
+    params:
+      script: |
+        const selects = Array.from(document.querySelectorAll('select'));
+        const langSelect = selects.find(s => Array.from(s.options).some(o => o.text === 'English'));
+        if (langSelect) {
+          langSelect.value = 'english';
+          langSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+  # TEST CASE 4: Verify Phone Number input
+  - id: log-test-phone
+    action: log
+    params:
+      message: "--- TEST 4: Verify Phone Number input ---"
+
+  - id: verify-phone-input
+    action: browser.execute
+    params:
+      script: |
+        const phoneInput = document.querySelector('input[type="tel"], input.PhoneInputInput, input[placeholder*="phone" i]');
+        if (!phoneInput) throw new Error('Phone input not found');
+        console.log('Phone input found, type:', phoneInput.type);
+        return true;
+
+  - id: fill-phone-number
+    action: form.fillSingle
+    params:
+      selector: "input[type='tel'], input.PhoneInputInput"
+      value: "412345678"
+
+  - id: wait-after-phone
+    action: wait
+    params:
+      ms: 500
+
+  - id: screenshot-phone-filled
+    action: browser.screenshot
+    params:
+      name: "live-chat-phone-filled"
+
+  # TEST CASE 5: Verify Get on-time passcode button becomes enabled
+  - id: log-test-passcode-btn
+    action: log
+    params:
+      message: "--- TEST 5: Verify passcode button state ---"
+
+  - id: verify-passcode-button
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.includes('passcode') || b.innerText?.includes('Get on-time'));
+        if (!btn) throw new Error('Passcode button not found');
+        const isDisabled = btn.disabled || btn.getAttribute('data-disabled') === 'true';
+        console.log('Passcode button found, disabled:', isDisabled);
+        return { found: true, disabled: isDisabled };
+
+  - id: screenshot-passcode-btn
+    action: browser.screenshot
+    params:
+      name: "live-chat-passcode-button"
+
+  # TEST CASE 6: Verify Cancel button
+  - id: log-test-cancel
+    action: log
+    params:
+      message: "--- TEST 6: Verify Cancel button clears form ---"
+
+  - id: verify-cancel-button
+    action: browser.execute
+    params:
+      script: |
+        const cancelBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Cancel');
+        if (!cancelBtn) throw new Error('Cancel button not found');
+        cancelBtn.click();
+        return true;
+
+  - id: wait-after-cancel
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-form-cleared
+    action: browser.execute
+    params:
+      script: |
+        const nameInput = document.querySelector('input[placeholder="Enter agent name"]');
+        const phoneInput = document.querySelector('input[type="tel"], input.PhoneInputInput');
+        console.log('Name after cancel:', nameInput?.value, '| Phone after cancel:', phoneInput?.value);
+        return { nameCleared: !nameInput?.value, phoneCleared: !phoneInput?.value };
+
+  - id: screenshot-after-cancel
+    action: browser.screenshot
+    params:
+      name: "live-chat-after-cancel"
+
+  # TEST CASE 7: Verify Your Agents section
+  - id: log-test-agents-section
+    action: log
+    params:
+      message: "--- TEST 7: Verify Your Agents section ---"
+
+  - id: verify-agents-section
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasAgentsSection = bodyText.includes('Your Agents');
+        const hasAgentCount = bodyText.includes('agent configured') || bodyText.includes('agents configured');
+        const hasWhatsapp = bodyText.includes('WHATSAPP') || bodyText.includes('WhatsApp');
+        console.log('Has Agents section:', hasAgentsSection, '| Has count:', hasAgentCount, '| Has WhatsApp:', hasWhatsapp);
+        return { hasAgentsSection, hasAgentCount, hasWhatsapp };
+
+  - id: screenshot-agents-section
+    action: browser.screenshot
+    params:
+      name: "live-chat-agents-section"
+
+  # TEST CASE 8: Verify agent card details
+  - id: log-test-agent-card
+    action: log
+    params:
+      message: "--- TEST 8: Verify agent card (name, phone, status) ---"
+
+  - id: verify-agent-card
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasName = bodyText.includes('VincentReal') || bodyText.match(/[A-Z][a-z]+Real/);
+        const hasPhone = bodyText.match(/\+\d{8,}/);
+        const hasStatus = bodyText.includes('Status:') || bodyText.includes('online') || bodyText.includes('offline');
+        const hasCreated = bodyText.includes('Created:');
+        console.log('Agent name:', !!hasName, '| Phone:', !!hasPhone, '| Status:', !!hasStatus, '| Created:', !!hasCreated);
+        return { hasName: !!hasName, hasPhone: !!hasPhone, hasStatus: !!hasStatus, hasCreated: !!hasCreated };
+
+  # TEST CASE 9: Verify Refresh button
+  - id: log-test-refresh
+    action: log
+    params:
+      message: "--- TEST 9: Verify and click Refresh button ---"
+
+  - id: verify-refresh-button
+    action: browser.execute
+    params:
+      script: |
+        const refreshBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === 'Refresh');
+        if (!refreshBtn) throw new Error('Refresh button not found');
+        console.log('Refresh button found');
+        refreshBtn.click();
+        return true;
+
+  - id: wait-after-refresh
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-after-refresh
+    action: browser.screenshot
+    params:
+      name: "live-chat-after-refresh"
+
+  # TEST CASE 10: Access Live Chat via sidebar Settings
+  - id: log-test-nav-access
+    action: log
+    params:
+      message: "--- TEST 10: Access via sidebar Settings > Live Chat ---"
+
+  - id: navigate-to-subscription-first
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/subscription"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-subscription-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "h1"
+      timeout: 10000
+
+  - id: wait-nav-settle
+    action: wait
+    params:
+      ms: 1500
+
+  - id: click-live-chat-nav
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, a')).find(el => el.innerText?.trim() === 'Live Chat');
+        if (!btn) throw new Error('Live Chat nav button not found');
+        btn.click();
+
+  - id: wait-live-chat-url
+    action: browser.waitForUrl
+    params:
+      pattern: "config"
+      timeout: 10000
+
+  - id: wait-live-chat-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "h1"
+      timeout: 8000
+
+  - id: screenshot-via-nav
+    action: browser.screenshot
+    params:
+      name: "live-chat-via-nav"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Live Chat module test completed successfully!"

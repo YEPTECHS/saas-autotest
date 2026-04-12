@@ -1,0 +1,173 @@
+# Logout Flow
+# Tests logout functionality via the user menu (Y button → Sign Out)
+
+name: test-logout
+description: Test logout functionality - sign out via user menu and verify redirect to login
+
+steps:
+  # Login first
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: wait-submit-enabled
+    action: browser.waitForSelector
+    params:
+      selector: "button[type='submit']:not([disabled])"
+      timeout: 5000
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "[data-testid='sidebar'], nav, .sidebar, [class*='sidebar']"
+      timeout: 15000
+
+  - id: log-login-success
+    action: log
+    params:
+      message: "Login successful - now testing logout..."
+
+  # Navigate to home
+  - id: navigate-home
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-home-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "nav"
+      timeout: 10000
+
+  - id: screenshot-before-logout
+    action: browser.screenshot
+    params:
+      name: "logout-before"
+
+  # TEST CASE 1: Open user menu
+  - id: log-test-user-menu
+    action: log
+    params:
+      message: "--- TEST 1: Open user menu (Y button) ---"
+
+  - id: click-user-avatar
+    action: browser.execute
+    params:
+      script: |
+        const span = Array.from(document.querySelectorAll('span')).find(el =>
+          el.textContent?.trim() === 'Y' && el.className?.includes('absolute')
+        );
+        if (!span) throw new Error('Avatar Y span not found');
+        let el = span;
+        while (el && el.tagName !== 'BUTTON') el = el.parentElement;
+        if (!el) throw new Error('Avatar button not found');
+        el.click();
+
+  - id: wait-sign-out-option
+    action: browser.waitForSelector
+    params:
+      selector: "div:has-text('Sign Out'), button:has-text('Sign Out'), a:has-text('Sign Out')"
+      timeout: 5000
+
+  - id: screenshot-user-menu-open
+    action: browser.screenshot
+    params:
+      name: "logout-user-menu-open"
+
+  # TEST CASE 2: Click Sign Out
+  - id: log-test-signout
+    action: log
+    params:
+      message: "--- TEST 2: Click Sign Out ---"
+
+  - id: click-sign-out
+    action: browser.click
+    params:
+      selector: "li:has-text('Sign Out')"
+
+  - id: wait-after-signout
+    action: wait
+    params:
+      ms: 3000
+
+  # TEST CASE 3: Verify redirect to login page
+  - id: log-test-redirect
+    action: log
+    params:
+      message: "--- TEST 3: Verify redirect to login page ---"
+
+  - id: wait-login-url
+    action: browser.waitForUrl
+    params:
+      pattern: "login|auth"
+      timeout: 15000
+
+  - id: wait-login-input-render
+    action: wait
+    params:
+      ms: 2000
+
+  - id: wait-login-page
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email']"
+      timeout: 15000
+
+  - id: screenshot-after-logout
+    action: browser.screenshot
+    params:
+      name: "logout-after-redirect"
+
+  # TEST CASE 4: Verify protected route is inaccessible after logout
+  - id: log-test-protected
+    action: log
+    params:
+      message: "--- TEST 4: Verify protected route redirects to login ---"
+
+  - id: try-navigate-protected
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-redirected-to-login
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='password']"
+      timeout: 10000
+
+  - id: screenshot-protected-redirect
+    action: browser.screenshot
+    params:
+      name: "logout-protected-route-redirect"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Logout test completed successfully!"

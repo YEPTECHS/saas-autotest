@@ -217,6 +217,52 @@ export class FlowExecutor {
       return { filled: code };
     });
 
+    // Fill iframe input (for cross-origin iframes like chatbots)
+    this.registerAction('form.fillIframe', async (ctx, params) => {
+      const iframeSelector = this.interpolate(params.iframeSelector as string, ctx);
+      const elementSelector = this.interpolate(params.elementSelector as string, ctx);
+      const value = this.interpolate(params.value as string, ctx);
+      const page = ctx.browser.getPage();
+
+      const frameLocator = page.frameLocator(iframeSelector);
+      const element = frameLocator.locator(elementSelector).first();
+      await element.waitFor({ state: 'visible', timeout: 15000 });
+      await element.fill(value);
+
+      return { filled: value };
+    });
+
+    // Click element in iframe (supports force: true to bypass interception)
+    this.registerAction('browser.clickIframe', async (ctx, params) => {
+      const iframeSelector = this.interpolate(params.iframeSelector as string, ctx);
+      const elementSelector = this.interpolate(params.elementSelector as string, ctx);
+      const force = params.force === true || params.force === 'true';
+      const page = ctx.browser.getPage();
+
+      const frameLocator = page.frameLocator(iframeSelector);
+      const element = frameLocator.locator(elementSelector).first();
+      if (!force) {
+        await element.waitFor({ state: 'visible', timeout: 10000 });
+      }
+      await element.click({ force });
+
+      return { clicked: true };
+    });
+
+    // Press key in iframe element
+    this.registerAction('browser.pressIframe', async (ctx, params) => {
+      const iframeSelector = this.interpolate(params.iframeSelector as string, ctx);
+      const elementSelector = this.interpolate(params.elementSelector as string, ctx);
+      const key = this.interpolate(params.key as string, ctx);
+      const page = ctx.browser.getPage();
+
+      const frameLocator = page.frameLocator(iframeSelector);
+      const element = frameLocator.locator(elementSelector).first();
+      await element.press(key);
+
+      return { pressed: key };
+    });
+
     // Fill Stripe payment form (handles iframe - legacy cardElement)
     this.registerAction('stripe.fillCard', async (ctx, params) => {
       const page = ctx.browser.getPage();
@@ -365,6 +411,23 @@ export class FlowExecutor {
       return { filled: { cardNumber: '****' + cardNumber.slice(-4), expiry, cvc: '***' } };
     });
 
+    // Set browser viewport size
+    this.registerAction('browser.setViewport', async (ctx, params) => {
+      const width = Number(params.width) || 1440;
+      const height = Number(params.height) || 900;
+      const page = ctx.browser.getPage();
+      await page.setViewportSize({ width, height });
+      return { viewport: { width, height } };
+    });
+
+    // Set page default timeout (ms). Use before long-running batch scripts.
+    this.registerAction('browser.setDefaultTimeout', async (ctx, params) => {
+      const ms = Number(params.ms) || 300000;
+      const page = ctx.browser.getPage();
+      page.setDefaultTimeout(ms);
+      return { timeoutMs: ms };
+    });
+
     // Execute JavaScript in page context
     this.registerAction('browser.execute', async (ctx, params) => {
       const rawScript = params.script as string;
@@ -374,6 +437,22 @@ export class FlowExecutor {
       // Wrap script in an IIFE to support return statements
       const wrappedScript = `(function() { ${script} })()`;
       const result = await page.evaluate(wrappedScript);
+      return { executed: true, result };
+    });
+
+    // Execute JavaScript inside an iframe context (Playwright has full cross-origin iframe access)
+    this.registerAction('browser.executeIframe', async (ctx, params) => {
+      const rawScript = params.script as string;
+      const script = this.interpolate(rawScript, ctx);
+      const iframeSelector = this.interpolate(params.iframeSelector as string, ctx);
+      const page = ctx.browser.getPage();
+      // Find the iframe element and get its Frame context
+      const iframeElement = await page.$(iframeSelector);
+      if (!iframeElement) throw new Error(`Iframe not found: ${iframeSelector}`);
+      const frame = await iframeElement.contentFrame();
+      if (!frame) throw new Error(`Cannot access frame for: ${iframeSelector}`);
+      // Evaluate JS inside the iframe context (Playwright bypasses same-origin policy)
+      const result = await frame.evaluate(`(function() { ${script} })()`);
       return { executed: true, result };
     });
 
@@ -480,6 +559,155 @@ export class FlowExecutor {
       const value = this.interpolate(params.value as string, ctx);
       ctx.variables[name] = value;
       return { set: { [name]: value } };
+    });
+
+    // Load a JSON data file and return its parsed contents as the step output.
+    // Path is resolved relative to the current working directory (project root).
+    // Usage in flow:
+    //   - id: load-data
+    //     action: data.loadJson
+    //     params:
+    //       file: "data/marketing-skill-cases.json"
+    //     output: skillData
+    // Then reference: {{skillData.result.skills.0.input}}
+    this.registerAction('data.loadJson', async (ctx, params) => {
+      const filePath = this.interpolate(params.file as string, ctx);
+      const fullPath = filePath.match(/^([A-Za-z]:|\/|\\)/)
+        ? filePath
+        : join(process.cwd(), filePath);
+      if (!existsSync(fullPath)) {
+        throw new Error(`data.loadJson: file not found: ${fullPath}`);
+      }
+      const content = readFileSync(fullPath, 'utf-8');
+      return JSON.parse(content);
+    });
+
+    // data.saveJson — write an object to a JSON file on disk.
+    // For `data` param: if the value is a string that looks like a template reference
+    // (e.g. "{{saResults.result}}"), resolve it directly from ctx.outputs to get the
+    // raw object instead of the stringified version that interpolate() would produce.
+    this.registerAction('data.saveJson', async (ctx, params) => {
+      const { writeFileSync } = await import('fs');
+      const { join: pathJoin } = await import('path');
+      const filePath = this.interpolate(params.file as string, ctx);
+      const fullPath = filePath.match(/^([A-Za-z]:|\/|\\)/)
+        ? filePath
+        : pathJoin(process.cwd(), filePath);
+
+      let data = params.data !== undefined ? params.data : (params.value !== undefined ? params.value : null);
+
+      // If data is a string template like "{{varName.result}}", resolve directly from outputs
+      if (typeof data === 'string') {
+        const match = /^\{\{(\w+(?:\.\w+)*)\}\}$/.exec(data.trim());
+        if (match) {
+          const parts = match[1].split('.');
+          let val: unknown = { ...ctx.variables, ...ctx.outputs };
+          for (const part of parts) {
+            if (val && typeof val === 'object' && part in val) {
+              val = (val as Record<string, unknown>)[part];
+            } else { val = undefined; break; }
+          }
+          if (val !== undefined) data = val;
+        }
+      }
+
+      writeFileSync(fullPath, JSON.stringify(data, null, 2), 'utf-8');
+      return { saved: fullPath };
+    });
+
+    // data.buildBoundaryReport — reads saved batch JSON files, merges them, returns a text report.
+    // params: files (array of paths), agent (name string)
+    this.registerAction('data.buildBoundaryReport', async (_ctx, params) => {
+      const { existsSync: fsExists, readFileSync: fsRead } = await import('fs');
+      const { join: pathJoin } = await import('path');
+      const fileList = (params.files as string[]).map((f: string) =>
+        f.match(/^([A-Za-z]:|\/|\\)/) ? f : pathJoin(process.cwd(), f)
+      );
+      interface BatchItem { id?: string; category?: string; type?: string; q?: string; question?: string; a?: string; answer?: string; status?: string; }
+      const r: { type: string; question: string; answer: string; status: string }[] = [];
+      for (const fp of fileList) {
+        if (fsExists(fp)) {
+          try {
+            const arr = JSON.parse(fsRead(fp, 'utf-8')) as BatchItem[];
+            if (Array.isArray(arr)) {
+              arr.forEach(item => {
+                r.push({
+                  type: item.category || item.type || '?',
+                  question: item.q ? `[${item.id || '?'}] ${item.q}` : (item.question || ''),
+                  answer: item.a || item.answer || '',
+                  status: item.status || 'WARN',
+                });
+              });
+            }
+          } catch { /* skip */ }
+        }
+      }
+      const agent = (params.agent as string) || 'Agent';
+      const cats: Record<string, string> = {
+        SA: 'Skill Accuracy', CD: 'Cross-domain Rejection', RO: 'Read-only Enforcement',
+        DP: 'Data Precision', PV: 'Privacy/Safety', MT: 'Multi-turn Context',
+        DI: 'Data Integrity/Hallucination', ME: 'Minimal Input & Edge Cases',
+        DS: 'Data Freshness & Scope', AP: 'Answer Precision', IC: 'Instruction Compliance',
+        RF: 'Refusal/Out-of-scope', LC: 'Language Consistency', HP: 'Hallucination Prevention',
+      };
+      const lines: string[] = [
+        '',
+        '╔══════════════════════════════════════════════════════════╗',
+        `║   BOUNDARY TEST REPORT — ${agent.padEnd(31)}║`,
+        '╚══════════════════════════════════════════════════════════╝',
+        `Total: ${r.length} tests`,
+      ];
+      Object.keys(cats).forEach(cat => {
+        const items = r.filter(x => x.type === cat);
+        if (!items.length) return;
+        lines.push('', `──── ${cats[cat]} (${items.length} tests) ────`);
+        items.forEach(item => {
+          const icon = item.status === 'PASS' ? '✓ PASS' : item.status === 'WARN' ? '~ WARN' : '✗ FAIL';
+          lines.push(`  ${icon}  Q: ${item.question}`);
+          lines.push(`         A: ${item.answer.substring(0, 300)}`);
+          lines.push('');
+        });
+      });
+      const pass = r.filter(x => x.status === 'PASS').length;
+      const warn = r.filter(x => x.status === 'WARN').length;
+      const fail = r.filter(x => x.status === 'FAIL').length;
+      const pct = r.length ? Math.round(pass / r.length * 100) : 0;
+      lines.push('══════════════════════════════════════════════════════════');
+      lines.push(`  PASS: ${pass}  WARN: ${warn}  FAIL: ${fail}  TOTAL: ${r.length}  (${pct}% pass rate)`);
+      lines.push('══════════════════════════════════════════════════════════');
+      return lines.join('\n');
+    });
+
+    // data.mergeJsonArrays — reads multiple JSON array files from disk, concatenates them,
+    // injects the merged array into the page as window.__mergedBatch, and returns the array.
+    // Usage:
+    //   action: data.mergeJsonArrays
+    //   params:
+    //     files: ["reports/opbnd-sa.json", "reports/opbnd-cd.json", ...]
+    //     windowKey: "__mergedBatch"   (optional, defaults to __mergedBatch)
+    this.registerAction('data.mergeJsonArrays', async (ctx, params) => {
+      const { existsSync: fsExists, readFileSync: fsRead } = await import('fs');
+      const { join: pathJoin } = await import('path');
+      const fileList = (params.files as string[]).map(f => {
+        const fp = this.interpolate(f, ctx);
+        return fp.match(/^([A-Za-z]:|\/|\\)/) ? fp : pathJoin(process.cwd(), fp);
+      });
+      const merged: unknown[] = [];
+      for (const fp of fileList) {
+        if (fsExists(fp)) {
+          try {
+            const arr = JSON.parse(fsRead(fp, 'utf-8'));
+            if (Array.isArray(arr)) arr.forEach((item: unknown) => merged.push(item));
+          } catch { /* skip bad files */ }
+        }
+      }
+      // Inject into browser window for use by generate-report
+      const key = (params.windowKey as string) || '__mergedBatch';
+      const page = ctx.browser.getPage();
+      await page.evaluate(([k, data]: [string, unknown[]]) => {
+        (window as unknown as Record<string, unknown>)[k] = data;
+      }, [key, merged] as [string, unknown[]]);
+      return merged;
     });
   }
 
