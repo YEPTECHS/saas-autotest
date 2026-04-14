@@ -22,7 +22,15 @@
     "shopify:create": "tsx src/actions/shopify/create-store-fast.ts",
     "shopify:cdp": "tsx src/actions/shopify/create-store-cdp.ts",
     "shopify:ui": "tsx src/web/server.ts",
-    "skill:shopify-create": "tsx skills/shopify-create/index.ts"
+    "skill:shopify-create": "tsx skills/shopify-create/index.ts",
+    "test:cc": "tsx scripts/test-concurrency.ts",
+    "test:is": "tsx scripts/test-isolation.ts",
+    "test:cc:maya": "tsx scripts/test-concurrency.ts --agent maya",
+    "test:cc:oscar": "tsx scripts/test-concurrency.ts --agent oscar",
+    "test:cc:daniel": "tsx scripts/test-concurrency.ts --agent daniel",
+    "test:is:maya": "tsx scripts/test-isolation.ts --agent maya",
+    "test:is:oscar": "tsx scripts/test-isolation.ts --agent oscar",
+    "test:is:daniel": "tsx scripts/test-isolation.ts --agent daniel"
   },
   "dependencies": {
     "@playwright/test": "^1.40.0",
