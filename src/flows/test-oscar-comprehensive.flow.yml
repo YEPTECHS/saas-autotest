@@ -362,14 +362,16 @@ steps:
             testResults: report,
             generatedAt: new Date().toISOString()
           };
+          return window.__oscarFinalReport;
         }
+    output: compReport
 
   - id: save-report
-    action: file.write
+    action: data.saveJson
     params:
-      path: "reports/oscar-comprehensive-test-results.json"
-      content: |
-        {{window.__oscarFinalReport}}
+      file: "reports/oscar-comprehensive-test-results.json"
+      data: "{{compReport.result}}"
+    continueOnError: true
 
   - id: final-screenshot
     action: browser.screenshot

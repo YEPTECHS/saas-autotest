@@ -367,14 +367,16 @@ steps:
             testResults: report,
             generatedAt: new Date().toISOString()
           };
+          return window.__mayaFinalReport;
         }
+    output: compReport
 
   - id: save-report
-    action: file.write
+    action: data.saveJson
     params:
-      path: "reports/maya-comprehensive-test-results.json"
-      content: |
-        {{window.__mayaFinalReport}}
+      file: "reports/maya-comprehensive-test-results.json"
+      data: "{{compReport.result}}"
+    continueOnError: true
 
   - id: final-screenshot
     action: browser.screenshot

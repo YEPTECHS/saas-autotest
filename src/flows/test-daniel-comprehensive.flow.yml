@@ -592,14 +592,16 @@ steps:
             testResults: report,
             generatedAt: new Date().toISOString()
           };
+          return window.__finalReport;
         }
+    output: compReport
 
   - id: save-comprehensive-report
-    action: file.write
+    action: data.saveJson
     params:
-      path: "reports/daniel-comprehensive-test-results.json"
-      content: |
-        {{window.__finalReport}}
+      file: "reports/daniel-comprehensive-test-results.json"
+      data: "{{compReport.result}}"
+    continueOnError: true
 
   - id: final-screenshot
     action: browser.screenshot
