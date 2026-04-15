@@ -30,7 +30,11 @@
     "test:cc:daniel": "tsx scripts/test-concurrency.ts --agent daniel",
     "test:is:maya": "tsx scripts/test-isolation.ts --agent maya",
     "test:is:oscar": "tsx scripts/test-isolation.ts --agent oscar",
-    "test:is:daniel": "tsx scripts/test-isolation.ts --agent daniel"
+    "test:is:daniel": "tsx scripts/test-isolation.ts --agent daniel",
+    "test:stress": "tsx scripts/test-stress.ts",
+    "test:stress:maya": "tsx scripts/test-stress.ts --agent maya",
+    "test:stress:oscar": "tsx scripts/test-stress.ts --agent oscar",
+    "test:stress:daniel": "tsx scripts/test-stress.ts --agent daniel"
   },
   "dependencies": {
     "@playwright/test": "^1.40.0",
