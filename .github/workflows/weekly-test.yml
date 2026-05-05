@@ -1,0 +1,111 @@
+name: Weekly Agent Tests
+
+on:
+  schedule:
+    - cron: '0 1 * * 6'   # Saturday 09:00 MYT (UTC+8 = UTC 01:00)
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          GMAIL_CLIENT_ID=${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET=${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN=${{ secrets.GMAIL_REFRESH_TOKEN }}
+          GMAIL_TARGET_EMAIL=${{ secrets.GMAIL_TARGET_EMAIL }}
+          SHOPIFY_PARTNER_EMAIL=${{ secrets.SHOPIFY_PARTNER_EMAIL }}
+          SHOPIFY_PARTNER_PASSWORD=${{ secrets.SHOPIFY_PARTNER_PASSWORD }}
+          SHOPIFY_ORG_ID=${{ secrets.SHOPIFY_ORG_ID }}
+          YEPAI_CLIENT_ID=${{ secrets.YEPAI_CLIENT_ID }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+
+      - name: API Stress — Maya
+        run: pnpm stress:api:maya
+        continue-on-error: true
+
+      - name: API Stress — Oscar
+        run: pnpm stress:api:oscar
+        continue-on-error: true
+
+      - name: API Stress — Daniel
+        run: pnpm stress:api:daniel
+        continue-on-error: true
+
+      - name: Tab Isolation — Maya
+        run: pnpm test:tab:maya
+        continue-on-error: true
+
+      - name: Tab Isolation — Oscar
+        run: pnpm test:tab:oscar
+        continue-on-error: true
+
+      - name: Tab Isolation — Daniel
+        run: pnpm test:tab:daniel
+        continue-on-error: true
+
+      - name: Accuracy — All Agents
+        run: pnpm accuracy
+        continue-on-error: true
+
+      - name: Boundary — Maya
+        run: pnpm flow test-marketing-boundary
+        continue-on-error: true
+
+      - name: Boundary — Oscar
+        run: pnpm flow test-operation-boundary
+        continue-on-error: true
+
+      - name: Boundary — Daniel
+        run: pnpm flow test-daniel-boundary
+        continue-on-error: true
+
+      - name: Generate HTML Report and Send Email
+        run: pnpm report:html:email
+
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-test-report-${{ github.run_id }}
+          path: reports/agent-test-report-*.html
+          retention-days: 30

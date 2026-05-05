@@ -1,0 +1,389 @@
+/**
+ * HTML Test Report Generator
+ *
+ * Reads JSON reports from reports/ and renders an HTML dashboard.
+ * Optionally posts a summary to Slack and/or sends via email.
+ *
+ * Usage:
+ *   pnpm report:html                  # all agents
+ *   pnpm report:html --agent maya
+ *   pnpm report:html --slack          # also post to Slack
+ *   pnpm report:html --email          # also send email
+ *   pnpm report:html --slack --email  # both
+ */
+
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import nodemailer from 'nodemailer';
+import 'dotenv/config';
+
+// ── Config ────────────────────────────────────────────────────
+
+const SLACK_WEBHOOK =
+  process.env.SLACK_WEBHOOK_URL ||
+  'https://hooks.slack.com/triggers/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';
+
+const REPORTS_DIR = join(process.cwd(), 'reports');
+const OUTPUT_DIR  = join(process.cwd(), 'reports');
+
+const AGENT_FILE_PREFIXES: Record<string, string[]> = {
+  maya:   ['maya-', 'mktbnd-'],
+  oscar:  ['oscar-', 'opbnd-'],
+  daniel: ['daniel-', 'danielbnd-'],
+};
+
+// ── Arg parsing ───────────────────────────────────────────────
+
+const args   = process.argv.slice(2);
+const agentArg = args.find(a => a.startsWith('--agent='))?.split('=')[1]
+  || (args.includes('--agent') ? args[args.indexOf('--agent') + 1] : null);
+const postSlack  = args.includes('--slack');
+const sendEmail  = args.includes('--email');
+const agents = agentArg && agentArg !== 'all'
+  ? [agentArg]
+  : ['maya', 'oscar', 'daniel'];
+
+// ── Data loading ──────────────────────────────────────────────
+
+interface ReportFile { name: string; data: any }
+
+function loadAgentReports(agent: string): ReportFile[] {
+  const prefixes = AGENT_FILE_PREFIXES[agent] || [`${agent}-`];
+  return readdirSync(REPORTS_DIR)
+    .filter(f => f.endsWith('.json') && prefixes.some(p => f.startsWith(p)))
+    .map(f => {
+      try {
+        return { name: f, data: JSON.parse(readFileSync(join(REPORTS_DIR, f), 'utf-8')) };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean) as ReportFile[];
+}
+
+// ── Summary extraction ────────────────────────────────────────
+
+interface AgentSummary {
+  agent:       string;
+  totalTests:  number;
+  passed:      number;
+  failed:      number;
+  rate:        number;
+  sections:    SectionSummary[];
+}
+
+interface SectionSummary {
+  label:  string;
+  passed: number;
+  total:  number;
+  rate:   number;
+  rows:   RowData[];
+}
+
+interface RowData { id: string; name: string; status: string; detail: string }
+
+function extractSummary(agent: string, files: ReportFile[]): AgentSummary {
+  const sections: SectionSummary[] = [];
+  let totalPassed = 0, totalTests = 0;
+
+  // ── API Stress ──
+  const stressFile = files.find(f =>
+    f.name.includes('api-stress-results') && !f.name.includes('advanced'));
+  if (stressFile?.data?.results) {
+    const results = stressFile.data.results as any[];
+    const rows: RowData[] = results.map(r => ({
+      id:     r.id,
+      name:   r.name,
+      status: r.status,
+      detail: `${(r.successRate * 100).toFixed(0)}% success | p95: ${Math.round(r.latency?.p95 / 1000)}s | RPS: ${r.throughputRps}`,
+    }));
+    const p = rows.filter(r => r.status === 'PASS').length;
+    const t = rows.length;
+    sections.push({ label: '🔥 API Stress', passed: p, total: t, rate: t > 0 ? p/t : 0, rows });
+    totalPassed += p; totalTests += t;
+  }
+
+  // ── Tab Isolation ──
+  const tabFile = files.find(f => f.name.includes('tab-isolation'));
+  if (tabFile?.data?.results) {
+    const results = tabFile.data.results as any[];
+    const rows: RowData[] = results.map(r => ({
+      id:     r.id,
+      name:   r.name || r.description || '',
+      status: r.status,
+      detail: r.severity ? `Severity: ${r.severity}` : r.reason || '',
+    }));
+    const p = rows.filter(r => r.status === 'PASS').length;
+    const t = rows.length;
+    sections.push({ label: '🔒 Tab Isolation', passed: p, total: t, rate: t > 0 ? p/t : 0, rows });
+    totalPassed += p; totalTests += t;
+  }
+
+  // ── Accuracy ──
+  const accFile = files.find(f => f.name.includes('accuracy-results'));
+  if (accFile?.data?.byCategory) {
+    const cats = accFile.data.byCategory as any[];
+    const rows: RowData[] = cats.map(c => ({
+      id:     c.cat,
+      name:   c.catName || c.cat,
+      status: c.passed === c.total ? 'PASS' : c.passed === 0 ? 'FAIL' : 'PARTIAL',
+      detail: `${c.passed}/${c.total}`,
+    }));
+    const p = accFile.data.passed || 0;
+    const t = accFile.data.totalCases || 0;
+    sections.push({ label: '🎯 Accuracy', passed: p, total: t, rate: t > 0 ? p/t : 0, rows });
+    totalPassed += p; totalTests += t;
+  }
+
+  // ── Boundary tests (bnd-*.json arrays) ──
+  const bndFiles = files.filter(f =>
+    (f.name.includes('bnd-') || f.name.includes('bnd_')) &&
+    !f.name.includes('accuracy'));
+  if (bndFiles.length > 0) {
+    const allRows: RowData[] = [];
+    for (const bf of bndFiles) {
+      const items = Array.isArray(bf.data) ? bf.data : [];
+      items.forEach((item: any) => {
+        allRows.push({
+          id:     item.id || '',
+          name:   (item.q || item.question || '').substring(0, 70),
+          status: item.status || (item.passed ? 'PASS' : 'FAIL'),
+          detail: (item.a || item.responseText || '').substring(0, 80),
+        });
+      });
+    }
+    const p = allRows.filter(r => r.status === 'PASS').length;
+    const t = allRows.length;
+    sections.push({ label: '🧪 Boundary', passed: p, total: t, rate: t > 0 ? p/t : 0, rows: allRows });
+    totalPassed += p; totalTests += t;
+  }
+
+  const rate = totalTests > 0 ? (totalPassed / totalTests) * 100 : 0;
+  return { agent, totalTests, passed: totalPassed, failed: totalTests - totalPassed, rate, sections };
+}
+
+// ── CSS ───────────────────────────────────────────────────────
+
+const CSS = `
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  line-height:1.6;color:#374151;margin:0;padding:28px;background:#f6f8fb}
+.page{max-width:1400px;margin:0 auto;background:#fff;border-radius:20px;
+  padding:28px 32px 40px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+h1{color:#1f2937;font-size:26px;margin:0 0 6px}
+.subtitle{color:#6b7280;font-size:14px;margin:0 0 28px}
+h2{margin:36px 0 16px;color:#1f2937;font-size:20px;font-weight:700;
+  padding-bottom:10px;border-bottom:3px solid #6366f1}
+h3{font-size:14px;font-weight:700;color:#374151;margin:20px 0 8px;
+  text-transform:uppercase;letter-spacing:.05em}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:36px}
+.agent-card{border-radius:16px;padding:22px 24px;border:2px solid transparent}
+.agent-card.good{border-color:#4fb89b;background:#f0fdf8}
+.agent-card.warn{border-color:#eb9b2d;background:#fffbeb}
+.agent-card.bad{border-color:#cf493f;background:#fff5f5}
+.agent-name{font-size:18px;font-weight:800;margin:0 0 4px}
+.agent-rate{font-size:40px;font-weight:800;line-height:1;margin:8px 0 4px}
+.agent-sub{font-size:13px;color:#6b7280}
+.section-block{margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;color:#6b7280;font-weight:600;padding:10px 14px;
+  text-align:left;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid #eef2f7;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;white-space:nowrap}
+.badge.PASS{background:#e9f8f2;color:#4fb89b}
+.badge.FAIL{background:#fdeeee;color:#cf493f}
+.badge.PARTIAL{background:#fff5de;color:#eb9b2d}
+.badge.WARN{background:#fff5de;color:#eb9b2d}
+.detail{color:#9ca3af;font-size:12px;max-width:400px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.section-label{font-size:15px;font-weight:700;color:#1f2937}
+.section-rate{font-size:13px;color:#6b7280}
+`;
+
+// ── HTML builder ──────────────────────────────────────────────
+
+function h(s: string): string {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function badgeHtml(status: string): string {
+  const cls = status === 'PASS' ? 'PASS' : status === 'FAIL' ? 'FAIL' : 'PARTIAL';
+  return `<span class="badge ${cls}">${h(status)}</span>`;
+}
+
+function renderSection(sec: SectionSummary): string {
+  const pct = (sec.rate * 100).toFixed(0);
+  const rows = sec.rows.map(r =>
+    `<tr>
+      <td>${h(r.id)}</td>
+      <td>${h(r.name)}</td>
+      <td>${badgeHtml(r.status)}</td>
+      <td class="detail">${h(r.detail)}</td>
+    </tr>`
+  ).join('');
+
+  return `
+<div class="section-block">
+  <div class="section-header">
+    <span class="section-label">${sec.label}</span>
+    <span class="section-rate">${sec.passed}/${sec.total} passed (${pct}%)</span>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Name / Question</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+function renderAgentCard(s: AgentSummary): string {
+  const cls = s.rate >= 80 ? 'good' : s.rate >= 60 ? 'warn' : 'bad';
+  return `
+<div class="agent-card ${cls}">
+  <div class="agent-name">${s.agent.toUpperCase()}</div>
+  <div class="agent-rate">${s.rate.toFixed(0)}%</div>
+  <div class="agent-sub">${s.passed}/${s.totalTests} tests passed</div>
+</div>`;
+}
+
+function renderAgentSection(s: AgentSummary): string {
+  const sectionHtml = s.sections.map(sec => renderSection(sec)).join('');
+  const icon = s.agent === 'maya' ? '📢' : s.agent === 'oscar' ? '⚙️' : '💰';
+  return `
+<h2>${icon} ${s.agent.toUpperCase()}</h2>
+${sectionHtml}`;
+}
+
+function buildHtml(summaries: AgentSummary[], generatedAt: string): string {
+  const cards  = summaries.map(renderAgentCard).join('');
+  const bodies = summaries.map(renderAgentSection).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YepAI Agent Test Report — ${generatedAt}</title>
+<style>${CSS}</style>
+</head>
+<body>
+<div class="page">
+  <h1>YepAI Agent Test Report</h1>
+  <p class="subtitle">Generated: ${generatedAt}</p>
+  <div class="agent-grid">${cards}</div>
+  ${bodies}
+</div>
+</body>
+</html>`;
+}
+
+// ── Slack ─────────────────────────────────────────────────────
+
+async function postToSlack(summaries: AgentSummary[], date: string): Promise<void> {
+  const lines = [
+    `*[YepAI Agent Tests] Report — ${date}*`,
+    '',
+    ...summaries.map(s => {
+      const icon = s.rate >= 80 ? '✅' : s.rate >= 60 ? '⚠️' : '❌';
+      const subs = s.sections.map(sec =>
+        `  ${sec.rate === 1 ? '✅' : sec.rate === 0 ? '❌' : '⚠️'} ${sec.label}: ${sec.passed}/${sec.total}`
+      ).join('\n');
+      return `${icon} *${s.agent.toUpperCase()}* — ${s.rate.toFixed(0)}% (${s.passed}/${s.totalTests})\n${subs}`;
+    }),
+    '',
+    `_Full HTML report saved to reports/_`,
+  ];
+
+  const res = await fetch(SLACK_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: lines.join('\n') }),
+  });
+
+  if (res.ok) {
+    console.log('[Slack] ✅ Report posted');
+  } else {
+    console.warn(`[Slack] Failed: ${res.status} ${res.statusText}`);
+  }
+}
+
+// ── Email ─────────────────────────────────────────────────────
+
+async function sendEmailReport(html: string, summaries: AgentSummary[], date: string): Promise<void> {
+  const from = process.env.REPORT_EMAIL_FROM;
+  const pass = process.env.REPORT_EMAIL_PASS;
+  const to   = process.env.REPORT_EMAIL_TO || 'kiechee.pau@yepai.io';
+
+  if (!from || !pass) {
+    console.warn('[Email] ❌ REPORT_EMAIL_FROM or REPORT_EMAIL_PASS not set in .env');
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: from, pass },
+  });
+
+  const overall = summaries.map(s => {
+    const icon = s.rate >= 80 ? '✅' : s.rate >= 60 ? '⚠️' : '❌';
+    return `${icon} ${s.agent.toUpperCase()}: ${s.rate.toFixed(0)}% (${s.passed}/${s.totalTests})`;
+  }).join(' | ');
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject: `[YepAI Agent Tests] ${overall} — ${date}`,
+    html,
+  });
+
+  console.log(`[Email] ✅ Report sent to ${to}`);
+}
+
+// ── Main ──────────────────────────────────────────────────────
+
+async function main() {
+  if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true });
+
+  const date = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Melbourne' });
+  const summaries: AgentSummary[] = [];
+
+  for (const agent of agents) {
+    const files = loadAgentReports(agent);
+    if (files.length === 0) {
+      console.log(`[${agent}] No report files found, skipping.`);
+      continue;
+    }
+    console.log(`[${agent}] Found ${files.length} report file(s).`);
+    summaries.push(extractSummary(agent, files));
+  }
+
+  if (summaries.length === 0) {
+    console.log('No data found. Run some tests first.');
+    return;
+  }
+
+  const html = buildHtml(summaries, date);
+  const outPath = join(OUTPUT_DIR, `agent-test-report-${new Date().toISOString().slice(0,10)}.html`);
+  writeFileSync(outPath, html, 'utf-8');
+  console.log(`\n✅ HTML report → ${outPath}`);
+
+  for (const s of summaries) {
+    const icon = s.rate >= 80 ? '✅' : s.rate >= 60 ? '⚠️' : '❌';
+    console.log(`${icon} ${s.agent.toUpperCase()}: ${s.rate.toFixed(0)}% (${s.passed}/${s.totalTests})`);
+    for (const sec of s.sections) {
+      console.log(`   ${sec.label}: ${sec.passed}/${sec.total}`);
+    }
+  }
+
+  if (postSlack) {
+    await postToSlack(summaries, date);
+  }
+
+  if (sendEmail) {
+    await sendEmailReport(html, summaries, date);
+  }
+}
+
+main().catch(err => {
+  console.error('Error:', err.message);
+  process.exit(1);
+});
