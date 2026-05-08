@@ -67,7 +67,10 @@
     "report:html:slack": "tsx scripts/report-html.ts --slack",
     "report:html:email": "tsx scripts/report-html.ts --email",
     "report:html:all": "tsx scripts/report-html.ts --slack --email",
-    "generate:accuracy": "tsx scripts/generate-accuracy-tests.ts"
+    "generate:accuracy": "tsx scripts/generate-accuracy-tests.ts",
+    "test:boundary:maya": "tsx src/cli/index.ts run test-marketing-boundary",
+    "test:boundary:oscar": "tsx src/cli/index.ts run test-operation-boundary",
+    "test:boundary:daniel": "tsx src/cli/index.ts run test-daniel-boundary"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
