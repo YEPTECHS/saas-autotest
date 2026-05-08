@@ -36,9 +36,9 @@ program
   .command('run <flowName>')
   .description('Execute an E2E test flow')
   .option('-e, --email <email>', 'Override test email')
-  .option('-h, --headless', 'Run in headless mode', false)
-  .option('-s, --slow-mo <ms>', 'Slow down operations', '100')
-  .option('-t, --timeout <ms>', 'Default timeout', '30000')
+  .option('-h, --headless', 'Run in headless mode', process.env.HEADLESS === 'true')
+  .option('-s, --slow-mo <ms>', 'Slow down operations', process.env.SLOWMO || '100')
+  .option('-t, --timeout <ms>', 'Default timeout', process.env.TIMEOUT || '30000')
   .option('--keep-open', 'Keep browser open after test completes', false)
   .option('--var <vars...>', 'Additional variables (key=value)')
   .action(async (flowName: string, options) => {
