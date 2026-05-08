@@ -23,11 +23,11 @@ export interface PopupHandler {
 }
 
 const DEFAULT_CONFIG: BrowserConfig = {
-  headless: false,
-  slowMo: 100,
-  timeout: 30000,
+  headless: process.env.HEADLESS === 'true',
+  slowMo: parseInt(process.env.SLOWMO || '100'),
+  timeout: parseInt(process.env.TIMEOUT || '30000'),
   viewport: { width: 1280, height: 720 },
-  screenshotOnFailure: true,
+  screenshotOnFailure: process.env.SCREENSHOT_ON_FAILURE !== 'false',
 };
 
 export class BrowserManager {

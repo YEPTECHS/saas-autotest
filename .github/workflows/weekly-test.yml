@@ -78,7 +78,17 @@ jobs:
         run: pnpm accuracy
         continue-on-error: true
 
-      # Boundary flows are UI-heavy and run locally via run-weekly.ps1 instead
+      - name: Boundary — Maya
+        run: pnpm test:boundary:maya
+        continue-on-error: true
+
+      - name: Boundary — Oscar
+        run: pnpm test:boundary:oscar
+        continue-on-error: true
+
+      - name: Boundary — Daniel
+        run: pnpm test:boundary:daniel
+        continue-on-error: true
 
       - name: Generate HTML Report and Send Email
         run: pnpm report:html:email
