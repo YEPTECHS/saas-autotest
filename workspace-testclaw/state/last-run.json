@@ -1,0 +1,17 @@
+{
+  "last_run_at": "2026-05-05T09:00:00+08:00",
+  "trigger": "manual",
+  "status": "success",
+  "summary": {
+    "maya":   { "passed": 136, "total": 208, "rate": 65.4 },
+    "oscar":  { "passed": 132, "total": 203, "rate": 65.0 },
+    "daniel": { "passed": 180, "total": 203, "rate": 88.7 }
+  },
+  "accuracy": {
+    "maya":   { "passed": 16, "total": 16, "rate": 100.0 },
+    "oscar":  { "passed": 11, "total": 11, "rate": 100.0 },
+    "daniel": { "passed": 10, "total": 11, "rate": 90.9 }
+  },
+  "report_sent_to": "kiechee.pau@yepai.io",
+  "run_count": 1
+}
