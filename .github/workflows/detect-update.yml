@@ -1,0 +1,208 @@
+name: Detect YepAI Agent Updates
+
+on:
+  schedule:
+    - cron: '0 14 * * *'   # midnight AEST (UTC+10)
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # ── Step 1: Check which agents changed ──────────────────────
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      changed:     ${{ steps.detect.outputs.changed }}
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - run: pnpm install
+
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          HEADLESS=true
+          EOF
+
+      - name: Load stored fingerprints
+        run: |
+          mkdir -p data
+          STORED='${{ vars.AGENT_HASHES }}'
+          if [ -z "$STORED" ]; then STORED='{}'; fi
+          echo "$STORED" > data/agent-fingerprints.json
+
+      - name: Detect agent updates
+        id: detect
+        run: pnpm tsx scripts/detect-agent-update.ts
+
+      - name: Save updated fingerprints
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HASHES=$(cat data/agent-fingerprints.json | tr -d '\n')
+          gh variable set AGENT_HASHES --body "$HASHES" --repo ${{ github.repository }} || true
+
+  # ── Step 2a: Run Maya tests if Maya changed ──────────────────
+  test-maya:
+    needs: detect
+    if: contains(needs.detect.outputs.changed, 'maya')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+      - name: API Stress — Maya
+        run: pnpm stress:api:maya
+        continue-on-error: true
+      - name: Tab Isolation — Maya
+        run: pnpm test:tab:maya
+        continue-on-error: true
+      - name: Accuracy — Maya
+        run: pnpm accuracy:maya
+        continue-on-error: true
+      - name: Boundary — Maya
+        run: pnpm test:boundary:maya
+        continue-on-error: true
+      - name: Send Report
+        run: pnpm report:html:email
+
+  # ── Step 2b: Run Oscar tests if Oscar changed ────────────────
+  test-oscar:
+    needs: detect
+    if: contains(needs.detect.outputs.changed, 'oscar')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+      - name: API Stress — Oscar
+        run: pnpm stress:api:oscar
+        continue-on-error: true
+      - name: Tab Isolation — Oscar
+        run: pnpm test:tab:oscar
+        continue-on-error: true
+      - name: Accuracy — Oscar
+        run: pnpm accuracy:oscar
+        continue-on-error: true
+      - name: Boundary — Oscar
+        run: pnpm test:boundary:oscar
+        continue-on-error: true
+      - name: Send Report
+        run: pnpm report:html:email
+
+  # ── Step 2c: Run Daniel tests if Daniel changed ──────────────
+  test-daniel:
+    needs: detect
+    if: contains(needs.detect.outputs.changed, 'daniel')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+      - name: API Stress — Daniel
+        run: pnpm stress:api:daniel
+        continue-on-error: true
+      - name: Tab Isolation — Daniel
+        run: pnpm test:tab:daniel
+        continue-on-error: true
+      - name: Accuracy — Daniel
+        run: pnpm accuracy:daniel
+        continue-on-error: true
+      - name: Boundary — Daniel
+        run: pnpm test:boundary:daniel
+        continue-on-error: true
+      - name: Send Report
+        run: pnpm report:html:email
