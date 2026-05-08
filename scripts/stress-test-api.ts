@@ -297,7 +297,9 @@ async function discoverApi(): Promise<CapturedApi> {
 
     // Navigate to agent page
     await page.goto(`${BASE_URL}${agentPath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(4000);
+    // Wait for chat textarea to be visible (more reliable than fixed timeout)
+    await page.waitForSelector('textarea', { timeout: 15000 });
+    await page.waitForTimeout(1000);
 
     // Send a probe message to trigger the chat API call
     const probe = QUESTIONS[AGENT_ARG][0];
@@ -314,18 +316,30 @@ async function discoverApi(): Promise<CapturedApi> {
     }, probe);
 
     await page.waitForTimeout(500);
-    await page.evaluate(() => {
+
+    // Try to find and click send button (search up to 4 parent levels)
+    const clicked = await page.evaluate(() => {
       const ta = document.querySelector('textarea');
-      if (!ta) return;
-      const btn =
-        ta.parentElement?.querySelector('button') ||
-        ta.parentElement?.parentElement?.querySelector('button');
-      if (btn) (btn as HTMLButtonElement).click();
+      if (!ta) return false;
+      let el: Element | null = ta;
+      for (let i = 0; i < 4; i++) {
+        el = el?.parentElement ?? null;
+        if (!el) break;
+        const btn = el.querySelector('button[type="submit"], button[aria-label*="send" i], button[aria-label*="submit" i], button');
+        if (btn) { (btn as HTMLButtonElement).click(); return true; }
+      }
+      return false;
     });
 
-    // Wait up to 15s for the chat API call to fire
+    if (!clicked) {
+      // Fallback: Enter key submits most chat inputs
+      await page.keyboard.press('Enter');
+      console.log('  ⚠ Send button not found, used Enter key');
+    }
+
+    // Wait up to 25s for the chat API call to fire
     let waited = 0;
-    while (!captured && waited < 15000) {
+    while (!captured && waited < 25000) {
       await page.waitForTimeout(500);
       waited += 500;
     }
