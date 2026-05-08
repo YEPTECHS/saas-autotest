@@ -5,30 +5,27 @@ on:
     - cron: '0 1 * * 6'   # Saturday 09:00 MYT (UTC+8 = UTC 01:00)
   workflow_dispatch:        # allow manual trigger from GitHub UI
 
+# Shared setup step reused across jobs
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
 jobs:
-  run-tests:
+  # ── Job 1: Stress + Tab Isolation + Accuracy (fast, ~60 min) ──
+  stress-and-accuracy:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v3
         with:
           version: 8
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install chromium --with-deps
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
 
       - name: Create .env
         run: |
@@ -78,17 +75,190 @@ jobs:
         run: pnpm accuracy
         continue-on-error: true
 
+      - name: Upload stress/accuracy reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-stress-accuracy-${{ github.run_id }}
+          path: reports/
+          retention-days: 3
+
+  # ── Job 2: Boundary — Maya (parallel, up to 6h) ─────────────
+  boundary-maya:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+
       - name: Boundary — Maya
         run: pnpm test:boundary:maya
         continue-on-error: true
+
+      - name: Upload Maya boundary reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-boundary-maya-${{ github.run_id }}
+          path: reports/
+          retention-days: 3
+
+  # ── Job 3: Boundary — Oscar (parallel, up to 6h) ────────────
+  boundary-oscar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
 
       - name: Boundary — Oscar
         run: pnpm test:boundary:oscar
         continue-on-error: true
 
+      - name: Upload Oscar boundary reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-boundary-oscar-${{ github.run_id }}
+          path: reports/
+          retention-days: 3
+
+  # ── Job 4: Boundary — Daniel (parallel, up to 6h) ───────────
+  boundary-daniel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+
       - name: Boundary — Daniel
         run: pnpm test:boundary:daniel
         continue-on-error: true
+
+      - name: Upload Daniel boundary reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-boundary-daniel-${{ github.run_id }}
+          path: reports/
+          retention-days: 3
+
+  # ── Job 5: Report — waits for all jobs, merges & emails ─────
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [stress-and-accuracy, boundary-maya, boundary-oscar, boundary-daniel]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          EOF
+
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*-${{ github.run_id }}
+          path: reports/
+          merge-multiple: true
 
       - name: Generate HTML Report and Send Email
         run: pnpm report:html:email
