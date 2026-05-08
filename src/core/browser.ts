@@ -22,14 +22,6 @@ export interface PopupHandler {
   waitForClose: () => Promise<void>;
 }
 
-const DEFAULT_CONFIG: BrowserConfig = {
-  headless: process.env.HEADLESS === 'true',
-  slowMo: parseInt(process.env.SLOWMO || '100'),
-  timeout: parseInt(process.env.TIMEOUT || '30000'),
-  viewport: { width: 1280, height: 720 },
-  screenshotOnFailure: process.env.SCREENSHOT_ON_FAILURE !== 'false',
-};
-
 export class BrowserManager {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
@@ -38,7 +30,15 @@ export class BrowserManager {
   private popups: Map<string, Page> = new Map();
 
   constructor(config: Partial<BrowserConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    // Read env vars at construction time so dotenv and CLI option writes land first
+    const envDefaults: BrowserConfig = {
+      headless: process.env.HEADLESS === 'true',
+      slowMo: parseInt(process.env.SLOWMO || '100'),
+      timeout: parseInt(process.env.TIMEOUT || '30000'),
+      viewport: { width: 1280, height: 720 },
+      screenshotOnFailure: process.env.SCREENSHOT_ON_FAILURE !== 'false',
+    };
+    this.config = { ...envDefaults, ...config };
   }
 
   /**
