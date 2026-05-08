@@ -78,17 +78,7 @@ jobs:
         run: pnpm accuracy
         continue-on-error: true
 
-      - name: Boundary — Maya
-        run: pnpm flow test-marketing-boundary
-        continue-on-error: true
-
-      - name: Boundary — Oscar
-        run: pnpm flow test-operation-boundary
-        continue-on-error: true
-
-      - name: Boundary — Daniel
-        run: pnpm flow test-daniel-boundary
-        continue-on-error: true
+      # Boundary flows are UI-heavy and run locally via run-weekly.ps1 instead
 
       - name: Generate HTML Report and Send Email
         run: pnpm report:html:email
