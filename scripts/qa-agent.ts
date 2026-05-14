@@ -1,32 +1,31 @@
 /**
  * qa-agent.ts — Daily Linear QA scanner + AI-driven test generator
  *
- * True AI agent: Claude drives the test loop with tool calls.
- * It explores existing flows, writes YAML, runs tests, fixes failures, and retries.
+ * True AI agent: Claude drives the full loop with tool calls.
+ * Improvements over v1:
+ *  - Claude decides whether to test, skip, or request approval (no separate analyzeTicket step)
+ *  - Stale-test detection: re-runs if ticket was updated since last test
+ *  - Rich app context in system prompt (routes, agents, selectors)
+ *  - Posts result comment back to Linear ticket on completion
  *
  * Flow:
- *  1. Fetch all "QA" status issues from Linear (team YEP)
- *  2. Load persisted state
- *  3. Check Gmail inbox for approval replies on pending tickets
- *  4. For each ticket:
- *     - Analyse confidence (Claude one-shot)
- *     - High confidence → runAgentLoop (Claude + tools: explore→write→run→fix→report)
- *     - Low confidence → email for approval (user replies → detected next run)
- *  5. Save state, generate HTML report, send email
+ *  1. Fetch QA issues from Linear
+ *  2. Load state; check Gmail inbox for approval replies
+ *  3. For each ticket:
+ *     - If done/failed but ticket was updated → re-run
+ *     - If pending approval → skip unless reply detected
+ *     - Otherwise → run agent loop (Claude + tools)
+ *       Agent decides: write+run test | skip | request_approval
+ *  4. Post result to Linear, save state, email HTML report
  *
  * Required env vars:
- *   LINEAR_API_KEY        Linear personal API token
- *   ANTHROPIC_API_KEY     Anthropic API key
- *   YEPAI_BASE_URL        YepAI app base URL
- *   YEPAI_LOGIN_EMAIL
- *   YEPAI_LOGIN_PASSWORD
- *   REPORT_EMAIL_FROM     Gmail address (send + IMAP inbox check)
- *   REPORT_EMAIL_PASS     Gmail App Password
- *   REPORT_EMAIL_TO
+ *   LINEAR_API_KEY, ANTHROPIC_API_KEY
+ *   YEPAI_BASE_URL, YEPAI_LOGIN_EMAIL, YEPAI_LOGIN_PASSWORD
+ *   REPORT_EMAIL_FROM, REPORT_EMAIL_PASS, REPORT_EMAIL_TO
  *
  * Optional:
- *   QA_TEAM               Linear team key (default: YEP)
- *   QA_AGENT_APPROVE      Space-separated ticket IDs to force-approve
+ *   QA_TEAM              Linear team key (default: YEP)
+ *   QA_AGENT_APPROVE     Space-separated ticket IDs to force-approve
  */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -42,7 +41,6 @@ import 'dotenv/config';
 const LINEAR_API_KEY    = process.env.LINEAR_API_KEY || '';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const LINEAR_TEAM       = process.env.QA_TEAM || 'YEP';
-const CONFIDENCE_THRESHOLD = 0.75;
 const APPROVAL_EMAIL    = 'paukiechee96@gmail.com';
 const STATE_FILE        = join(process.cwd(), 'data/qa-agent-state.json');
 const FLOWS_DIR         = join(process.cwd(), 'src/flows');
@@ -55,23 +53,45 @@ const FORCE_APPROVE: string[] = (
   process.argv.find(a => a.startsWith('--approve='))?.split('=')[1] || ''
 ).split(/\s+/).filter(Boolean);
 
+// ── App context injected into agent system prompt ───────────────
+
+const APP_CONTEXT = `
+## YepAI app routes
+- Login:                   {{YEPAI_BASE_URL}}/auth/login
+- Dashboard:               {{YEPAI_BASE_URL}}/dashboard
+- Maya  (Marketing AI):    {{YEPAI_BASE_URL}}/ai-team/marketing/chat
+- Oscar (Operations AI):   {{YEPAI_BASE_URL}}/ai-team/operations/chat
+- Daniel (Analytics AI):   {{YEPAI_BASE_URL}}/ai-team/analytics/chat
+- Cody  (SEO AI):          {{YEPAI_BASE_URL}}/ai-team/seo/chat
+- Analytics overview:      {{YEPAI_BASE_URL}}/analytics/overview
+- Customers:               {{YEPAI_BASE_URL}}/customers
+- AI Training:             {{YEPAI_BASE_URL}}/ai-training
+- Settings:                {{YEPAI_BASE_URL}}/settings
+- Integrations:            {{YEPAI_BASE_URL}}/integrations
+- Pricing:                 {{YEPAI_BASE_URL}}/pricing
+
+## Key selectors
+- Chat input (all agents): textarea
+- Send message: press Enter, or button[type="submit"]
+- Email input:             input[type='email']
+- Password input:          input[type='password']
+- Submit button:           button[type='submit']
+
+## Shared step files
+- _shared/login.steps.yml — navigates to /auth/login, fills credentials, waits for dashboard.
+  Always include this as the first step in every flow.
+`;
+
 // ── Types ──────────────────────────────────────────────────────
 
-interface LinearComment {
-  id: string;
-  body: string;
-  createdAt: string;
-  user: { name: string; email: string; isBot: boolean };
-}
-
 interface LinearIssue {
-  id: string;
-  identifier: string;
+  id: string;           // internal UUID — used for mutations (postLinearComment)
+  identifier: string;   // human ID e.g. YEP-364
   title: string;
   description: string;
   url: string;
+  updatedAt: string;    // ISO timestamp — used for stale detection
   labels: string[];
-  comments: LinearComment[];
 }
 
 interface TicketState {
@@ -91,16 +111,8 @@ interface TicketState {
 
 type AgentState = Record<string, TicketState>;
 
-interface ClaudeAnalysis {
-  shouldTest: boolean;
-  confidence: number;
-  reason: string;
-  testType: 'browser_flow' | 'api' | 'skip';
-  testPlan: string;
-  suggestedFlowName: string;
-}
-
 interface AgentReport {
+  outcome: 'done' | 'failed' | 'skipped' | 'pending_approval';
   flowName: string;
   passCount: number;
   failCount: number;
@@ -143,12 +155,8 @@ async function fetchQAIssues(): Promise<LinearIssue[]> {
         state: { name: { eq: $statusName } }
       }, first: 50) {
         nodes {
-          id identifier title description url
+          id identifier title description url updatedAt
           labels { nodes { name } }
-          comments { nodes {
-            id body createdAt
-            user { name email isBot }
-          }}
         }
       }
     }
@@ -160,14 +168,24 @@ async function fetchQAIssues(): Promise<LinearIssue[]> {
     title: n.title,
     description: n.description || '',
     url: n.url,
+    updatedAt: n.updatedAt,
     labels: (n.labels?.nodes || []).map((l: any) => l.name as string),
-    comments: (n.comments?.nodes || []).map((c: any) => ({
-      id: c.id,
-      body: c.body,
-      createdAt: c.createdAt,
-      user: { name: c.user?.name || '', email: c.user?.email || '', isBot: !!c.user?.isBot },
-    })),
   }));
+}
+
+async function postLinearComment(issueId: string, body: string): Promise<void> {
+  try {
+    await linearGQL(`
+      mutation CreateComment($issueId: String!, $body: String!) {
+        commentCreate(input: { issueId: $issueId, body: $body }) {
+          success
+        }
+      }
+    `, { issueId, body });
+    console.log('  [linear] comment posted');
+  } catch (e: any) {
+    console.warn(`  [linear] failed to post comment: ${e.message}`);
+  }
 }
 
 // ── Gmail IMAP: check for approval replies ──────────────────────
@@ -191,7 +209,7 @@ async function checkApprovalReplies(pendingIds: string[]): Promise<Set<string>> 
     const lock = await client.getMailboxLock('INBOX');
     try {
       for (const ticketId of pendingIds) {
-        // Search subject AND body separately to handle forwarded/mangled subjects
+        // Search subject AND body separately — handles forwarded/mangled subjects
         const subjectHits = (await client.search({ from: APPROVAL_EMAIL, subject: ticketId })) || [];
         const bodyHits    = (await client.search({ from: APPROVAL_EMAIL, body:    ticketId })) || [];
         if (subjectHits.length > 0 || bodyHits.length > 0) {
@@ -212,7 +230,11 @@ async function checkApprovalReplies(pendingIds: string[]): Promise<Set<string>> 
 
 // ── Email helpers ───────────────────────────────────────────────
 
-async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): Promise<void> {
+async function sendApprovalEmail(
+  issue: LinearIssue,
+  reason: string,
+  testPlan: string,
+): Promise<void> {
   const from = process.env.REPORT_EMAIL_FROM;
   const pass = process.env.REPORT_EMAIL_PASS;
   if (!from || !pass) { console.log('  [email] skipped — REPORT_EMAIL_* not set'); return; }
@@ -220,24 +242,23 @@ async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): 
   const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: from, pass } });
   const html = `
     <h2>🤖 QA Agent — Approval Needed</h2>
-    <p>I found a QA ticket I'm not confident about. Should I write automated tests for it?</p>
+    <p>I found a QA ticket I'm not sure about. Should I write automated tests for it?</p>
     <table style="border-collapse:collapse;width:100%">
       <tr><td style="padding:6px;font-weight:bold">Ticket</td><td><a href="${issue.url}">${issue.identifier} — ${issue.title}</a></td></tr>
-      <tr><td style="padding:6px;font-weight:bold">Confidence</td><td>${(analysis.confidence * 100).toFixed(0)}%</td></tr>
-      <tr><td style="padding:6px;font-weight:bold">Analysis</td><td>${analysis.reason}</td></tr>
-      <tr><td style="padding:6px;font-weight:bold;vertical-align:top">Test Plan</td><td><pre style="margin:0">${analysis.testPlan}</pre></td></tr>
+      <tr><td style="padding:6px;font-weight:bold">Why unsure</td><td>${reason}</td></tr>
+      <tr><td style="padding:6px;font-weight:bold;vertical-align:top">Test plan</td><td><pre style="margin:0">${testPlan}</pre></td></tr>
     </table>
     <br>
-    <p><strong>To approve:</strong> simply <strong>reply to this email</strong> with any content — the QA agent will detect your reply on the next daily run and proceed.</p>
-    <p><strong>To skip:</strong> no action needed. The ticket will stay in pending state.</p>
+    <p><strong>To approve:</strong> reply to this email with anything — the QA agent detects your reply on the next daily run.</p>
+    <p><strong>To skip:</strong> no action needed.</p>
   `;
   await transporter.sendMail({
     from,
     to: APPROVAL_EMAIL,
-    subject: `🤖 QA Agent: Approve test for ${issue.identifier}? (${issue.title.substring(0, 50)})`,
+    subject: `QA Agent: Approve test for ${issue.identifier}? (${issue.title.substring(0, 50)})`,
     html,
   });
-  console.log(`  [email] approval request sent to ${APPROVAL_EMAIL}`);
+  console.log(`  [email] approval request sent for ${issue.identifier}`);
 }
 
 async function sendEmail(subject: string, html: string): Promise<void> {
@@ -248,48 +269,7 @@ async function sendEmail(subject: string, html: string): Promise<void> {
 
   const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: from, pass } });
   await transporter.sendMail({ from, to, subject, html });
-  console.log(`  [email] sent to ${to}`);
-}
-
-// ── Claude: confidence analysis (gating step) ───────────────────
-
-async function analyzeTicket(issue: LinearIssue): Promise<ClaudeAnalysis> {
-  const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-
-  const prompt = `You are a QA automation engineer reviewing a Linear ticket in "QA" status.
-
-Ticket: ${issue.identifier} — ${issue.title}
-Labels: ${issue.labels.join(', ') || 'none'}
-Description:
-${issue.description || '(no description)'}
-
-Decide whether to write an automated E2E test for this ticket.
-
-Rules:
-- Write a test if it describes a reproducible UI or API behaviour verifiable programmatically.
-- Skip if it's a design/UX issue, requires human judgement, or has no clear pass/fail criteria.
-- The test framework is Playwright + TypeScript with YAML flow files.
-
-Return ONLY valid JSON:
-{
-  "shouldTest": true | false,
-  "confidence": 0.0–1.0,
-  "reason": "one sentence",
-  "testType": "browser_flow" | "api" | "skip",
-  "testPlan": "2–5 step description",
-  "suggestedFlowName": "test-yep-NNN-kebab-case"
-}`;
-
-  const msg = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 500,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const text = (msg.content[0] as any).text as string;
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Claude did not return JSON');
-  return JSON.parse(jsonMatch[0]) as ClaudeAnalysis;
+  console.log(`  [email] report sent to ${to}`);
 }
 
 // ── Agent tools ─────────────────────────────────────────────────
@@ -297,23 +277,23 @@ Return ONLY valid JSON:
 const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: 'list_flows',
-    description: 'List all existing .flow.yml test files in src/flows/. Read 1-2 similar ones for context before writing.',
+    description: 'List all existing .flow.yml test files in src/flows/. Read 1-2 similar ones for context.',
     input_schema: { type: 'object' as const, properties: {}, required: [] },
   },
   {
     name: 'read_file',
-    description: 'Read a file in the project (flow YAML, shared steps, etc.). Path relative to project root.',
+    description: 'Read a file in the project. Path relative to project root.',
     input_schema: {
       type: 'object' as const,
       properties: {
-        path: { type: 'string', description: 'e.g. src/flows/test-cody-boundary.flow.yml' },
+        path: { type: 'string', description: 'e.g. src/flows/test-marketing-chat.flow.yml' },
       },
       required: ['path'],
     },
   },
   {
     name: 'get_git_context',
-    description: 'Get recent git commits mentioning this ticket ID — useful for understanding what changed.',
+    description: 'Get recent git commits mentioning a ticket ID — helps understand what changed.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -324,7 +304,7 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: 'write_flow',
-    description: 'Save a YAML flow test file to src/flows/. Overwrites if already exists.',
+    description: 'Save a YAML flow test file to src/flows/. Overwrites if exists.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -336,25 +316,48 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: 'run_test',
-    description: `Run a flow test and return full output. You may call this up to ${MAX_TEST_RUNS} times — fix failures between attempts.`,
+    description: `Run a flow test and return full output. Up to ${MAX_TEST_RUNS} attempts — fix failures between runs.`,
     input_schema: {
       type: 'object' as const,
       properties: {
-        flowName: { type: 'string', description: 'Flow name (same as write_flow flowName)' },
+        flowName: { type: 'string' },
       },
       required: ['flowName'],
     },
   },
   {
-    name: 'report_done',
-    description: 'Call this when finished — test passed, failed after retries, or cannot be automated.',
+    name: 'request_approval',
+    description: 'Send an approval email to the human and pause this ticket. Use when you are genuinely uncertain whether automated testing is appropriate for this ticket.',
     input_schema: {
       type: 'object' as const,
       properties: {
-        flowName: { type: 'string', description: 'Flow name written and run, or empty string if skipped' },
-        passCount: { type: 'number' },
-        failCount: { type: 'number' },
-        notes: { type: 'string', description: 'One sentence summary' },
+        reason:   { type: 'string', description: 'Why you are uncertain' },
+        testPlan: { type: 'string', description: 'What you would test if approved (2-4 steps)' },
+      },
+      required: ['reason', 'testPlan'],
+    },
+  },
+  {
+    name: 'skip_ticket',
+    description: 'Mark this ticket as not suitable for automated testing. Use when there is no clear programmatic pass/fail criteria (e.g. purely visual, requires human judgement).',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        reason: { type: 'string', description: 'Why it cannot be automated' },
+      },
+      required: ['reason'],
+    },
+  },
+  {
+    name: 'report_done',
+    description: 'Call this when the test run is finished (pass or fail after retries).',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        flowName:   { type: 'string', description: 'Flow name that was run, or empty string' },
+        passCount:  { type: 'number' },
+        failCount:  { type: 'number' },
+        notes:      { type: 'string', description: 'One-sentence summary' },
       },
       required: ['flowName', 'passCount', 'failCount', 'notes'],
     },
@@ -363,30 +366,38 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
 
 // ── Tool executor ───────────────────────────────────────────────
 
-function executeTool(
+interface ToolCtx {
+  testRunCount: number;
+  lastOutput: string;
+  report?: AgentReport;       // set when report_done / skip_ticket / request_approval fires
+  pendingApprovalData?: { reason: string; testPlan: string };
+}
+
+async function executeTool(
   name: string,
   input: Record<string, any>,
-  ctx: { testRunCount: number; lastOutput: string },
-): { result: string; report?: AgentReport } {
+  ctx: ToolCtx,
+  issue: LinearIssue,
+): Promise<string> {
   switch (name) {
 
     case 'list_flows': {
-      if (!existsSync(FLOWS_DIR)) return { result: '(src/flows/ not found)' };
+      if (!existsSync(FLOWS_DIR)) return '(src/flows/ not found)';
       const files = readdirSync(FLOWS_DIR)
         .filter(f => f.endsWith('.flow.yml'))
         .map(f => `src/flows/${f}`)
         .sort();
-      return { result: files.join('\n') || '(no flow files yet)' };
+      return files.join('\n') || '(no flow files yet)';
     }
 
     case 'read_file': {
       const safePath = join(process.cwd(), (input.path as string).replace(/\.\./g, ''));
-      if (!existsSync(safePath)) return { result: `File not found: ${input.path}` };
+      if (!existsSync(safePath)) return `File not found: ${input.path}`;
       try {
         const content = readFileSync(safePath, 'utf-8');
-        return { result: content.length > 6000 ? content.substring(0, 6000) + '\n…(truncated)' : content };
+        return content.length > 6000 ? content.substring(0, 6000) + '\n…(truncated)' : content;
       } catch (e: any) {
-        return { result: `Error: ${e.message}` };
+        return `Error reading file: ${e.message}`;
       }
     }
 
@@ -396,24 +407,23 @@ function executeTool(
           `git log --oneline -20 --grep="${input.ticketId}"`,
           { cwd: process.cwd(), encoding: 'utf-8', timeout: 10000 },
         ).trim();
-        return { result: log || '(no commits found for this ticket)' };
+        return log || '(no commits found for this ticket)';
       } catch {
-        return { result: '(git context unavailable)' };
+        return '(git context unavailable)';
       }
     }
 
     case 'write_flow': {
       if (!existsSync(FLOWS_DIR)) mkdirSync(FLOWS_DIR, { recursive: true });
-      let yaml = (input.yaml as string).replace(/^```ya?ml\n?/i, '').replace(/\n?```$/i, '').trim();
-      const flowFile = join(FLOWS_DIR, `${input.flowName}.flow.yml`);
-      writeFileSync(flowFile, yaml);
-      return { result: `Written: src/flows/${input.flowName}.flow.yml (${yaml.length} chars)` };
+      const yaml = (input.yaml as string).replace(/^```ya?ml\n?/i, '').replace(/\n?```$/i, '').trim();
+      writeFileSync(join(FLOWS_DIR, `${input.flowName}.flow.yml`), yaml);
+      return `Written: src/flows/${input.flowName}.flow.yml (${yaml.length} chars)`;
     }
 
     case 'run_test': {
       ctx.testRunCount++;
       if (ctx.testRunCount > MAX_TEST_RUNS) {
-        return { result: `Max test runs (${MAX_TEST_RUNS}) reached. Call report_done to finish.` };
+        return `Max test runs (${MAX_TEST_RUNS}) reached. Call report_done to finish.`;
       }
       console.log(`   [agent] run_test: ${input.flowName} (attempt ${ctx.testRunCount}/${MAX_TEST_RUNS})`);
       const start = Date.now();
@@ -426,65 +436,98 @@ function executeTool(
       const duration = ((Date.now() - start) / 1000).toFixed(1);
       const output = ((res.stdout || '') + (res.stderr || '')).substring(0, 4000);
       ctx.lastOutput = output;
-      return {
-        result: `Exit: ${res.status} | Duration: ${duration}s | Success: ${res.status === 0}\n\n${output}`,
+      return `Exit: ${res.status} | Duration: ${duration}s | Success: ${res.status === 0}\n\n${output}`;
+    }
+
+    case 'request_approval': {
+      ctx.pendingApprovalData = { reason: input.reason, testPlan: input.testPlan };
+      try {
+        await sendApprovalEmail(issue, input.reason as string, input.testPlan as string);
+      } catch (e: any) {
+        console.warn(`  [email] sendApprovalEmail failed: ${e.message}`);
+      }
+      ctx.report = {
+        outcome: 'pending_approval',
+        flowName: '',
+        passCount: 0,
+        failCount: 0,
+        notes: input.reason as string,
+        testOutput: '',
       };
+      return 'Approval email sent. Ticket paused until human replies.';
+    }
+
+    case 'skip_ticket': {
+      ctx.report = {
+        outcome: 'skipped',
+        flowName: '',
+        passCount: 0,
+        failCount: 0,
+        notes: input.reason as string,
+        testOutput: '',
+      };
+      return 'Ticket marked as skipped.';
     }
 
     case 'report_done': {
-      return {
-        result: 'Acknowledged. Agent loop complete.',
-        report: {
-          flowName: input.flowName as string,
-          passCount: input.passCount as number,
-          failCount: input.failCount as number,
-          notes: input.notes as string,
-          testOutput: ctx.lastOutput,
-        },
+      ctx.report = {
+        outcome: (input.passCount as number) > 0 || (input.failCount as number) === 0 ? 'done' : 'failed',
+        flowName: input.flowName as string,
+        passCount: input.passCount as number,
+        failCount: input.failCount as number,
+        notes: input.notes as string,
+        testOutput: ctx.lastOutput,
       };
+      return 'Acknowledged. Agent loop complete.';
     }
 
     default:
-      return { result: `Unknown tool: ${name}` };
+      return `Unknown tool: ${name}`;
   }
 }
 
-// ── Agent loop ──────────────────────────────────────────────────
+// ── Agent system prompt ─────────────────────────────────────────
 
 const AGENT_SYSTEM = `You are an expert QA automation engineer for a Playwright + TypeScript E2E framework.
 
-Tests are defined as YAML "flow" files in src/flows/. Every flow must begin with:
+Tests are defined as YAML "flow" files in src/flows/. Every flow must start with:
   steps:
     - include: _shared/login.steps.yml
 
 Available step actions:
-  browser.navigate       params: { url, waitUntil? }
-  browser.click          params: { selector }
+  browser.navigate        params: { url, waitUntil? }
+  browser.click           params: { selector }
   browser.waitForSelector params: { selector, timeout? }
-  browser.type           params: { selector, text }
-  browser.execute        params: { script }  output: varName
-  browser.screenshot     params: { name }
-  form.fillSingle        params: { selector, value }
-  wait                   params: { ms }
-  log                    params: { message }
-  data.saveJson          params: { file, data }
+  browser.waitForUrl      params: { pattern, timeout? }
+  browser.type            params: { selector, text }
+  browser.execute         params: { script }  output: varName
+  browser.screenshot      params: { name }
+  form.fillSingle         params: { selector, value }
+  wait                    params: { ms }
+  log                     params: { message }
+  data.saveJson           params: { file, data }
 
-The app URL is injected as {{YEPAI_BASE_URL}}.
-Use CSS selectors; prefer data attributes and visible-text selectors.
-Use continueOnError: true on assertion steps.
+Add continueOnError: true on assertion steps.
+Use CSS selectors; prefer data attributes or visible-text selectors.
+${APP_CONTEXT}
+## Your process for each ticket
+1. Call list_flows, then read_file on 1-2 relevant existing flows for structural context.
+2. Optionally call get_git_context to see what changed.
+3. Decide:
+   - Clear, automatable test → write_flow → run_test → fix if needed → report_done
+   - Genuinely uncertain → request_approval (pauses ticket, emails human)
+   - Not automatable (visual/UX only, no pass/fail criteria) → skip_ticket
+4. If run_test fails: read the error carefully, update the YAML, retry (max ${MAX_TEST_RUNS} runs).
+5. Always end with report_done, skip_ticket, or request_approval.`;
 
-Your process for each ticket:
-1. Call list_flows, then read 1-2 similar existing flows for structural context.
-2. Optionally call get_git_context to understand what changed.
-3. Call write_flow with a targeted, minimal test.
-4. Call run_test — read the output carefully.
-5. If it fails: diagnose the error, update the YAML (write_flow again), retry (max ${MAX_TEST_RUNS} runs).
-6. Call report_done with final results and a one-sentence summary.
+// ── Agent loop ──────────────────────────────────────────────────
 
-If the ticket genuinely cannot be automated, call report_done with passCount=0, failCount=0 and explain why.`;
-
-async function runAgentLoop(issue: LinearIssue): Promise<AgentReport> {
+async function runAgentLoop(issue: LinearIssue, alreadyApproved: boolean): Promise<AgentReport> {
   const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+
+  const approvalNote = alreadyApproved
+    ? '\n\n**Note:** A human has already approved this ticket for testing — proceed directly without calling request_approval.'
+    : '';
 
   const userMessage = `Write and run an automated E2E test for this Linear ticket:
 
@@ -493,20 +536,20 @@ Labels: ${issue.labels.join(', ') || 'none'}
 
 Description:
 ${issue.description || '(no description provided)'}
+${approvalNote}
 
-Start by listing flows and reading 1-2 relevant ones. Then write, run, and if needed fix the test. Call report_done when done.`;
+Start by listing flows and reading 1-2 relevant ones for context. Then decide what to do and proceed.`;
 
   const messages: Anthropic.MessageParam[] = [
     { role: 'user', content: userMessage },
   ];
 
-  const ctx = { testRunCount: 0, lastOutput: '' };
-  let report: AgentReport | undefined;
+  const ctx: ToolCtx = { testRunCount: 0, lastOutput: '' };
   let step = 0;
 
-  console.log(`   [agent] loop started — max ${MAX_AGENT_STEPS} steps, ${MAX_TEST_RUNS} test runs`);
+  console.log(`   [agent] loop started for ${issue.identifier} (max ${MAX_AGENT_STEPS} steps, ${MAX_TEST_RUNS} runs)`);
 
-  while (step < MAX_AGENT_STEPS && !report) {
+  while (step < MAX_AGENT_STEPS && !ctx.report) {
     step++;
 
     const response = await client.messages.create({
@@ -526,32 +569,29 @@ Start by listing flows and reading 1-2 relevant ones. Then write, run, and if ne
     }
 
     if (response.stop_reason === 'end_turn') {
-      console.log('   [agent] end_turn without report_done');
+      console.log('   [agent] end_turn without terminal tool call');
       break;
     }
 
     if (response.stop_reason === 'tool_use') {
       const toolResults: Anthropic.ToolResultBlockParam[] = [];
-      let doneSignalled = false;
 
       for (const block of response.content) {
         if (block.type !== 'tool_use') continue;
 
         console.log(`   [agent] step ${step}: ${block.name}(${JSON.stringify(block.input).substring(0, 80)})`);
 
-        const { result, report: r } = executeTool(block.name, block.input as Record<string, any>, ctx);
-        if (r) { report = r; doneSignalled = true; }
-
+        const result = await executeTool(block.name, block.input as Record<string, any>, ctx, issue);
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result });
       }
 
       messages.push({ role: 'user', content: toolResults });
-      if (doneSignalled) break;
     }
   }
 
-  if (!report) {
-    report = {
+  if (!ctx.report) {
+    ctx.report = {
+      outcome: 'failed',
       flowName: '',
       passCount: 0,
       failCount: 1,
@@ -560,8 +600,24 @@ Start by listing flows and reading 1-2 relevant ones. Then write, run, and if ne
     };
   }
 
-  console.log(`   [agent] done — pass:${report.passCount} fail:${report.failCount} — ${report.notes}`);
-  return report;
+  const r = ctx.report;
+  console.log(`   [agent] outcome=${r.outcome} pass=${r.passCount} fail=${r.failCount} — ${r.notes}`);
+  return r;
+}
+
+// ── Linear comment builder ──────────────────────────────────────
+
+function buildLinearComment(report: AgentReport): string {
+  const icon = report.outcome === 'done' ? '✅' : report.outcome === 'failed' ? '❌' : '⏭️';
+  const label = report.outcome === 'done' ? 'Auto-test passed'
+    : report.outcome === 'failed'         ? 'Auto-test generated but failed'
+    : 'Skipped (not automatable)';
+
+  const lines = [`${icon} **QA Agent** — ${label}`, ''];
+  if (report.flowName) lines.push(`Flow: \`${report.flowName}.flow.yml\``);
+  if (report.passCount !== undefined) lines.push(`Pass: ${report.passCount}  Fail: ${report.failCount}`);
+  if (report.notes) lines.push('', report.notes);
+  return lines.join('\n');
 }
 
 // ── HTML report ─────────────────────────────────────────────────
@@ -588,7 +644,7 @@ function buildReport(
         <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">
           ${state.passCount !== undefined ? `✅ ${state.passCount} / ❌ ${state.failCount}` : '—'}
         </td>
-        <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px;color:#666">${state.notes ?? ''}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px;color:#555">${state.notes ?? ''}</td>
       </tr>
       ${output ? `<tr><td colspan="6" style="padding:0 8px 12px">${output}</td></tr>` : ''}`;
   }).join('');
@@ -622,15 +678,15 @@ async function main(): Promise<void> {
 
   if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true });
 
-  // 1. Fetch QA tickets from Linear
+  // 1. Fetch QA tickets
   console.log('📋 Fetching QA issues from Linear...');
   const issues = await fetchQAIssues();
   console.log(`   Found ${issues.length} issue(s) in QA status`);
 
-  // 2. Load persisted state
+  // 2. Load state
   const state = loadState();
 
-  // 3. Check Gmail inbox for approval replies
+  // 3. Check Gmail for approval replies on pending tickets
   const pendingIds = Object.entries(state)
     .filter(([, s]) => s.status === 'pending_approval')
     .map(([id]) => id);
@@ -651,126 +707,101 @@ async function main(): Promise<void> {
     const isApproved    = forceApproved || emailApproved.has(id);
     const existing      = state[id];
 
-    // Already finished — include in report only
-    if (existing?.status === 'done' || existing?.status === 'skipped') {
-      console.log(`   Status: ${existing.status} (already processed)`);
+    // ── Stale detection ─────────────────────────────────────────
+    // Re-run if ticket was updated in Linear after our last test
+    if ((existing?.status === 'done' || existing?.status === 'failed') && existing.completedAt) {
+      if (issue.updatedAt > existing.completedAt) {
+        console.log(`   Ticket updated since last run (${existing.completedAt}) — re-testing`);
+        state[id] = { ...existing, status: 'approved', approvedAt: new Date().toISOString() };
+      } else {
+        console.log(`   Status: ${existing.status} (up to date)`);
+        reportRows.push({ issue, state: existing });
+        continue;
+      }
+    }
+
+    // ── Skipped tickets stay skipped ────────────────────────────
+    if (existing?.status === 'skipped') {
+      console.log('   Status: skipped');
       reportRows.push({ issue, state: existing });
       continue;
     }
 
-    // Pending approval — skip unless approved this run
+    // ── Pending approval — skip unless reply detected ───────────
     if (existing?.status === 'pending_approval' && !isApproved) {
-      console.log('   Still pending approval (waiting for email reply)');
+      console.log('   Waiting for approval email reply');
       reportRows.push({ issue, state: existing });
       continue;
     }
 
-    // Initialise state for new tickets
+    // ── Mark approved if reply came in ─────────────────────────
+    if (isApproved && existing?.status === 'pending_approval') {
+      const source = forceApproved ? 'QA_AGENT_APPROVE flag' : 'email reply';
+      console.log(`   Approved via ${source}`);
+      state[id] = { ...existing, status: 'approved', approvedAt: new Date().toISOString() };
+    }
+
+    // ── Initialise new tickets ──────────────────────────────────
     if (!existing) {
       state[id] = {
-        status: 'pending_approval',
+        status: 'approved',  // agent decides skip/approval internally
         firstSeenAt: new Date().toISOString(),
         title: issue.title,
         url: issue.url,
       };
     }
 
-    // Promote pending → approved if reply detected
-    if (isApproved && existing?.status === 'pending_approval') {
-      const source = forceApproved ? 'QA_AGENT_APPROVE flag' : 'email reply';
-      console.log(`   Approved via ${source}`);
-      state[id] = { ...state[id], status: 'approved', approvedAt: new Date().toISOString() };
-    }
+    // ── Run agent loop ──────────────────────────────────────────
+    const wasAlreadyApproved = isApproved || existing?.status === 'approved';
+    console.log('   Running agent loop...');
 
-    // ── Confidence gate ─────────────────────────────────────────
-    if (state[id].status === 'pending_approval') {
-      console.log('   Analysing with Claude...');
-      let analysis: ClaudeAnalysis;
-      try {
-        analysis = await analyzeTicket(issue);
-      } catch (e: any) {
-        console.error(`   Analysis failed: ${e.message}`);
-        state[id].error = e.message;
-        reportRows.push({ issue, state: state[id] });
-        continue;
-      }
-
-      console.log(`   → shouldTest=${analysis.shouldTest}, confidence=${analysis.confidence.toFixed(2)}`);
-      console.log(`   → ${analysis.reason}`);
-
-      if (!analysis.shouldTest) {
-        state[id].status = 'skipped';
-        state[id].notes = analysis.reason;
-        reportRows.push({ issue, state: state[id] });
-        saveState(state);
-        continue;
-      }
-
-      if (analysis.confidence < CONFIDENCE_THRESHOLD) {
-        console.log(`   Confidence ${analysis.confidence.toFixed(2)} < ${CONFIDENCE_THRESHOLD} → emailing for approval`);
-        try {
-          await sendApprovalEmail(issue, analysis);
-          state[id] = { ...state[id], status: 'pending_approval', askedAt: new Date().toISOString() };
-        } catch (e: any) {
-          console.error(`   Failed to send approval email: ${e.message}`);
-        }
-        reportRows.push({ issue, state: state[id] });
-        saveState(state);
-        continue;
-      }
-
-      // High confidence → auto-proceed
-      console.log(`   Confidence ${analysis.confidence.toFixed(2)} >= ${CONFIDENCE_THRESHOLD} → auto-proceeding`);
-      state[id] = { ...state[id], status: 'approved', approvedAt: new Date().toISOString() };
-    }
-
-    // ── Agent loop ──────────────────────────────────────────────
-    if (state[id].status === 'approved') {
-      console.log('   Running agent loop...');
-      let agentResult: AgentReport;
-      try {
-        agentResult = await runAgentLoop(issue);
-      } catch (e: any) {
-        console.error(`   Agent loop error: ${e.message}`);
-        state[id] = { ...state[id], status: 'failed', error: e.message, completedAt: new Date().toISOString() };
-        reportRows.push({ issue, state: state[id] });
-        saveState(state);
-        continue;
-      }
-
-      state[id] = {
-        ...state[id],
-        status: agentResult.passCount > 0 || agentResult.failCount === 0 ? 'done' : 'failed',
-        completedAt: new Date().toISOString(),
-        flowName: agentResult.flowName || undefined,
-        passCount: agentResult.passCount,
-        failCount: agentResult.failCount,
-        notes: agentResult.notes,
-        error: agentResult.failCount > 0 ? agentResult.notes : undefined,
-      };
-
-      reportRows.push({ issue, state: state[id], runOutput: agentResult.testOutput });
+    let agentResult: AgentReport;
+    try {
+      agentResult = await runAgentLoop(issue, wasAlreadyApproved);
+    } catch (e: any) {
+      console.error(`   Agent loop error: ${e.message}`);
+      state[id] = { ...state[id], status: 'failed', error: e.message, completedAt: new Date().toISOString() };
+      reportRows.push({ issue, state: state[id] });
       saveState(state);
+      continue;
     }
+
+    // ── Update state from agent result ──────────────────────────
+    state[id] = {
+      ...state[id],
+      status: agentResult.outcome,
+      completedAt: agentResult.outcome !== 'pending_approval' ? new Date().toISOString() : undefined,
+      askedAt: agentResult.outcome === 'pending_approval' ? new Date().toISOString() : state[id].askedAt,
+      flowName: agentResult.flowName || undefined,
+      passCount: agentResult.passCount,
+      failCount: agentResult.failCount,
+      notes: agentResult.notes,
+      error: agentResult.outcome === 'failed' ? agentResult.notes : undefined,
+    };
+
+    // ── Post result to Linear ───────────────────────────────────
+    if (agentResult.outcome === 'done' || agentResult.outcome === 'failed' || agentResult.outcome === 'skipped') {
+      await postLinearComment(issue.id, buildLinearComment(agentResult));
+    }
+
+    reportRows.push({ issue, state: state[id], runOutput: agentResult.testOutput });
+    saveState(state);
   }
 
   // 5. Save final state
   saveState(state);
 
-  // 6. Generate + send report
+  // 6. Generate + email report
   if (reportRows.length > 0) {
     const html = buildReport(reportRows);
     const reportFile = join(REPORTS_DIR, `qa-agent-report-${new Date().toISOString().split('T')[0]}.html`);
     writeFileSync(reportFile, html);
-    console.log(`\n📄 Report saved: ${reportFile}`);
+    console.log(`\n📄 Report: ${reportFile}`);
 
     const done    = reportRows.filter(r => r.state.status === 'done').length;
     const failed  = reportRows.filter(r => r.state.status === 'failed').length;
     const pending = reportRows.filter(r => r.state.status === 'pending_approval').length;
-    await sendEmail(
-      `🤖 QA Agent — ${done} done, ${failed} failed, ${pending} pending approval`,
-      html,
-    );
+    await sendEmail(`🤖 QA Agent — ${done} done, ${failed} failed, ${pending} pending`, html);
   }
 
   console.log('\n✅ QA Agent done.\n');
