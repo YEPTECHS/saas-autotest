@@ -30,14 +30,13 @@ export const tools: Record<string, ToolDefinition> = {
   // Flow execution
   runFlow: {
     name: 'run_e2e_flow',
-    description: 'Execute a predefined E2E test flow. Available flows: registration (user signup with email verification), shopify-install (Shopify OAuth app installation), full-onboarding (complete user journey).',
+    description: 'Execute an E2E test flow by name. Call list_flows first to see all available flows.',
     parameters: {
       type: 'object',
       properties: {
         flowName: {
           type: 'string',
-          enum: ['registration', 'shopify-install', 'full-onboarding'],
-          description: 'Name of the flow to execute',
+          description: 'Name of the flow to execute (without .flow.yml). Use list_flows to discover available flows.',
         },
         variables: {
           type: 'object',
@@ -295,6 +294,46 @@ export const tools: Record<string, ToolDefinition> = {
         },
       },
       required: ['flowName'],
+    },
+  },
+
+  // Generate a new flow from natural language
+  generateFlow: {
+    name: 'generate_flow',
+    description: 'Generate a new YAML flow test file from a natural language description. Claude writes the flow and saves it to src/flows/ ready to run.',
+    parameters: {
+      type: 'object',
+      properties: {
+        prompt: {
+          type: 'string',
+          description: 'Natural language description of what to test (e.g. "test that a logged-in user can open the marketing chat and send a message")',
+        },
+        flowName: {
+          type: 'string',
+          description: 'Output file name in kebab-case without .flow.yml (e.g. test-marketing-send-message)',
+        },
+      },
+      required: ['prompt', 'flowName'],
+    },
+  },
+
+  // Analyse a screenshot with Claude Vision
+  analyzeScreenshot: {
+    name: 'analyze_screenshot',
+    description: 'Use Claude Vision to analyse a screenshot and check whether the page looks correct. Returns pass/fail and a list of any visual issues.',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'Absolute or relative path to the screenshot file (PNG or JPEG)',
+        },
+        description: {
+          type: 'string',
+          description: 'Optional context — what page or feature this screenshot shows',
+        },
+      },
+      required: ['path'],
     },
   },
 };

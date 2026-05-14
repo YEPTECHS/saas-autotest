@@ -2,8 +2,7 @@
   "mcpServers": {
     "yepai-e2e": {
       "command": "pnpm",
-      "args": ["exec", "tsx", "src/tools/mcp-server.ts"],
-      "cwd": "c:\\Users\\pauki\\Downloads\\saase2etest\\saase2etest"
+      "args": ["exec", "tsx", "src/tools/mcp-server.ts"]
     }
   }
 }

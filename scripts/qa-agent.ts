@@ -708,13 +708,17 @@ async function main(): Promise<void> {
     const existing      = state[id];
 
     // ── Stale detection ─────────────────────────────────────────
-    // Re-run if ticket was updated in Linear after our last test
     if ((existing?.status === 'done' || existing?.status === 'failed') && existing.completedAt) {
+      const daysSince = (Date.now() - new Date(existing.completedAt).getTime()) / 86_400_000;
+
       if (issue.updatedAt > existing.completedAt) {
-        console.log(`   Ticket updated since last run (${existing.completedAt}) — re-testing`);
+        console.log(`   Ticket updated since last run — re-testing`);
+        state[id] = { ...existing, status: 'approved', approvedAt: new Date().toISOString() };
+      } else if (existing.status === 'failed' && daysSince >= 3) {
+        console.log(`   Failed ${daysSince.toFixed(0)}d ago — auto-retrying`);
         state[id] = { ...existing, status: 'approved', approvedAt: new Date().toISOString() };
       } else {
-        console.log(`   Status: ${existing.status} (up to date)`);
+        console.log(`   Status: ${existing.status} (${daysSince.toFixed(0)}d ago)`);
         reportRows.push({ issue, state: existing });
         continue;
       }
