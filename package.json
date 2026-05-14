@@ -76,10 +76,12 @@
     "test:boundary:daniel": "tsx src/cli/index.ts run test-daniel-boundary",
     "test:boundary:cody": "tsx src/cli/index.ts run test-cody-boundary",
     "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive",
-    "qa:agent": "tsx scripts/qa-agent.ts"
+    "qa:agent": "tsx scripts/qa-agent.ts",
+    "mcp:server": "tsx src/tools/mcp-server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@playwright/test": "^1.40.0",
     "@types/nodemailer": "^8.0.0",
     "chalk": "^5.3.0",
