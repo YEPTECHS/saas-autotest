@@ -7,9 +7,9 @@
  *  3. For each NEW ticket:
  *     - Ask Claude: should we write automated tests? (confidence score)
  *     - High confidence (>= 0.75) → generate flow YAML → run → report
- *     - Low confidence → post Linear comment asking for approval, wait
+ *     - Low confidence → email paukiechee96@gmail.com asking for approval
  *  4. For PENDING tickets:
- *     - Check if a human replied "approve" to the bot comment → if yes, proceed
+ *     - Approval comes via workflow_dispatch input approve_ticket or QA_AGENT_APPROVE env var
  *  5. Save state, generate HTML report, send email
  *
  * Required secrets / env vars:
@@ -40,7 +40,7 @@ const LINEAR_API_KEY   = process.env.LINEAR_API_KEY || '';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const LINEAR_TEAM      = process.env.QA_TEAM || 'YEP';
 const CONFIDENCE_THRESHOLD = 0.75;
-const BOT_MARKER       = '🤖 QA Agent';
+const APPROVAL_EMAIL   = 'paukiechee96@gmail.com';
 const STATE_FILE       = join(process.cwd(), 'data/qa-agent-state.json');
 const FLOWS_DIR        = join(process.cwd(), 'src/flows');
 const REPORTS_DIR      = join(process.cwd(), 'reports');
@@ -163,25 +163,34 @@ async function fetchQAIssues(): Promise<LinearIssue[]> {
   }));
 }
 
-async function postLinearComment(issueId: string, body: string): Promise<void> {
-  await linearGQL(`
-    mutation PostComment($issueId: String!, $body: String!) {
-      commentCreate(input: { issueId: $issueId, body: $body }) { success }
-    }
-  `, { issueId, body });
-}
+// ── Send approval request email ─────────────────────────────────
 
-// ── Check if human approved the bot comment ─────────────────────
+async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): Promise<void> {
+  const from = process.env.REPORT_EMAIL_FROM;
+  const pass = process.env.REPORT_EMAIL_PASS;
+  if (!from || !pass) { console.log('  [email] skipped — REPORT_EMAIL_* not set'); return; }
 
-function isApprovedByHuman(issue: LinearIssue): boolean {
-  const botCommentIdx = issue.comments.findIndex(
-    c => c.user.isBot && c.body.includes(BOT_MARKER)
-  );
-  if (botCommentIdx === -1) return false;
-  // Any subsequent human comment containing "approve" (case-insensitive)
-  return issue.comments.slice(botCommentIdx + 1).some(
-    c => !c.user.isBot && /\bapprove\b/i.test(c.body)
-  );
+  const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: from, pass } });
+  const html = `
+    <h2>🤖 QA Agent — Approval Needed</h2>
+    <p>I found a QA ticket I'm not confident about. Should I write automated tests for it?</p>
+    <table style="border-collapse:collapse;width:100%">
+      <tr><td style="padding:6px;font-weight:bold">Ticket</td><td><a href="${issue.url}">${issue.identifier} — ${issue.title}</a></td></tr>
+      <tr><td style="padding:6px;font-weight:bold">Confidence</td><td>${(analysis.confidence * 100).toFixed(0)}%</td></tr>
+      <tr><td style="padding:6px;font-weight:bold">Analysis</td><td>${analysis.reason}</td></tr>
+      <tr><td style="padding:6px;font-weight:bold;vertical-align:top">Test Plan</td><td><pre style="margin:0">${analysis.testPlan}</pre></td></tr>
+    </table>
+    <br>
+    <p><strong>To approve:</strong> go to GitHub Actions → QA Agent workflow → Run workflow → enter <code>${issue.identifier}</code> in the <em>approve_ticket</em> field.</p>
+    <p><strong>To skip:</strong> no action needed.</p>
+  `;
+  await transporter.sendMail({
+    from,
+    to: APPROVAL_EMAIL,
+    subject: `🤖 QA Agent: Approve test for ${issue.identifier}? (${issue.title.substring(0, 50)})`,
+    html,
+  });
+  console.log(`  [email] approval request sent to ${APPROVAL_EMAIL}`);
 }
 
 // ── Claude: analyse ticket ──────────────────────────────────────
@@ -427,16 +436,11 @@ async function main(): Promise<void> {
       continue;
     }
 
-    // Pending approval → check if human replied "approve" or force-approved
+    // Pending approval → only proceeds if force-approved via workflow_dispatch
     if (existing?.status === 'pending_approval' && !forceApproved) {
-      if (isApprovedByHuman(issue)) {
-        console.log('   Approval detected in Linear comments → proceeding');
-        state[id] = { ...existing, status: 'approved', approvedAt: new Date().toISOString() };
-      } else {
-        console.log('   Still pending approval, skipping');
-        reportRows.push({ issue, state: existing });
-        continue;
-      }
+      console.log('   Still pending approval (waiting for email response), skipping');
+      reportRows.push({ issue, state: existing });
+      continue;
     }
 
     // New ticket or force-approved
@@ -479,19 +483,12 @@ async function main(): Promise<void> {
       }
 
       if (analysis.confidence < CONFIDENCE_THRESHOLD) {
-        // Post comment asking for approval
-        console.log(`   Confidence ${analysis.confidence.toFixed(2)} < ${CONFIDENCE_THRESHOLD} → asking for approval`);
-        const commentBody =
-          `${BOT_MARKER}: I found this ticket in QA and think it may need automated tests.\n\n` +
-          `**My analysis:** ${analysis.reason}\n\n` +
-          `**Proposed test plan:**\n${analysis.testPlan}\n\n` +
-          `Reply **approve** to this comment to have me generate and run the tests, or ignore to skip.`;
+        console.log(`   Confidence ${analysis.confidence.toFixed(2)} < ${CONFIDENCE_THRESHOLD} → emailing for approval`);
         try {
-          await postLinearComment(issue.id, commentBody);
+          await sendApprovalEmail(issue, analysis);
           state[id] = { ...state[id], status: 'pending_approval', askedAt: new Date().toISOString() };
-          console.log('   Comment posted on Linear ticket');
         } catch (e: any) {
-          console.error(`   Failed to post comment: ${e.message}`);
+          console.error(`   Failed to send approval email: ${e.message}`);
         }
         reportRows.push({ issue, state: state[id] });
         saveState(state);
@@ -561,15 +558,7 @@ async function main(): Promise<void> {
       };
       delete (state[id] as any)._analysis;
 
-      // Post result to Linear
-      const resultComment =
-        `${BOT_MARKER}: Test run complete for ${id}.\n\n` +
-        `**Flow:** \`${flowName}\`\n` +
-        `**Result:** ${run.success ? '✅ Passed' : '❌ Failed'} (${pass} pass / ${fail} fail)\n` +
-        `**Duration:** ${(run.durationMs / 1000).toFixed(1)}s`;
-      try {
-        await postLinearComment(issue.id, resultComment);
-      } catch { /* non-fatal */ }
+      // Result is included in the daily email report — no Linear comment needed
 
       reportRows.push({ issue, state: state[id], runOutput: run.output });
       saveState(state);
