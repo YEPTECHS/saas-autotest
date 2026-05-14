@@ -77,6 +77,12 @@
     "test:boundary:cody": "tsx src/cli/index.ts run test-cody-boundary",
     "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive",
     "qa:agent": "tsx scripts/qa-agent.ts",
+    "repair": "tsx scripts/repair-agent.ts",
+    "repair:all": "tsx scripts/repair-agent.ts --all",
+    "coverage": "tsx scripts/coverage-agent.ts",
+    "coverage:report": "tsx scripts/coverage-agent.ts --report-only",
+    "visual:capture": "tsx scripts/visual-regression.ts --capture",
+    "visual:compare": "tsx scripts/visual-regression.ts --compare",
     "mcp:server": "tsx src/tools/mcp-server.ts"
   },
   "dependencies": {

@@ -1,0 +1,90 @@
+name: Visual Regression
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'   # every Monday midnight AEST
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'capture = save new baseline | compare = diff against baseline'
+        type: choice
+        options: [compare, capture]
+        default: compare
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - run: pnpm install
+
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          EOF
+
+      - name: Restore baseline screenshots
+        run: |
+          BASELINE='${{ vars.VISUAL_BASELINE }}'
+          if [ -n "$BASELINE" ]; then
+            mkdir -p screenshots/baseline
+            echo "$BASELINE" | base64 -d | tar xz -C screenshots/baseline
+            echo "Baseline restored ($(ls screenshots/baseline/*.png 2>/dev/null | wc -l) screenshots)"
+          else
+            echo "No baseline stored — will capture"
+          fi
+
+      - name: Run visual regression (${{ github.event.inputs.mode || 'compare' }})
+        run: |
+          MODE=${{ github.event.inputs.mode || 'compare' }}
+          if [ "$MODE" = "capture" ]; then
+            pnpm visual:capture
+          else
+            # If no baseline, capture first
+            if [ ! -d screenshots/baseline ] || [ -z "$(ls screenshots/baseline/*.png 2>/dev/null)" ]; then
+              echo "No baseline found — capturing first"
+              pnpm visual:capture
+            fi
+            pnpm visual:compare || true
+          fi
+
+      - name: Save baseline screenshots
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -d screenshots/baseline ] && [ -n "$(ls screenshots/baseline/*.png 2>/dev/null)" ]; then
+            PACKED=$(tar czf - -C screenshots/baseline . | base64 -w 0)
+            gh variable set VISUAL_BASELINE --body "$PACKED" --repo ${{ github.repository }} || true
+          fi
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-${{ github.run_id }}
+          path: reports/visual-regression-*.html
+          retention-days: 30
