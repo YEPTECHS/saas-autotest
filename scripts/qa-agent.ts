@@ -4,12 +4,12 @@
  * Flow:
  *  1. Fetch all "QA" status issues from Linear (team YEP)
  *  2. Load persisted state (data/qa-agent-state.json)
- *  3. For each NEW ticket:
+ *  3. Check inbox (Gmail IMAP) for approval replies on pending tickets
+ *  4. For each NEW ticket:
  *     - Ask Claude: should we write automated tests? (confidence score)
  *     - High confidence (>= 0.75) → generate flow YAML → run → report
  *     - Low confidence → email paukiechee96@gmail.com asking for approval
- *  4. For PENDING tickets:
- *     - Approval comes via workflow_dispatch input approve_ticket or QA_AGENT_APPROVE env var
+ *       (user replies "approve" to the email → detected next daily run)
  *  5. Save state, generate HTML report, send email
  *
  * Required secrets / env vars:
@@ -18,16 +18,16 @@
  *   YEPAI_BASE_URL        YepAI app base URL
  *   YEPAI_LOGIN_EMAIL
  *   YEPAI_LOGIN_PASSWORD
- *   REPORT_EMAIL_FROM
- *   REPORT_EMAIL_PASS
+ *   REPORT_EMAIL_FROM     Gmail address used to send/receive (checked via IMAP)
+ *   REPORT_EMAIL_PASS     Gmail App Password
  *   REPORT_EMAIL_TO
  *
  * Optional:
- *   QA_AGENT_APPROVE      Space-separated ticket IDs to force-approve (e.g. "YEP-364 YEP-365")
  *   QA_TEAM               Linear team key (default: YEP)
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { ImapFlow } from 'imapflow';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { spawnSync } from 'child_process';
@@ -181,8 +181,8 @@ async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): 
       <tr><td style="padding:6px;font-weight:bold;vertical-align:top">Test Plan</td><td><pre style="margin:0">${analysis.testPlan}</pre></td></tr>
     </table>
     <br>
-    <p><strong>To approve:</strong> go to GitHub Actions → QA Agent workflow → Run workflow → enter <code>${issue.identifier}</code> in the <em>approve_ticket</em> field.</p>
-    <p><strong>To skip:</strong> no action needed.</p>
+    <p><strong>To approve:</strong> simply <strong>reply to this email</strong> with any content — the QA agent will detect your reply on the next daily run and proceed.</p>
+    <p><strong>To skip:</strong> no action needed. The ticket will stay in pending state.</p>
   `;
   await transporter.sendMail({
     from,
@@ -191,6 +191,45 @@ async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): 
     html,
   });
   console.log(`  [email] approval request sent to ${APPROVAL_EMAIL}`);
+}
+
+// ── Check Gmail inbox for approval replies ──────────────────────
+
+async function checkApprovalReplies(pendingIds: string[]): Promise<Set<string>> {
+  const approved = new Set<string>();
+  const from = process.env.REPORT_EMAIL_FROM;
+  const pass = process.env.REPORT_EMAIL_PASS;
+  if (!from || !pass || pendingIds.length === 0) return approved;
+
+  const client = new ImapFlow({
+    host: 'imap.gmail.com',
+    port: 993,
+    secure: true,
+    auth: { user: from, pass },
+    logger: false,
+  });
+
+  try {
+    await client.connect();
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      for (const ticketId of pendingIds) {
+        const result = await client.search({ from: APPROVAL_EMAIL, subject: ticketId });
+        const uids = result || [];
+        if (uids.length > 0) {
+          approved.add(ticketId);
+          console.log(`  [imap] found approval reply for ${ticketId}`);
+        }
+      }
+    } finally {
+      lock.release();
+    }
+  } catch (e: any) {
+    console.warn(`  [imap] inbox check failed: ${e.message}`);
+  } finally {
+    await client.logout();
+  }
+  return approved;
 }
 
 // ── Claude: analyse ticket ──────────────────────────────────────
@@ -422,11 +461,22 @@ async function main(): Promise<void> {
   const state = loadState();
   const reportRows: Array<{ issue: LinearIssue; state: TicketState; runOutput?: string }> = [];
 
+  // 2b. Check Gmail inbox for approval replies on any pending tickets
+  const pendingIds = Object.entries(state)
+    .filter(([, s]) => s.status === 'pending_approval')
+    .map(([id]) => id);
+  console.log(`\n📬 Checking inbox for approval replies (${pendingIds.length} pending)...`);
+  const emailApproved = await checkApprovalReplies(pendingIds);
+  if (emailApproved.size > 0) {
+    console.log(`   Approved via email: ${[...emailApproved].join(', ')}`);
+  }
+
   for (const issue of issues) {
     const id = issue.identifier;
     console.log(`\n── ${id}: ${issue.title}`);
 
     const forceApproved = FORCE_APPROVE.includes(id);
+    const isApproved = forceApproved || emailApproved.has(id);
     const existing = state[id];
 
     // Already done or skipped → include in report only
@@ -436,9 +486,9 @@ async function main(): Promise<void> {
       continue;
     }
 
-    // Pending approval → only proceeds if force-approved via workflow_dispatch
-    if (existing?.status === 'pending_approval' && !forceApproved) {
-      console.log('   Still pending approval (waiting for email response), skipping');
+    // Pending approval → only proceeds if approved (email reply or force flag)
+    if (existing?.status === 'pending_approval' && !isApproved) {
+      console.log('   Still pending approval (waiting for email reply), skipping');
       reportRows.push({ issue, state: existing });
       continue;
     }
@@ -453,8 +503,9 @@ async function main(): Promise<void> {
       };
     }
 
-    if (forceApproved && existing?.status === 'pending_approval') {
-      console.log('   Force-approved via QA_AGENT_APPROVE');
+    if (isApproved && existing?.status === 'pending_approval') {
+      const source = forceApproved ? 'QA_AGENT_APPROVE flag' : 'email reply';
+      console.log(`   Approved via ${source}`);
       state[id] = { ...state[id], status: 'approved', approvedAt: new Date().toISOString() };
     }
 
