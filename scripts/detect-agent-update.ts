@@ -19,6 +19,7 @@ const AGENTS: Record<string, string> = {
   maya:   '/ai-team/marketing/chat',
   oscar:  '/ai-team/operation/chat',
   daniel: '/ai-team/profit/chat',
+  cody:   '/ai-team/seo/chat',
 };
 
 const HASH_FILE = join(process.cwd(), 'data/agent-fingerprints.json');

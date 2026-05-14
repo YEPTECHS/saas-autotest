@@ -43,11 +43,12 @@ const AGENT_PATHS: Record<string, string> = {
   maya: '/ai-team/marketing/chat',
   oscar: '/ai-team/operation/chat',
   daniel: '/ai-team/profit/chat',
+  cody: '/ai-team/seo/chat',
 };
 
 const agentPath = AGENT_PATHS[AGENT_ARG];
 if (!agentPath) {
-  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel`);
+  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel, cody`);
   process.exit(1);
 }
 
@@ -148,6 +149,28 @@ const QUESTIONS: Record<string, string[]> = {
     'What is marginal cost?',
     'How do I evaluate if a product is worth keeping?',
     'What is activity-based costing?',
+  ],
+  cody: [
+    'Analyze my product catalog for SEO gaps.',
+    'Write an optimized title for a bamboo cutting board.',
+    'Generate meta tags for my running shoes product page.',
+    'Suggest long-tail keywords for organic skincare products.',
+    'What makes a good SEO product description?',
+    'How does keyword density affect product page rankings?',
+    'What is the ideal length for a product title for SEO?',
+    'How do I optimize product URLs for search engines?',
+    'What is the difference between on-page and off-page SEO?',
+    'How do image alt tags affect product page SEO?',
+    'What are schema markup and how do they help product pages?',
+    'How do I find the right keywords for my niche products?',
+    'What is keyword cannibalization in e-commerce?',
+    'How do I optimize my product pages for Google Shopping?',
+    'What is a canonical tag and why does it matter?',
+    'How do duplicate product descriptions hurt SEO?',
+    'What is thin content and how does it affect rankings?',
+    'How do I structure product category pages for SEO?',
+    'What is internal linking and how should I use it on product pages?',
+    'How do page load speed and Core Web Vitals affect SEO?',
   ],
 };
 

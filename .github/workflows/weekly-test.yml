@@ -7,8 +7,9 @@ on:
 
 # Shared setup step reused across jobs
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   PNPM_VERSION: '8'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   # ── Job 1: Stress + Tab Isolation + Accuracy (fast, ~60 min) ──
@@ -20,8 +21,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v3
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - run: pnpm install
@@ -59,6 +60,10 @@ jobs:
         run: pnpm stress:api:daniel
         continue-on-error: true
 
+      - name: API Stress — Cody
+        run: pnpm stress:api:cody
+        continue-on-error: true
+
       - name: Tab Isolation — Maya
         run: pnpm test:tab:maya
         continue-on-error: true
@@ -71,8 +76,16 @@ jobs:
         run: pnpm test:tab:daniel
         continue-on-error: true
 
+      - name: Tab Isolation — Cody
+        run: pnpm test:tab:cody
+        continue-on-error: true
+
       - name: Accuracy — All Agents
         run: pnpm accuracy
+        continue-on-error: true
+
+      - name: Boundary — Cody
+        run: pnpm test:boundary:cody
         continue-on-error: true
 
       - name: Upload stress/accuracy reports
@@ -92,8 +105,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v3
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - run: pnpm install
@@ -140,8 +153,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v3
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - run: pnpm install
@@ -188,8 +201,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v3
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - run: pnpm install
@@ -227,19 +240,67 @@ jobs:
           path: reports/
           retention-days: 3
 
-  # ── Job 5: Report — waits for all jobs, merges & emails ─────
+  # ── Job 5: Boundary — Cody (parallel, up to 3h) ─────────────
+  boundary-cody:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+
+      - name: Boundary — Cody
+        run: pnpm test:boundary:cody
+        continue-on-error: true
+
+      - name: Upload Cody boundary reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-boundary-cody-${{ github.run_id }}
+          path: reports/
+          retention-days: 3
+
+  # ── Job 6: Report — waits for all jobs, merges & emails ─────
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [stress-and-accuracy, boundary-maya, boundary-oscar, boundary-daniel]
+    needs: [stress-and-accuracy, boundary-maya, boundary-oscar, boundary-daniel, boundary-cody]
     if: always()
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v3
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - run: pnpm install

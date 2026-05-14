@@ -9,6 +9,9 @@ permissions:
   actions: write
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   # ── Step 1: Check which agents changed ──────────────────────
   detect:
@@ -23,9 +26,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -203,6 +206,55 @@ jobs:
         continue-on-error: true
       - name: Boundary — Daniel
         run: pnpm test:boundary:daniel
+        continue-on-error: true
+      - name: Send Report
+        run: pnpm report:html:email
+
+  # ── Step 2d: Run Cody tests if Cody changed ─────────────────
+  test-cody:
+    needs: detect
+    if: contains(needs.detect.outputs.changed, 'cody')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          SCREENSHOT_ON_FAILURE=false
+          EOF
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+      - name: API Stress — Cody
+        run: pnpm stress:api:cody
+        continue-on-error: true
+      - name: Tab Isolation — Cody
+        run: pnpm test:tab:cody
+        continue-on-error: true
+      - name: Accuracy — Cody
+        run: pnpm accuracy:cody
+        continue-on-error: true
+      - name: Boundary — Cody
+        run: pnpm test:boundary:cody
         continue-on-error: true
       - name: Send Report
         run: pnpm report:html:email

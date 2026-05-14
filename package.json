@@ -39,6 +39,7 @@
     "test:tab:maya": "tsx scripts/test-tab-isolation.ts --agent maya",
     "test:tab:oscar": "tsx scripts/test-tab-isolation.ts --agent oscar",
     "test:tab:daniel": "tsx scripts/test-tab-isolation.ts --agent daniel",
+    "test:tab:cody": "tsx scripts/test-tab-isolation.ts --agent cody",
     "test:sync": "tsx scripts/test-tab-sync.ts",
     "test:sync:maya": "tsx scripts/test-tab-sync.ts --agent maya",
     "test:sync:oscar": "tsx scripts/test-tab-sync.ts --agent oscar",
@@ -47,6 +48,7 @@
     "stress:api:maya": "tsx scripts/stress-test-api.ts --agent maya",
     "stress:api:oscar": "tsx scripts/stress-test-api.ts --agent oscar",
     "stress:api:daniel": "tsx scripts/stress-test-api.ts --agent daniel",
+    "stress:api:cody": "tsx scripts/stress-test-api.ts --agent cody",
     "stress:advanced": "tsx scripts/stress-test-api-advanced.ts",
     "stress:advanced:maya": "tsx scripts/stress-test-api-advanced.ts --agent maya",
     "stress:advanced:oscar": "tsx scripts/stress-test-api-advanced.ts --agent oscar",
@@ -55,6 +57,7 @@
     "accuracy:maya": "tsx scripts/accuracy-test-api.ts --agent maya",
     "accuracy:oscar": "tsx scripts/accuracy-test-api.ts --agent oscar",
     "accuracy:daniel": "tsx scripts/accuracy-test-api.ts --agent daniel",
+    "accuracy:cody": "tsx scripts/accuracy-test-api.ts --agent cody",
     "phase1:tc2": "tsx src/cli/index.ts run phase1-tc2-sync-now",
     "phase1:tc3": "tsx src/cli/index.ts run phase1-tc3-filtered-sync",
     "phase1:tc4": "tsx scripts/phase1-tc4-concurrent.ts",
@@ -70,7 +73,9 @@
     "generate:accuracy": "tsx scripts/generate-accuracy-tests.ts",
     "test:boundary:maya": "tsx src/cli/index.ts run test-marketing-boundary",
     "test:boundary:oscar": "tsx src/cli/index.ts run test-operation-boundary",
-    "test:boundary:daniel": "tsx src/cli/index.ts run test-daniel-boundary"
+    "test:boundary:daniel": "tsx src/cli/index.ts run test-daniel-boundary",
+    "test:boundary:cody": "tsx src/cli/index.ts run test-cody-boundary",
+    "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
