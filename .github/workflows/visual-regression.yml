@@ -49,12 +49,12 @@ jobs:
       - name: Restore baseline screenshots
         run: |
           BASELINE='${{ vars.VISUAL_BASELINE }}'
-          if [ -n "$BASELINE" ]; then
+          if [ -n "$BASELINE" ] && [ "$BASELINE" != "placeholder" ]; then
             mkdir -p screenshots/baseline
-            echo "$BASELINE" | base64 -d | tar xz -C screenshots/baseline
+            echo "$BASELINE" | base64 -d | tar xz -C screenshots/baseline 2>/dev/null || true
             echo "Baseline restored ($(ls screenshots/baseline/*.png 2>/dev/null | wc -l) screenshots)"
           else
-            echo "No baseline stored — will capture"
+            echo "No baseline stored — will capture first"
           fi
 
       - name: Run visual regression (${{ github.event.inputs.mode || 'compare' }})
