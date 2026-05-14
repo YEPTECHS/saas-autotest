@@ -1,51 +1,55 @@
 /**
- * qa-agent.ts — Daily Linear QA scanner + automated test generator
+ * qa-agent.ts — Daily Linear QA scanner + AI-driven test generator
+ *
+ * True AI agent: Claude drives the test loop with tool calls.
+ * It explores existing flows, writes YAML, runs tests, fixes failures, and retries.
  *
  * Flow:
  *  1. Fetch all "QA" status issues from Linear (team YEP)
- *  2. Load persisted state (data/qa-agent-state.json)
- *  3. Check inbox (Gmail IMAP) for approval replies on pending tickets
- *  4. For each NEW ticket:
- *     - Ask Claude: should we write automated tests? (confidence score)
- *     - High confidence (>= 0.75) → generate flow YAML → run → report
- *     - Low confidence → email paukiechee96@gmail.com asking for approval
- *       (user replies "approve" to the email → detected next daily run)
+ *  2. Load persisted state
+ *  3. Check Gmail inbox for approval replies on pending tickets
+ *  4. For each ticket:
+ *     - Analyse confidence (Claude one-shot)
+ *     - High confidence → runAgentLoop (Claude + tools: explore→write→run→fix→report)
+ *     - Low confidence → email for approval (user replies → detected next run)
  *  5. Save state, generate HTML report, send email
  *
- * Required secrets / env vars:
+ * Required env vars:
  *   LINEAR_API_KEY        Linear personal API token
  *   ANTHROPIC_API_KEY     Anthropic API key
  *   YEPAI_BASE_URL        YepAI app base URL
  *   YEPAI_LOGIN_EMAIL
  *   YEPAI_LOGIN_PASSWORD
- *   REPORT_EMAIL_FROM     Gmail address used to send/receive (checked via IMAP)
+ *   REPORT_EMAIL_FROM     Gmail address (send + IMAP inbox check)
  *   REPORT_EMAIL_PASS     Gmail App Password
  *   REPORT_EMAIL_TO
  *
  * Optional:
  *   QA_TEAM               Linear team key (default: YEP)
+ *   QA_AGENT_APPROVE      Space-separated ticket IDs to force-approve
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 import { ImapFlow } from 'imapflow';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { spawnSync } from 'child_process';
+import { spawnSync, execSync } from 'child_process';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
 // ── Config ─────────────────────────────────────────────────────
 
-const LINEAR_API_KEY   = process.env.LINEAR_API_KEY || '';
+const LINEAR_API_KEY    = process.env.LINEAR_API_KEY || '';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const LINEAR_TEAM      = process.env.QA_TEAM || 'YEP';
+const LINEAR_TEAM       = process.env.QA_TEAM || 'YEP';
 const CONFIDENCE_THRESHOLD = 0.75;
-const APPROVAL_EMAIL   = 'paukiechee96@gmail.com';
-const STATE_FILE       = join(process.cwd(), 'data/qa-agent-state.json');
-const FLOWS_DIR        = join(process.cwd(), 'src/flows');
-const REPORTS_DIR      = join(process.cwd(), 'reports');
+const APPROVAL_EMAIL    = 'paukiechee96@gmail.com';
+const STATE_FILE        = join(process.cwd(), 'data/qa-agent-state.json');
+const FLOWS_DIR         = join(process.cwd(), 'src/flows');
+const REPORTS_DIR       = join(process.cwd(), 'reports');
+const MAX_AGENT_STEPS   = 14;
+const MAX_TEST_RUNS     = 3;
 
-// Force-approve specific tickets (from env or CLI)
 const FORCE_APPROVE: string[] = (
   process.env.QA_AGENT_APPROVE ||
   process.argv.find(a => a.startsWith('--approve='))?.split('=')[1] || ''
@@ -78,10 +82,10 @@ interface TicketState {
   askedAt?: string;
   approvedAt?: string;
   completedAt?: string;
-  reportFile?: string;
   flowName?: string;
   passCount?: number;
   failCount?: number;
+  notes?: string;
   error?: string;
 }
 
@@ -96,10 +100,12 @@ interface ClaudeAnalysis {
   suggestedFlowName: string;
 }
 
-interface RunResult {
-  success: boolean;
-  output: string;
-  durationMs: number;
+interface AgentReport {
+  flowName: string;
+  passCount: number;
+  failCount: number;
+  notes: string;
+  testOutput: string;
 }
 
 // ── State helpers ───────────────────────────────────────────────
@@ -110,7 +116,8 @@ function loadState(): AgentState {
 }
 
 function saveState(state: AgentState): void {
-  if (!existsSync(join(process.cwd(), 'data'))) mkdirSync(join(process.cwd(), 'data'), { recursive: true });
+  const dir = join(process.cwd(), 'data');
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 }
 
@@ -163,7 +170,47 @@ async function fetchQAIssues(): Promise<LinearIssue[]> {
   }));
 }
 
-// ── Send approval request email ─────────────────────────────────
+// ── Gmail IMAP: check for approval replies ──────────────────────
+
+async function checkApprovalReplies(pendingIds: string[]): Promise<Set<string>> {
+  const approved = new Set<string>();
+  const from = process.env.REPORT_EMAIL_FROM;
+  const pass = process.env.REPORT_EMAIL_PASS;
+  if (!from || !pass || pendingIds.length === 0) return approved;
+
+  const client = new ImapFlow({
+    host: 'imap.gmail.com',
+    port: 993,
+    secure: true,
+    auth: { user: from, pass },
+    logger: false,
+  });
+
+  try {
+    await client.connect();
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      for (const ticketId of pendingIds) {
+        // Search subject AND body separately to handle forwarded/mangled subjects
+        const subjectHits = (await client.search({ from: APPROVAL_EMAIL, subject: ticketId })) || [];
+        const bodyHits    = (await client.search({ from: APPROVAL_EMAIL, body:    ticketId })) || [];
+        if (subjectHits.length > 0 || bodyHits.length > 0) {
+          approved.add(ticketId);
+          console.log(`  [imap] approval reply found for ${ticketId}`);
+        }
+      }
+    } finally {
+      lock.release();
+    }
+  } catch (e: any) {
+    console.warn(`  [imap] inbox check failed: ${e.message}`);
+  } finally {
+    await client.logout();
+  }
+  return approved;
+}
+
+// ── Email helpers ───────────────────────────────────────────────
 
 async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): Promise<void> {
   const from = process.env.REPORT_EMAIL_FROM;
@@ -193,51 +240,23 @@ async function sendApprovalEmail(issue: LinearIssue, analysis: ClaudeAnalysis): 
   console.log(`  [email] approval request sent to ${APPROVAL_EMAIL}`);
 }
 
-// ── Check Gmail inbox for approval replies ──────────────────────
-
-async function checkApprovalReplies(pendingIds: string[]): Promise<Set<string>> {
-  const approved = new Set<string>();
+async function sendEmail(subject: string, html: string): Promise<void> {
   const from = process.env.REPORT_EMAIL_FROM;
   const pass = process.env.REPORT_EMAIL_PASS;
-  if (!from || !pass || pendingIds.length === 0) return approved;
+  const to   = process.env.REPORT_EMAIL_TO;
+  if (!from || !pass || !to) { console.log('  [email] skipped — REPORT_EMAIL_* not set'); return; }
 
-  const client = new ImapFlow({
-    host: 'imap.gmail.com',
-    port: 993,
-    secure: true,
-    auth: { user: from, pass },
-    logger: false,
-  });
-
-  try {
-    await client.connect();
-    const lock = await client.getMailboxLock('INBOX');
-    try {
-      for (const ticketId of pendingIds) {
-        const result = await client.search({ from: APPROVAL_EMAIL, subject: ticketId });
-        const uids = result || [];
-        if (uids.length > 0) {
-          approved.add(ticketId);
-          console.log(`  [imap] found approval reply for ${ticketId}`);
-        }
-      }
-    } finally {
-      lock.release();
-    }
-  } catch (e: any) {
-    console.warn(`  [imap] inbox check failed: ${e.message}`);
-  } finally {
-    await client.logout();
-  }
-  return approved;
+  const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: from, pass } });
+  await transporter.sendMail({ from, to, subject, html });
+  console.log(`  [email] sent to ${to}`);
 }
 
-// ── Claude: analyse ticket ──────────────────────────────────────
+// ── Claude: confidence analysis (gating step) ───────────────────
 
 async function analyzeTicket(issue: LinearIssue): Promise<ClaudeAnalysis> {
   const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-  const prompt = `You are a QA automation engineer reviewing a Linear ticket that is in "QA" status.
+  const prompt = `You are a QA automation engineer reviewing a Linear ticket in "QA" status.
 
 Ticket: ${issue.identifier} — ${issue.title}
 Labels: ${issue.labels.join(', ') || 'none'}
@@ -247,18 +266,18 @@ ${issue.description || '(no description)'}
 Decide whether to write an automated E2E test for this ticket.
 
 Rules:
-- Write a test if the ticket describes a reproducible UI or API behaviour that can be verified programmatically.
-- Skip if it's a design/UX issue, requires human judgement, is already about the test itself, or has no clear pass/fail criteria.
-- The test framework is Playwright + TypeScript with YAML flow files (browser automation) or API scripts.
+- Write a test if it describes a reproducible UI or API behaviour verifiable programmatically.
+- Skip if it's a design/UX issue, requires human judgement, or has no clear pass/fail criteria.
+- The test framework is Playwright + TypeScript with YAML flow files.
 
-Return ONLY valid JSON with this exact shape:
+Return ONLY valid JSON:
 {
   "shouldTest": true | false,
   "confidence": 0.0–1.0,
-  "reason": "one sentence explaining your decision",
+  "reason": "one sentence",
   "testType": "browser_flow" | "api" | "skip",
-  "testPlan": "step-by-step description of what the test should do (2–5 steps)",
-  "suggestedFlowName": "kebab-case-name (e.g. test-yep-364-order-state)"
+  "testPlan": "2–5 step description",
+  "suggestedFlowName": "test-yep-NNN-kebab-case"
 }`;
 
   const msg = await client.messages.create({
@@ -273,124 +292,276 @@ Return ONLY valid JSON with this exact shape:
   return JSON.parse(jsonMatch[0]) as ClaudeAnalysis;
 }
 
-// ── Claude: generate flow YAML ──────────────────────────────────
+// ── Agent tools ─────────────────────────────────────────────────
 
-async function generateFlowYml(issue: LinearIssue, analysis: ClaudeAnalysis): Promise<string> {
+const AGENT_TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'list_flows',
+    description: 'List all existing .flow.yml test files in src/flows/. Read 1-2 similar ones for context before writing.',
+    input_schema: { type: 'object' as const, properties: {}, required: [] },
+  },
+  {
+    name: 'read_file',
+    description: 'Read a file in the project (flow YAML, shared steps, etc.). Path relative to project root.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'e.g. src/flows/test-cody-boundary.flow.yml' },
+      },
+      required: ['path'],
+    },
+  },
+  {
+    name: 'get_git_context',
+    description: 'Get recent git commits mentioning this ticket ID — useful for understanding what changed.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        ticketId: { type: 'string', description: 'e.g. YEP-364' },
+      },
+      required: ['ticketId'],
+    },
+  },
+  {
+    name: 'write_flow',
+    description: 'Save a YAML flow test file to src/flows/. Overwrites if already exists.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        flowName: { type: 'string', description: 'kebab-case without .flow.yml (e.g. test-yep-364-order-state)' },
+        yaml: { type: 'string', description: 'Complete YAML content' },
+      },
+      required: ['flowName', 'yaml'],
+    },
+  },
+  {
+    name: 'run_test',
+    description: `Run a flow test and return full output. You may call this up to ${MAX_TEST_RUNS} times — fix failures between attempts.`,
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        flowName: { type: 'string', description: 'Flow name (same as write_flow flowName)' },
+      },
+      required: ['flowName'],
+    },
+  },
+  {
+    name: 'report_done',
+    description: 'Call this when finished — test passed, failed after retries, or cannot be automated.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        flowName: { type: 'string', description: 'Flow name written and run, or empty string if skipped' },
+        passCount: { type: 'number' },
+        failCount: { type: 'number' },
+        notes: { type: 'string', description: 'One sentence summary' },
+      },
+      required: ['flowName', 'passCount', 'failCount', 'notes'],
+    },
+  },
+];
+
+// ── Tool executor ───────────────────────────────────────────────
+
+function executeTool(
+  name: string,
+  input: Record<string, any>,
+  ctx: { testRunCount: number; lastOutput: string },
+): { result: string; report?: AgentReport } {
+  switch (name) {
+
+    case 'list_flows': {
+      if (!existsSync(FLOWS_DIR)) return { result: '(src/flows/ not found)' };
+      const files = readdirSync(FLOWS_DIR)
+        .filter(f => f.endsWith('.flow.yml'))
+        .map(f => `src/flows/${f}`)
+        .sort();
+      return { result: files.join('\n') || '(no flow files yet)' };
+    }
+
+    case 'read_file': {
+      const safePath = join(process.cwd(), (input.path as string).replace(/\.\./g, ''));
+      if (!existsSync(safePath)) return { result: `File not found: ${input.path}` };
+      try {
+        const content = readFileSync(safePath, 'utf-8');
+        return { result: content.length > 6000 ? content.substring(0, 6000) + '\n…(truncated)' : content };
+      } catch (e: any) {
+        return { result: `Error: ${e.message}` };
+      }
+    }
+
+    case 'get_git_context': {
+      try {
+        const log = execSync(
+          `git log --oneline -20 --grep="${input.ticketId}"`,
+          { cwd: process.cwd(), encoding: 'utf-8', timeout: 10000 },
+        ).trim();
+        return { result: log || '(no commits found for this ticket)' };
+      } catch {
+        return { result: '(git context unavailable)' };
+      }
+    }
+
+    case 'write_flow': {
+      if (!existsSync(FLOWS_DIR)) mkdirSync(FLOWS_DIR, { recursive: true });
+      let yaml = (input.yaml as string).replace(/^```ya?ml\n?/i, '').replace(/\n?```$/i, '').trim();
+      const flowFile = join(FLOWS_DIR, `${input.flowName}.flow.yml`);
+      writeFileSync(flowFile, yaml);
+      return { result: `Written: src/flows/${input.flowName}.flow.yml (${yaml.length} chars)` };
+    }
+
+    case 'run_test': {
+      ctx.testRunCount++;
+      if (ctx.testRunCount > MAX_TEST_RUNS) {
+        return { result: `Max test runs (${MAX_TEST_RUNS}) reached. Call report_done to finish.` };
+      }
+      console.log(`   [agent] run_test: ${input.flowName} (attempt ${ctx.testRunCount}/${MAX_TEST_RUNS})`);
+      const start = Date.now();
+      const res = spawnSync('pnpm', ['flow', input.flowName as string], {
+        cwd: process.cwd(),
+        encoding: 'utf-8',
+        timeout: 10 * 60 * 1000,
+        env: { ...process.env },
+      });
+      const duration = ((Date.now() - start) / 1000).toFixed(1);
+      const output = ((res.stdout || '') + (res.stderr || '')).substring(0, 4000);
+      ctx.lastOutput = output;
+      return {
+        result: `Exit: ${res.status} | Duration: ${duration}s | Success: ${res.status === 0}\n\n${output}`,
+      };
+    }
+
+    case 'report_done': {
+      return {
+        result: 'Acknowledged. Agent loop complete.',
+        report: {
+          flowName: input.flowName as string,
+          passCount: input.passCount as number,
+          failCount: input.failCount as number,
+          notes: input.notes as string,
+          testOutput: ctx.lastOutput,
+        },
+      };
+    }
+
+    default:
+      return { result: `Unknown tool: ${name}` };
+  }
+}
+
+// ── Agent loop ──────────────────────────────────────────────────
+
+const AGENT_SYSTEM = `You are an expert QA automation engineer for a Playwright + TypeScript E2E framework.
+
+Tests are defined as YAML "flow" files in src/flows/. Every flow must begin with:
+  steps:
+    - include: _shared/login.steps.yml
+
+Available step actions:
+  browser.navigate       params: { url, waitUntil? }
+  browser.click          params: { selector }
+  browser.waitForSelector params: { selector, timeout? }
+  browser.type           params: { selector, text }
+  browser.execute        params: { script }  output: varName
+  browser.screenshot     params: { name }
+  form.fillSingle        params: { selector, value }
+  wait                   params: { ms }
+  log                    params: { message }
+  data.saveJson          params: { file, data }
+
+The app URL is injected as {{YEPAI_BASE_URL}}.
+Use CSS selectors; prefer data attributes and visible-text selectors.
+Use continueOnError: true on assertion steps.
+
+Your process for each ticket:
+1. Call list_flows, then read 1-2 similar existing flows for structural context.
+2. Optionally call get_git_context to understand what changed.
+3. Call write_flow with a targeted, minimal test.
+4. Call run_test — read the output carefully.
+5. If it fails: diagnose the error, update the YAML (write_flow again), retry (max ${MAX_TEST_RUNS} runs).
+6. Call report_done with final results and a one-sentence summary.
+
+If the ticket genuinely cannot be automated, call report_done with passCount=0, failCount=0 and explain why.`;
+
+async function runAgentLoop(issue: LinearIssue): Promise<AgentReport> {
   const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-  const exampleFlow = `name: test-order-example
-description: Verify order state transitions are enforced
-steps:
-  - include: _shared/login.steps.yml
-  - id: nav-orders
-    action: browser.navigate
-    params:
-      url: "{{YEPAI_BASE_URL}}/orders"
-      waitUntil: networkidle
-  - id: wait-load
-    action: wait
-    params:
-      ms: 2000
-  - id: check-state
-    action: browser.execute
-    params:
-      script: |
-        // example: verify state
-        return document.title;
-    output: pageTitle
-  - id: log-result
-    action: log
-    params:
-      message: "Page title: {{pageTitle.result}}"`;
+  const userMessage = `Write and run an automated E2E test for this Linear ticket:
 
-  const prompt = `You are a QA automation engineer. Write a Playwright YAML flow test for the following ticket.
+**${issue.identifier} — ${issue.title}**
+Labels: ${issue.labels.join(', ') || 'none'}
 
-Ticket: ${issue.identifier} — ${issue.title}
-Test Plan:
-${analysis.testPlan}
+Description:
+${issue.description || '(no description provided)'}
 
-Full description:
-${issue.description || '(none)'}
+Start by listing flows and reading 1-2 relevant ones. Then write, run, and if needed fix the test. Call report_done when done.`;
 
-App base URL is injected as {{YEPAI_BASE_URL}}.
-The flow must start with:  - include: _shared/login.steps.yml
+  const messages: Anthropic.MessageParam[] = [
+    { role: 'user', content: userMessage },
+  ];
 
-Available actions:
-- browser.navigate  params: { url, waitUntil? }
-- browser.click     params: { selector }
-- browser.waitForSelector  params: { selector, timeout? }
-- browser.execute   params: { script }  output: varName
-- browser.screenshot params: { name }
-- form.fillSingle   params: { selector, value }
-- wait              params: { ms }
-- log               params: { message }
-- data.saveJson     params: { file, data }
+  const ctx = { testRunCount: 0, lastOutput: '' };
+  let report: AgentReport | undefined;
+  let step = 0;
 
-Use continueOnError: true on steps that might fail (assertion steps).
-Save a JSON report to reports/${analysis.suggestedFlowName}-result.json.
-Return ONLY the complete YAML, no markdown fences, no explanation.
+  console.log(`   [agent] loop started — max ${MAX_AGENT_STEPS} steps, ${MAX_TEST_RUNS} test runs`);
 
-Example structure:
-${exampleFlow}`;
+  while (step < MAX_AGENT_STEPS && !report) {
+    step++;
 
-  const msg = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }],
-  });
+    const response = await client.messages.create({
+      model: 'claude-opus-4-7',
+      max_tokens: 4096,
+      system: AGENT_SYSTEM,
+      tools: AGENT_TOOLS,
+      messages,
+    });
 
-  let yaml = (msg.content[0] as any).text as string;
-  // Strip any accidental markdown fences
-  yaml = yaml.replace(/^```ya?ml\n?/i, '').replace(/\n?```$/i, '').trim();
-  return yaml;
-}
+    messages.push({ role: 'assistant', content: response.content });
 
-// ── Run flow ────────────────────────────────────────────────────
-
-function runFlow(flowName: string): RunResult {
-  const start = Date.now();
-  const result = spawnSync(
-    'pnpm',
-    ['flow', flowName],
-    {
-      cwd: process.cwd(),
-      encoding: 'utf-8',
-      timeout: 10 * 60 * 1000, // 10 min
-      env: { ...process.env },
+    for (const block of response.content) {
+      if (block.type === 'text' && block.text.trim()) {
+        console.log(`   [agent] ${block.text.substring(0, 160).replace(/\n/g, ' ')}`);
+      }
     }
-  );
-  const output = (result.stdout || '') + (result.stderr || '');
-  return {
-    success: result.status === 0,
-    output: output.substring(0, 5000),
-    durationMs: Date.now() - start,
-  };
-}
 
-// ── Count pass/fail in output ───────────────────────────────────
+    if (response.stop_reason === 'end_turn') {
+      console.log('   [agent] end_turn without report_done');
+      break;
+    }
 
-function countResults(output: string): { pass: number; fail: number } {
-  const passMatch = output.match(/PASS[:\s]+(\d+)/i);
-  const failMatch = output.match(/FAIL[:\s]+(\d+)/i);
-  const pass = passMatch ? parseInt(passMatch[1]) : (output.includes('completed successfully') ? 1 : 0);
-  const fail = failMatch ? parseInt(failMatch[1]) : (output.includes('FAILED') || output.includes('Error') ? 1 : 0);
-  return { pass, fail };
-}
+    if (response.stop_reason === 'tool_use') {
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+      let doneSignalled = false;
 
-// ── Email ───────────────────────────────────────────────────────
+      for (const block of response.content) {
+        if (block.type !== 'tool_use') continue;
 
-async function sendEmail(subject: string, html: string): Promise<void> {
-  const from = process.env.REPORT_EMAIL_FROM;
-  const pass = process.env.REPORT_EMAIL_PASS;
-  const to   = process.env.REPORT_EMAIL_TO;
-  if (!from || !pass || !to) { console.log('  [email] skipped — REPORT_EMAIL_* not set'); return; }
+        console.log(`   [agent] step ${step}: ${block.name}(${JSON.stringify(block.input).substring(0, 80)})`);
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: from, pass },
-  });
-  await transporter.sendMail({ from, to, subject, html });
-  console.log(`  [email] sent to ${to}`);
+        const { result, report: r } = executeTool(block.name, block.input as Record<string, any>, ctx);
+        if (r) { report = r; doneSignalled = true; }
+
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result });
+      }
+
+      messages.push({ role: 'user', content: toolResults });
+      if (doneSignalled) break;
+    }
+  }
+
+  if (!report) {
+    report = {
+      flowName: '',
+      passCount: 0,
+      failCount: 1,
+      notes: `Agent did not complete within ${MAX_AGENT_STEPS} steps`,
+      testOutput: ctx.lastOutput,
+    };
+  }
+
+  console.log(`   [agent] done — pass:${report.passCount} fail:${report.failCount} — ${report.notes}`);
+  return report;
 }
 
 // ── HTML report ─────────────────────────────────────────────────
@@ -400,10 +571,9 @@ function buildReport(
 ): string {
   const date = new Date().toISOString().split('T')[0];
   const rows = results.map(({ issue, state, runOutput }) => {
-    const statusEmoji: Record<string, string> = {
+    const emoji: Record<string, string> = {
       done: '✅', failed: '❌', pending_approval: '⏳', skipped: '⏭️', approved: '🔄',
     };
-    const emoji = statusEmoji[state.status] || '❓';
     const output = runOutput
       ? `<pre style="font-size:11px;max-height:200px;overflow:auto;background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px">${runOutput.substring(0, 2000).replace(/</g, '&lt;')}</pre>`
       : '';
@@ -413,18 +583,17 @@ function buildReport(
           <a href="${issue.url}" style="font-weight:bold;color:#5e6ad2">${issue.identifier}</a>
         </td>
         <td style="padding:8px;border-bottom:1px solid #eee">${issue.title}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${emoji} ${state.status}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee">
-          ${state.flowName ? `<code>${state.flowName}</code>` : '—'}
-        </td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${emoji[state.status] ?? '❓'} ${state.status}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee">${state.flowName ? `<code>${state.flowName}</code>` : '—'}</td>
         <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">
           ${state.passCount !== undefined ? `✅ ${state.passCount} / ❌ ${state.failCount}` : '—'}
         </td>
+        <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px;color:#666">${state.notes ?? ''}</td>
       </tr>
-      ${output ? `<tr><td colspan="5" style="padding:0 8px 12px">${output}</td></tr>` : ''}`;
+      ${output ? `<tr><td colspan="6" style="padding:0 8px 12px">${output}</td></tr>` : ''}`;
   }).join('');
 
-  return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:900px;margin:auto;padding:20px">
+  return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:960px;margin:auto;padding:20px">
   <h2 style="color:#5e6ad2">🤖 QA Agent Report — ${date}</h2>
   <p>Scanned Linear team <strong>${LINEAR_TEAM}</strong> for QA tickets.</p>
   <table style="width:100%;border-collapse:collapse">
@@ -433,7 +602,8 @@ function buildReport(
       <th style="padding:8px;text-align:left">Title</th>
       <th style="padding:8px;text-align:center">Status</th>
       <th style="padding:8px;text-align:left">Flow</th>
-      <th style="padding:8px;text-align:center">Pass / Fail</th>
+      <th style="padding:8px;text-align:center">Pass/Fail</th>
+      <th style="padding:8px;text-align:left">Notes</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
@@ -447,21 +617,20 @@ function buildReport(
 async function main(): Promise<void> {
   console.log('\n🤖 QA Agent starting...\n');
 
-  if (!LINEAR_API_KEY) { console.error('ERROR: LINEAR_API_KEY not set'); process.exit(1); }
+  if (!LINEAR_API_KEY)    { console.error('ERROR: LINEAR_API_KEY not set');    process.exit(1); }
   if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
 
   if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true });
 
-  // 1. Fetch QA tickets
+  // 1. Fetch QA tickets from Linear
   console.log('📋 Fetching QA issues from Linear...');
   const issues = await fetchQAIssues();
   console.log(`   Found ${issues.length} issue(s) in QA status`);
 
-  // 2. Load state
+  // 2. Load persisted state
   const state = loadState();
-  const reportRows: Array<{ issue: LinearIssue; state: TicketState; runOutput?: string }> = [];
 
-  // 2b. Check Gmail inbox for approval replies on any pending tickets
+  // 3. Check Gmail inbox for approval replies
   const pendingIds = Object.entries(state)
     .filter(([, s]) => s.status === 'pending_approval')
     .map(([id]) => id);
@@ -471,29 +640,32 @@ async function main(): Promise<void> {
     console.log(`   Approved via email: ${[...emailApproved].join(', ')}`);
   }
 
+  const reportRows: Array<{ issue: LinearIssue; state: TicketState; runOutput?: string }> = [];
+
+  // 4. Process each ticket
   for (const issue of issues) {
     const id = issue.identifier;
     console.log(`\n── ${id}: ${issue.title}`);
 
     const forceApproved = FORCE_APPROVE.includes(id);
-    const isApproved = forceApproved || emailApproved.has(id);
-    const existing = state[id];
+    const isApproved    = forceApproved || emailApproved.has(id);
+    const existing      = state[id];
 
-    // Already done or skipped → include in report only
+    // Already finished — include in report only
     if (existing?.status === 'done' || existing?.status === 'skipped') {
-      console.log(`   Status: ${existing.status} (already processed, skipping)`);
+      console.log(`   Status: ${existing.status} (already processed)`);
       reportRows.push({ issue, state: existing });
       continue;
     }
 
-    // Pending approval → only proceeds if approved (email reply or force flag)
+    // Pending approval — skip unless approved this run
     if (existing?.status === 'pending_approval' && !isApproved) {
-      console.log('   Still pending approval (waiting for email reply), skipping');
+      console.log('   Still pending approval (waiting for email reply)');
       reportRows.push({ issue, state: existing });
       continue;
     }
 
-    // New ticket or force-approved
+    // Initialise state for new tickets
     if (!existing) {
       state[id] = {
         status: 'pending_approval',
@@ -503,31 +675,32 @@ async function main(): Promise<void> {
       };
     }
 
+    // Promote pending → approved if reply detected
     if (isApproved && existing?.status === 'pending_approval') {
       const source = forceApproved ? 'QA_AGENT_APPROVE flag' : 'email reply';
       console.log(`   Approved via ${source}`);
       state[id] = { ...state[id], status: 'approved', approvedAt: new Date().toISOString() };
     }
 
-    // Analyse with Claude if not yet approved
-    if (state[id].status === 'pending_approval' || !state[id].status) {
+    // ── Confidence gate ─────────────────────────────────────────
+    if (state[id].status === 'pending_approval') {
       console.log('   Analysing with Claude...');
       let analysis: ClaudeAnalysis;
       try {
         analysis = await analyzeTicket(issue);
       } catch (e: any) {
-        console.error(`   Claude analysis failed: ${e.message}`);
+        console.error(`   Analysis failed: ${e.message}`);
         state[id].error = e.message;
         reportRows.push({ issue, state: state[id] });
         continue;
       }
 
       console.log(`   → shouldTest=${analysis.shouldTest}, confidence=${analysis.confidence.toFixed(2)}`);
-      console.log(`   → reason: ${analysis.reason}`);
+      console.log(`   → ${analysis.reason}`);
 
       if (!analysis.shouldTest) {
-        console.log('   Skipping (Claude: no test needed)');
         state[id].status = 'skipped';
+        state[id].notes = analysis.reason;
         reportRows.push({ issue, state: state[id] });
         saveState(state);
         continue;
@@ -546,91 +719,58 @@ async function main(): Promise<void> {
         continue;
       }
 
-      // High confidence → auto-approve
-      console.log(`   Confidence ${analysis.confidence.toFixed(2)} >= ${CONFIDENCE_THRESHOLD} → auto-generating`);
-      state[id] = {
-        ...state[id],
-        status: 'approved',
-        approvedAt: new Date().toISOString(),
-      };
-
-      // Store analysis for test generation step below
-      (state[id] as any)._analysis = analysis;
+      // High confidence → auto-proceed
+      console.log(`   Confidence ${analysis.confidence.toFixed(2)} >= ${CONFIDENCE_THRESHOLD} → auto-proceeding`);
+      state[id] = { ...state[id], status: 'approved', approvedAt: new Date().toISOString() };
     }
 
-    // ── Generate and run test ──────────────────────────────────
+    // ── Agent loop ──────────────────────────────────────────────
     if (state[id].status === 'approved') {
-      let analysis = (state[id] as any)._analysis as ClaudeAnalysis | undefined;
-
-      // If we don't have the analysis cached (e.g., came back from pending_approval), re-analyse
-      if (!analysis) {
-        console.log('   Re-analysing with Claude for test generation...');
-        try {
-          analysis = await analyzeTicket(issue);
-        } catch (e: any) {
-          state[id].status = 'failed';
-          state[id].error = `Re-analysis failed: ${e.message}`;
-          reportRows.push({ issue, state: state[id] });
-          saveState(state);
-          continue;
-        }
-      }
-
-      console.log('   Generating flow YAML...');
-      let yaml: string;
+      console.log('   Running agent loop...');
+      let agentResult: AgentReport;
       try {
-        yaml = await generateFlowYml(issue, analysis);
+        agentResult = await runAgentLoop(issue);
       } catch (e: any) {
-        state[id].status = 'failed';
-        state[id].error = `Test generation failed: ${e.message}`;
+        console.error(`   Agent loop error: ${e.message}`);
+        state[id] = { ...state[id], status: 'failed', error: e.message, completedAt: new Date().toISOString() };
         reportRows.push({ issue, state: state[id] });
         saveState(state);
         continue;
       }
 
-      const flowName = analysis.suggestedFlowName;
-      const flowFile = join(FLOWS_DIR, `${flowName}.flow.yml`);
-      writeFileSync(flowFile, yaml);
-      console.log(`   Flow saved: src/flows/${flowName}.flow.yml`);
-
-      console.log('   Running test...');
-      const run = runFlow(flowName);
-      console.log(`   Duration: ${(run.durationMs / 1000).toFixed(1)}s | Success: ${run.success}`);
-
-      const { pass, fail } = countResults(run.output);
       state[id] = {
         ...state[id],
-        status: run.success ? 'done' : 'failed',
+        status: agentResult.passCount > 0 || agentResult.failCount === 0 ? 'done' : 'failed',
         completedAt: new Date().toISOString(),
-        flowName,
-        passCount: pass,
-        failCount: fail,
-        error: run.success ? undefined : 'Non-zero exit code',
+        flowName: agentResult.flowName || undefined,
+        passCount: agentResult.passCount,
+        failCount: agentResult.failCount,
+        notes: agentResult.notes,
+        error: agentResult.failCount > 0 ? agentResult.notes : undefined,
       };
-      delete (state[id] as any)._analysis;
 
-      // Result is included in the daily email report — no Linear comment needed
-
-      reportRows.push({ issue, state: state[id], runOutput: run.output });
+      reportRows.push({ issue, state: state[id], runOutput: agentResult.testOutput });
       saveState(state);
     }
   }
 
-  // 3. Save final state
+  // 5. Save final state
   saveState(state);
 
-  // 4. Generate + send report
+  // 6. Generate + send report
   if (reportRows.length > 0) {
     const html = buildReport(reportRows);
     const reportFile = join(REPORTS_DIR, `qa-agent-report-${new Date().toISOString().split('T')[0]}.html`);
     writeFileSync(reportFile, html);
     console.log(`\n📄 Report saved: ${reportFile}`);
 
-    const doneCount = reportRows.filter(r => r.state.status === 'done').length;
-    const failCount = reportRows.filter(r => r.state.status === 'failed').length;
-    const pendingCount = reportRows.filter(r => r.state.status === 'pending_approval').length;
-    const subject = `🤖 QA Agent — ${doneCount} done, ${failCount} failed, ${pendingCount} pending approval`;
-    await sendEmail(subject, html);
+    const done    = reportRows.filter(r => r.state.status === 'done').length;
+    const failed  = reportRows.filter(r => r.state.status === 'failed').length;
+    const pending = reportRows.filter(r => r.state.status === 'pending_approval').length;
+    await sendEmail(
+      `🤖 QA Agent — ${done} done, ${failed} failed, ${pending} pending approval`,
+      html,
+    );
   }
 
   console.log('\n✅ QA Agent done.\n');
