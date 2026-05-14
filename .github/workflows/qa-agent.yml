@@ -1,0 +1,90 @@
+name: QA Agent — Auto Test Generator
+
+on:
+  schedule:
+    - cron: '0 14 * * *'   # midnight AEST (UTC+10), every day
+  workflow_dispatch:
+    inputs:
+      approve_ticket:
+        description: 'Force-approve pending ticket(s) — space-separated (e.g. YEP-364 YEP-365)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  qa-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - run: pnpm install
+
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          YEPAI_BASE_URL=${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL=${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD=${{ secrets.YEPAI_LOGIN_PASSWORD }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          LINEAR_API_KEY=${{ secrets.LINEAR_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          HEADLESS=true
+          SLOWMO=0
+          TIMEOUT=60000
+          EOF
+
+      - name: Restore QA agent state
+        run: |
+          mkdir -p data
+          STATE='${{ vars.QA_AGENT_STATE }}'
+          if [ -z "$STATE" ]; then STATE='{}'; fi
+          echo "$STATE" > data/qa-agent-state.json
+
+      - name: Run QA Agent
+        env:
+          QA_AGENT_APPROVE: ${{ github.event.inputs.approve_ticket }}
+        run: pnpm qa:agent
+
+      - name: Save QA agent state
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATE=$(cat data/qa-agent-state.json | tr -d '\n')
+          gh variable set QA_AGENT_STATE --body "$STATE" --repo ${{ github.repository }} || true
+
+      - name: Commit generated flow files
+        if: always()
+        run: |
+          git config user.name "QA Agent"
+          git config user.email "qa-agent@yepai.io"
+          git add src/flows/test-yep-*.flow.yml src/flows/test-qa-*.flow.yml 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "chore: auto-generated test flows from QA agent [skip ci]"
+          git push || true
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-agent-report-${{ github.run_id }}
+          path: reports/qa-agent-report-*.html
+          retention-days: 30

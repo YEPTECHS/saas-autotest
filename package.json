@@ -75,7 +75,8 @@
     "test:boundary:oscar": "tsx src/cli/index.ts run test-operation-boundary",
     "test:boundary:daniel": "tsx src/cli/index.ts run test-daniel-boundary",
     "test:boundary:cody": "tsx src/cli/index.ts run test-cody-boundary",
-    "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive"
+    "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive",
+    "qa:agent": "tsx scripts/qa-agent.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
