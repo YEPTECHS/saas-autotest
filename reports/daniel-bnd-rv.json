@@ -1,0 +1,107 @@
+[
+  {
+    "id": "RV-01",
+    "category": "RV",
+    "q": "I sell 500 SKUs but only 20 are profitable. How do I fix this?",
+    "a": "Having 480 out of 500 SKUs being unprofitable is a classic \"Long Tail\" problem that drains cash flow. To fix this, you need to perform SKU Rationalization by categorizing those 480 items into three groups:\n\nThe \"Fix\" Group: Products with high demand but poor margins. We optimize these by raising pri",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-02",
+    "category": "RV",
+    "q": "My supplier just raised prices by 15%. What happens to my margins?",
+    "a": "A 15% increase in supplier costs directly eats into your bottom line. Even if your revenue stays the same, your profit shrinks because your COGS (Cost of Goods Sold) is higher.\nFor example, if you sell an item for $100 that used to cost $50 (50% margin), and the cost rises by 15% to $57.50, your new",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-03",
+    "category": "RV",
+    "q": "Should I drop a product that has 5% margin but high volume?",
+    "a": "Whether to drop a 5% margin, high-volume product is one of the toughest decisions in retail. Here is how to evaluate it:\n1. Is it a \"Loss Leader\"?\nDoes this product bring customers in who then buy higher-margin items? If you drop the high-volume item, will you lose the follow-on sales that actually ",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-04",
+    "category": "RV",
+    "q": "I want to launch a bundle of 3 products. How do I price it for profit?",
+    "a": "Whether to drop a 5% margin, high-volume product is one of the toughest decisions in retail. Here is how to evaluate it:\n1. Is it a \"Loss Leader\"?\nDoes this product bring customers in who then buy higher-margin items? If you drop the high-volume item, will you lose the follow-on sales that actually ",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-05",
+    "category": "RV",
+    "q": "My competitor is selling the same product for 20% less. What do I do?",
+    "a": "面对竞争对手 20% 的降价，盲目跟风降价可能会严重损害您的利润。我们需要通过以下三个维度来评估您的对策：\n\n成本空间：如果降价 20%，您的毛利率是否还能维持在健康水平？\n品牌差异化：您的产品是否有对手不具备的优势（如更快的物流、更好的售后或独特的设计）？\n市场定价权：对手是全行业最低价，还是只有这一家在打价格战？\n\n为了给您提供具体的行动建议，我们需要针对具体产品进行分析。请从下方列表中选择那个面临竞争压力的产品，我们将计算您的实际利润空间并进行市场对标：",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-06",
+    "category": "RV",
+    "q": "I sell on Amazon and Shopify. Which channel has better margins?",
+    "a": "Comparing margins between Amazon and Shopify depends on how you account for fees and marketing:\n\nAmazon: Typically has lower net margins due to referral fees (usually 15%), FBA fees, and advertising costs within their ecosystem. However, you benefit from their massive built-in traffic.\nShopify: Ofte",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-07",
+    "category": "RV",
+    "q": "My shipping costs just doubled. How does this impact SKU profitability?",
+    "a": "运费翻倍会直接侵蚀您的贡献毛利 (Contribution Margin)。虽然这通常不影响基础的毛利率（如果您不将出库运费计入 COGS），但它会显著减少每笔订单扣除所有变动成本后剩下的利润。\n例如，如果一个产品的利润原本是 $20，运费从 $5 涨到 $10，您的实际利润就缩减了 25%。对于单价较低或体积较大的产品，这种影响尤为致命。\n为了评估运费上涨对您具体 SKU 的杀伤力，我们需要进行深入分析。请从下方选择一个产品：",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-08",
+    "category": "RV",
+    "q": "I have $10K to invest in inventory. Which SKUs should I prioritize?",
+    "a": "With $10K to invest, you want to put your capital where it will generate the highest return while minimizing risk.\nI've analyzed your store and ranked your SKUs using a Priority Score that identifies which products have the most impact on your bottom line. To give you a definitive \"Buy\" recommendati",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-09",
+    "category": "RV",
+    "q": "My return rate is 12% on a high-margin product. Is it still profitable?",
+    "a": "With $10K to invest, you want to put your capital where it will generate the highest return while minimizing risk.\nI've analyzed your store and ranked your SKUs using a Priority Score that identifies which products have the most impact on your bottom line. To give you a definitive \"Buy\" recommendati",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-10",
+    "category": "RV",
+    "q": "Should I offer free shipping if it cuts my margin by 8%?",
+    "a": "是否提供免运费取决于您的原始利润空间和转化率提升的平衡：\n\n利润率基数：如果您目前的毛利率在 50% 以上，降低 8% 来提供免运费通常是值得的，因为这能显著降低下单门槛。但如果您的毛利率本来就只有 15-20%，这 8% 的砍幅可能会让您陷入亏损。\n客单价：对于高价产品（如您店铺中的滑雪板），8% 的成本可能很容易被覆盖；但对于低客单价产品，这通常很难持续。\n转化率对冲：免运费通常能提高 15-30% 的转化率。如果销量的增长能抵消单件利润的减少，总利润依然会上升。\n\n为了给您更精确的建议，我们可以针对具体产品计算一下“免运费后的实际利润率”。\n请选择一个产品进行深入分析：",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-11",
+    "category": "RV",
+    "q": "How do I calculate the true cost of a product from China with import duties?",
+    "a": "是否提供免运费取决于您的原始利润空间和转化率提升的平衡：\n\n利润率基数：如果您目前的毛利率在 50% 以上，降低 8% 来提供免运费通常是值得的，因为这能显著降低下单门槛。但如果您的毛利率本来就只有 15-20%，这 8% 的砍幅可能会让您陷入亏损。\n客单价：对于高价产品（如您店铺中的滑雪板），8% 的成本可能很容易被覆盖；但对于低客单价产品，这通常很难持续。\n转化率对冲：免运费通常能提高 15-30% 的转化率。如果销量的增长能抵消单件利润的减少，总利润依然会上升。\n\n为了给您更精确的建议，我们可以针对具体产品计算一下“免运费后的实际利润率”。\n请选择一个产品进行深入分析：",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-12",
+    "category": "RV",
+    "q": "My warehouse costs went up. How do I allocate this to individual SKUs?",
+    "a": "To allocate increased warehouse costs to individual SKUs, you typically use one of three methods:\n\nSimple Allocation (By Unit): Divide your total monthly warehouse bill by the total number of units in stock. This is easy but treats a small accessory and a bulky snowboard the same.\nDimensional Alloca",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-13",
+    "category": "RV",
+    "q": "I want to do a 30% off sale. Which products can absorb it?",
+    "a": "To allocate increased warehouse costs to individual SKUs, you typically use one of three methods:\n\nSimple Allocation (By Unit): Divide your total monthly warehouse bill by the total number of units in stock. This is easy but treats a small accessory and a bulky snowboard the same.\nDimensional Alloca",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-14",
+    "category": "RV",
+    "q": "My bestseller has a 45% margin. How do I find more products like it?",
+    "a": "To allocate increased warehouse costs to individual SKUs, you typically use one of three methods:\n\nSimple Allocation (By Unit): Divide your total monthly warehouse bill by the total number of units in stock. This is easy but treats a small accessory and a bulky snowboard the same.\nDimensional Alloca",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-15",
+    "category": "RV",
+    "q": "Currency exchange rates changed. How does this affect my imported product margins?",
+    "a": "汇率变动会直接影响您的 到岸成本 (Landed Cost)，进而对毛利产生重大影响：\n\n本币贬值（或外币升值）：如果您用美元支付给海外供应商，而您的销售币种汇率下跌，您的 COGS（销售成本）会增加。这意味着即使售价不变，您的毛利也会缩水。\n本币升值：反之，您的采购成本会降低，从而提升毛利率，这通常是调价或进行促销的好时机。\n\n为了帮您量化汇率变动对具体产品的实际影响，我建议我们针对一个具体的 SKU 进行核算。\n我已经根据折扣率、收入贡献和库存压力为您排查了店铺中的 SKU。请选择一个进行深入分析：",
+    "status": "PASS"
+  }
+]

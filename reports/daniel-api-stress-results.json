@@ -1,0 +1,1586 @@
+{
+  "testType": "api-stress",
+  "agent": "daniel",
+  "baseUrl": "https://bot-test.yepai.io",
+  "apiEndpoint": "https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+  "isStreaming": false,
+  "user": "baobaobao5959@gmail.com",
+  "maxConcurrency": 20,
+  "scenarios": 6,
+  "passed": 6,
+  "partial": 0,
+  "failed": 0,
+  "results": [
+    {
+      "id": "ST-API-01",
+      "name": "Sequential Baseline (20 requests)",
+      "concurrency": 1,
+      "totalRequests": 20,
+      "successCount": 20,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 10079,
+        "avg": 11989,
+        "p50": 11491,
+        "p75": 12569,
+        "p90": 13709,
+        "p95": 15577,
+        "p99": 16368,
+        "max": 16368
+      },
+      "ttfb": {
+        "avg": 11988,
+        "p95": 15576
+      },
+      "throughputRps": 0.08,
+      "durationMs": 239781,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 13709,
+          "ttfbMs": 13709,
+          "responseBytes": 2570,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 12593,
+          "ttfbMs": 12592,
+          "responseBytes": 2464,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 10838,
+          "ttfbMs": 10837,
+          "responseBytes": 2431,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 10473,
+          "ttfbMs": 10473,
+          "responseBytes": 2593,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 15577,
+          "ttfbMs": 15576,
+          "responseBytes": 2651,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 11888,
+          "ttfbMs": 11887,
+          "responseBytes": 2281,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 11491,
+          "ttfbMs": 11490,
+          "responseBytes": 2755,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 10079,
+          "ttfbMs": 10077,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 10516,
+          "ttfbMs": 10515,
+          "responseBytes": 2434,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 10466,
+          "ttfbMs": 10466,
+          "responseBytes": 2416,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 10372,
+          "ttfbMs": 10372,
+          "responseBytes": 2601,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 11665,
+          "ttfbMs": 11664,
+          "responseBytes": 2627,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 13161,
+          "ttfbMs": 13160,
+          "responseBytes": 2422,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 16368,
+          "ttfbMs": 16367,
+          "responseBytes": 2679,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 11267,
+          "ttfbMs": 11267,
+          "responseBytes": 2624,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 11450,
+          "ttfbMs": 11449,
+          "responseBytes": 2233,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 12526,
+          "ttfbMs": 12525,
+          "responseBytes": 3082,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 12413,
+          "ttfbMs": 12413,
+          "responseBytes": 2286,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 10357,
+          "ttfbMs": 10356,
+          "responseBytes": 2134,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 12569,
+          "ttfbMs": 12568,
+          "responseBytes": 2608,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:07:53.021Z"
+    },
+    {
+      "id": "ST-API-02",
+      "name": "Concurrent Burst (5 simultaneous)",
+      "concurrency": 5,
+      "totalRequests": 5,
+      "successCount": 5,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 5246,
+        "avg": 10516,
+        "p50": 11247,
+        "p75": 12209,
+        "p90": 13101,
+        "p95": 13101,
+        "p99": 13101,
+        "max": 13101
+      },
+      "ttfb": {
+        "avg": 10516,
+        "p95": 13101
+      },
+      "throughputRps": 0.38,
+      "durationMs": 13101,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 13101,
+          "ttfbMs": 13101,
+          "responseBytes": 2225,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 12209,
+          "ttfbMs": 12209,
+          "responseBytes": 2440,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 10778,
+          "ttfbMs": 10778,
+          "responseBytes": 2454,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 5246,
+          "ttfbMs": 5246,
+          "responseBytes": 1114,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 11247,
+          "ttfbMs": 11246,
+          "responseBytes": 2329,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:08:06.124Z"
+    },
+    {
+      "id": "ST-API-03",
+      "name": "Concurrent Burst (10 simultaneous)",
+      "concurrency": 10,
+      "totalRequests": 10,
+      "successCount": 10,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 5294,
+        "avg": 10447,
+        "p50": 11928,
+        "p75": 12384,
+        "p90": 12956,
+        "p95": 13081,
+        "p99": 13081,
+        "max": 13081
+      },
+      "ttfb": {
+        "avg": 10446,
+        "p95": 13081
+      },
+      "throughputRps": 0.76,
+      "durationMs": 13083,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 11928,
+          "ttfbMs": 11926,
+          "responseBytes": 2233,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 12094,
+          "ttfbMs": 12094,
+          "responseBytes": 2388,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 5294,
+          "ttfbMs": 5294,
+          "responseBytes": 1126,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 9512,
+          "ttfbMs": 9511,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 5310,
+          "ttfbMs": 5310,
+          "responseBytes": 1124,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 9580,
+          "ttfbMs": 9579,
+          "responseBytes": 2328,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 12384,
+          "ttfbMs": 12384,
+          "responseBytes": 2221,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 12327,
+          "ttfbMs": 12327,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 13081,
+          "ttfbMs": 13081,
+          "responseBytes": 2613,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 12956,
+          "ttfbMs": 12956,
+          "responseBytes": 2416,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:08:19.208Z"
+    },
+    {
+      "id": "ST-API-04",
+      "name": "Concurrent Burst (20 simultaneous)",
+      "concurrency": 20,
+      "totalRequests": 20,
+      "successCount": 20,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 5409,
+        "avg": 11496,
+        "p50": 11115,
+        "p75": 14188,
+        "p90": 14215,
+        "p95": 14244,
+        "p99": 14646,
+        "max": 14646
+      },
+      "ttfb": {
+        "avg": 11496,
+        "p95": 14243
+      },
+      "throughputRps": 1.37,
+      "durationMs": 14646,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 11115,
+          "ttfbMs": 11115,
+          "responseBytes": 2225,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 14244,
+          "ttfbMs": 14243,
+          "responseBytes": 2621,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 11429,
+          "ttfbMs": 11429,
+          "responseBytes": 2529,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 13999,
+          "ttfbMs": 13999,
+          "responseBytes": 2594,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 10603,
+          "ttfbMs": 10603,
+          "responseBytes": 2429,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 14646,
+          "ttfbMs": 14645,
+          "responseBytes": 2955,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 8858,
+          "ttfbMs": 8858,
+          "responseBytes": 2221,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 5893,
+          "ttfbMs": 5892,
+          "responseBytes": 1114,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 10205,
+          "ttfbMs": 10204,
+          "responseBytes": 2434,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 5409,
+          "ttfbMs": 5409,
+          "responseBytes": 1111,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 14043,
+          "ttfbMs": 14043,
+          "responseBytes": 2860,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 12277,
+          "ttfbMs": 12277,
+          "responseBytes": 2447,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 9743,
+          "ttfbMs": 9743,
+          "responseBytes": 2322,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 10090,
+          "ttfbMs": 10090,
+          "responseBytes": 2326,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 14194,
+          "ttfbMs": 14194,
+          "responseBytes": 2291,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 14188,
+          "ttfbMs": 14188,
+          "responseBytes": 2994,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 10738,
+          "ttfbMs": 10737,
+          "responseBytes": 2450,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 14215,
+          "ttfbMs": 14215,
+          "responseBytes": 2438,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 9816,
+          "ttfbMs": 9816,
+          "responseBytes": 2233,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 14215,
+          "ttfbMs": 14215,
+          "responseBytes": 2442,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:08:33.854Z"
+    },
+    {
+      "id": "ST-API-05",
+      "name": "Ramp-Up (1→5→10→20→30)",
+      "concurrency": 30,
+      "totalRequests": 66,
+      "successCount": 66,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 5592,
+        "avg": 13285,
+        "p50": 13725,
+        "p75": 15518,
+        "p90": 16148,
+        "p95": 16694,
+        "p99": 18104,
+        "max": 18104
+      },
+      "ttfb": {
+        "avg": 13284,
+        "p95": 16694
+      },
+      "throughputRps": 0.79,
+      "durationMs": 83706,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 12439,
+          "ttfbMs": 12439,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 10542,
+          "ttfbMs": 10542,
+          "responseBytes": 2716,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 12862,
+          "ttfbMs": 12862,
+          "responseBytes": 2578,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 8326,
+          "ttfbMs": 8326,
+          "responseBytes": 2131,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 10721,
+          "ttfbMs": 10721,
+          "responseBytes": 2589,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 12672,
+          "ttfbMs": 12672,
+          "responseBytes": 2606,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 13116,
+          "ttfbMs": 13115,
+          "responseBytes": 2453,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 11025,
+          "ttfbMs": 11025,
+          "responseBytes": 2617,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 13766,
+          "ttfbMs": 13766,
+          "responseBytes": 2438,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 10924,
+          "ttfbMs": 10923,
+          "responseBytes": 2119,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 10179,
+          "ttfbMs": 10178,
+          "responseBytes": 2429,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 12171,
+          "ttfbMs": 12170,
+          "responseBytes": 2597,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 9088,
+          "ttfbMs": 9088,
+          "responseBytes": 2122,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 11563,
+          "ttfbMs": 11562,
+          "responseBytes": 2218,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 12690,
+          "ttfbMs": 12690,
+          "responseBytes": 2434,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 12452,
+          "ttfbMs": 12451,
+          "responseBytes": 2589,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 15068,
+          "ttfbMs": 15067,
+          "responseBytes": 2575,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 14065,
+          "ttfbMs": 14065,
+          "responseBytes": 2440,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 11713,
+          "ttfbMs": 11713,
+          "responseBytes": 2658,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 13935,
+          "ttfbMs": 13935,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 15613,
+          "ttfbMs": 15613,
+          "responseBytes": 2681,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 11503,
+          "ttfbMs": 11503,
+          "responseBytes": 2601,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 13725,
+          "ttfbMs": 13725,
+          "responseBytes": 3035,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 16492,
+          "ttfbMs": 16492,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 12007,
+          "ttfbMs": 12007,
+          "responseBytes": 2523,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 11309,
+          "ttfbMs": 11309,
+          "responseBytes": 2215,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 13269,
+          "ttfbMs": 13269,
+          "responseBytes": 2123,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 13512,
+          "ttfbMs": 13511,
+          "responseBytes": 2447,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 14547,
+          "ttfbMs": 14547,
+          "responseBytes": 2422,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 13428,
+          "ttfbMs": 13427,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 14074,
+          "ttfbMs": 14074,
+          "responseBytes": 2881,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 15697,
+          "ttfbMs": 15697,
+          "responseBytes": 2443,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 14858,
+          "ttfbMs": 14857,
+          "responseBytes": 2645,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 6476,
+          "ttfbMs": 6475,
+          "responseBytes": 1133,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 5592,
+          "ttfbMs": 5592,
+          "responseBytes": 1129,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 14780,
+          "ttfbMs": 14779,
+          "responseBytes": 2226,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 11787,
+          "ttfbMs": 11787,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 16732,
+          "ttfbMs": 16732,
+          "responseBytes": 2617,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 15577,
+          "ttfbMs": 15576,
+          "responseBytes": 2275,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 13765,
+          "ttfbMs": 13765,
+          "responseBytes": 2127,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 13613,
+          "ttfbMs": 13613,
+          "responseBytes": 2429,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 17470,
+          "ttfbMs": 17470,
+          "responseBytes": 2772,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 16327,
+          "ttfbMs": 16327,
+          "responseBytes": 2607,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 14133,
+          "ttfbMs": 14133,
+          "responseBytes": 2454,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 16148,
+          "ttfbMs": 16147,
+          "responseBytes": 2233,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 15316,
+          "ttfbMs": 15315,
+          "responseBytes": 2422,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 15518,
+          "ttfbMs": 15518,
+          "responseBytes": 2380,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 12452,
+          "ttfbMs": 12451,
+          "responseBytes": 2147,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 5906,
+          "ttfbMs": 5906,
+          "responseBytes": 1117,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 15400,
+          "ttfbMs": 15400,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 14756,
+          "ttfbMs": 14756,
+          "responseBytes": 2152,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 15519,
+          "ttfbMs": 15519,
+          "responseBytes": 2434,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 13106,
+          "ttfbMs": 13106,
+          "responseBytes": 2681,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 13195,
+          "ttfbMs": 13194,
+          "responseBytes": 2138,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 16694,
+          "ttfbMs": 16694,
+          "responseBytes": 2256,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 6513,
+          "ttfbMs": 6512,
+          "responseBytes": 1137,
+          "success": true
+        },
+        {
+          "question": "How do I calculate margin for bundled products?",
+          "statusCode": 200,
+          "latencyMs": 15111,
+          "ttfbMs": 15111,
+          "responseBytes": 2438,
+          "success": true
+        },
+        {
+          "question": "What is the difference between margin and EBITDA?",
+          "statusCode": 200,
+          "latencyMs": 8483,
+          "ttfbMs": 8483,
+          "responseBytes": 1135,
+          "success": true
+        },
+        {
+          "question": "How do I analyze margin trends over time?",
+          "statusCode": 200,
+          "latencyMs": 15976,
+          "ttfbMs": 15976,
+          "responseBytes": 2605,
+          "success": true
+        },
+        {
+          "question": "What is cost-volume-profit analysis?",
+          "statusCode": 200,
+          "latencyMs": 14711,
+          "ttfbMs": 14710,
+          "responseBytes": 2427,
+          "success": true
+        },
+        {
+          "question": "How do I improve margins without raising prices?",
+          "statusCode": 200,
+          "latencyMs": 15644,
+          "ttfbMs": 15644,
+          "responseBytes": 2439,
+          "success": true
+        },
+        {
+          "question": "What is a standard cost system?",
+          "statusCode": 200,
+          "latencyMs": 15847,
+          "ttfbMs": 15847,
+          "responseBytes": 2361,
+          "success": true
+        },
+        {
+          "question": "How do I account for overhead in product pricing?",
+          "statusCode": 200,
+          "latencyMs": 18104,
+          "ttfbMs": 18103,
+          "responseBytes": 2283,
+          "success": true
+        },
+        {
+          "question": "What is marginal cost?",
+          "statusCode": 200,
+          "latencyMs": 15187,
+          "ttfbMs": 15187,
+          "responseBytes": 2373,
+          "success": true
+        },
+        {
+          "question": "How do I evaluate if a product is worth keeping?",
+          "statusCode": 200,
+          "latencyMs": 15765,
+          "ttfbMs": 15765,
+          "responseBytes": 2439,
+          "success": true
+        },
+        {
+          "question": "What is activity-based costing?",
+          "statusCode": 200,
+          "latencyMs": 15825,
+          "ttfbMs": 15825,
+          "responseBytes": 2422,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:09:57.562Z",
+      "levelStats": [
+        {
+          "level": 1,
+          "avgLatency": 12439,
+          "successRate": 1
+        },
+        {
+          "level": 5,
+          "avgLatency": 11025,
+          "successRate": 1
+        },
+        {
+          "level": 10,
+          "avgLatency": 11697,
+          "successRate": 1
+        },
+        {
+          "level": 20,
+          "avgLatency": 13083,
+          "successRate": 1
+        },
+        {
+          "level": 30,
+          "avgLatency": 14353,
+          "successRate": 1
+        }
+      ],
+      "degradationRatio": "1.15x"
+    },
+    {
+      "id": "ST-API-06",
+      "name": "Sustained Load (50 req / 60s)",
+      "concurrency": 1,
+      "totalRequests": 50,
+      "successCount": 50,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 4342,
+        "avg": 12069,
+        "p50": 12018,
+        "p75": 13159,
+        "p90": 13629,
+        "p95": 14282,
+        "p99": 14652,
+        "max": 14652
+      },
+      "ttfb": {
+        "avg": 12068,
+        "p95": 14282
+      },
+      "throughputRps": 0.7,
+      "durationMs": 71888,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 11073,
+          "ttfbMs": 11073,
+          "responseBytes": 2140,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 13429,
+          "ttfbMs": 13428,
+          "responseBytes": 2916,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 11913,
+          "ttfbMs": 11913,
+          "responseBytes": 2230,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 11013,
+          "ttfbMs": 11012,
+          "responseBytes": 2588,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 13563,
+          "ttfbMs": 13562,
+          "responseBytes": 2609,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 11366,
+          "ttfbMs": 11365,
+          "responseBytes": 2221,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 13004,
+          "ttfbMs": 13004,
+          "responseBytes": 3022,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 12471,
+          "ttfbMs": 12471,
+          "responseBytes": 2614,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 10347,
+          "ttfbMs": 10346,
+          "responseBytes": 2423,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 11783,
+          "ttfbMs": 11783,
+          "responseBytes": 2416,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 13302,
+          "ttfbMs": 13302,
+          "responseBytes": 2134,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 11207,
+          "ttfbMs": 11207,
+          "responseBytes": 2422,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 10418,
+          "ttfbMs": 10416,
+          "responseBytes": 2586,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 4592,
+          "ttfbMs": 4592,
+          "responseBytes": 1129,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 13051,
+          "ttfbMs": 13051,
+          "responseBytes": 2459,
+          "success": true
+        },
+        {
+          "question": "How do I calculate margin for bundled products?",
+          "statusCode": 200,
+          "latencyMs": 4342,
+          "ttfbMs": 4342,
+          "responseBytes": 1133,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 13136,
+          "ttfbMs": 13135,
+          "responseBytes": 2647,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 13046,
+          "ttfbMs": 13046,
+          "responseBytes": 2604,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 11157,
+          "ttfbMs": 11157,
+          "responseBytes": 2438,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 13415,
+          "ttfbMs": 13414,
+          "responseBytes": 2350,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 11665,
+          "ttfbMs": 11665,
+          "responseBytes": 2863,
+          "success": true
+        },
+        {
+          "question": "What is the difference between margin and EBITDA?",
+          "statusCode": 200,
+          "latencyMs": 11909,
+          "ttfbMs": 11909,
+          "responseBytes": 2604,
+          "success": true
+        },
+        {
+          "question": "How do I analyze margin trends over time?",
+          "statusCode": 200,
+          "latencyMs": 12506,
+          "ttfbMs": 12506,
+          "responseBytes": 2432,
+          "success": true
+        },
+        {
+          "question": "What is cost-volume-profit analysis?",
+          "statusCode": 200,
+          "latencyMs": 11576,
+          "ttfbMs": 11576,
+          "responseBytes": 2427,
+          "success": true
+        },
+        {
+          "question": "How do I improve margins without raising prices?",
+          "statusCode": 200,
+          "latencyMs": 14652,
+          "ttfbMs": 14652,
+          "responseBytes": 2439,
+          "success": true
+        },
+        {
+          "question": "What is marginal cost?",
+          "statusCode": 200,
+          "latencyMs": 11100,
+          "ttfbMs": 11099,
+          "responseBytes": 2413,
+          "success": true
+        },
+        {
+          "question": "What is a standard cost system?",
+          "statusCode": 200,
+          "latencyMs": 13629,
+          "ttfbMs": 13629,
+          "responseBytes": 2651,
+          "success": true
+        },
+        {
+          "question": "How do I account for overhead in product pricing?",
+          "statusCode": 200,
+          "latencyMs": 13143,
+          "ttfbMs": 13143,
+          "responseBytes": 2224,
+          "success": true
+        },
+        {
+          "question": "How do I evaluate if a product is worth keeping?",
+          "statusCode": 200,
+          "latencyMs": 11083,
+          "ttfbMs": 11083,
+          "responseBytes": 2439,
+          "success": true
+        },
+        {
+          "question": "What is my gross margin percentage?",
+          "statusCode": 200,
+          "latencyMs": 11798,
+          "ttfbMs": 11798,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "What is activity-based costing?",
+          "statusCode": 200,
+          "latencyMs": 13159,
+          "ttfbMs": 13159,
+          "responseBytes": 2613,
+          "success": true
+        },
+        {
+          "question": "What is the difference between markup and margin?",
+          "statusCode": 200,
+          "latencyMs": 13171,
+          "ttfbMs": 13171,
+          "responseBytes": 2440,
+          "success": true
+        },
+        {
+          "question": "How do I calculate the break-even point?",
+          "statusCode": 200,
+          "latencyMs": 12622,
+          "ttfbMs": 12622,
+          "responseBytes": 2431,
+          "success": true
+        },
+        {
+          "question": "What is contribution margin?",
+          "statusCode": 200,
+          "latencyMs": 11784,
+          "ttfbMs": 11784,
+          "responseBytes": 2419,
+          "success": true
+        },
+        {
+          "question": "What is COGS and how is it calculated?",
+          "statusCode": 200,
+          "latencyMs": 12018,
+          "ttfbMs": 12017,
+          "responseBytes": 2824,
+          "success": true
+        },
+        {
+          "question": "How do landed costs affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 11998,
+          "ttfbMs": 11998,
+          "responseBytes": 2606,
+          "success": true
+        },
+        {
+          "question": "What is a loss leader strategy?",
+          "statusCode": 200,
+          "latencyMs": 12313,
+          "ttfbMs": 12312,
+          "responseBytes": 2492,
+          "success": true
+        },
+        {
+          "question": "What is my operating margin?",
+          "statusCode": 200,
+          "latencyMs": 12172,
+          "ttfbMs": 12172,
+          "responseBytes": 2151,
+          "success": true
+        },
+        {
+          "question": "How do I calculate weighted average margin?",
+          "statusCode": 200,
+          "latencyMs": 12577,
+          "ttfbMs": 12577,
+          "responseBytes": 2434,
+          "success": true
+        },
+        {
+          "question": "What is price elasticity?",
+          "statusCode": 200,
+          "latencyMs": 11884,
+          "ttfbMs": 11884,
+          "responseBytes": 2893,
+          "success": true
+        },
+        {
+          "question": "How do returns affect my margin?",
+          "statusCode": 200,
+          "latencyMs": 11797,
+          "ttfbMs": 11797,
+          "responseBytes": 3069,
+          "success": true
+        },
+        {
+          "question": "What is the difference between fixed and variable costs?",
+          "statusCode": 200,
+          "latencyMs": 14515,
+          "ttfbMs": 14515,
+          "responseBytes": 3053,
+          "success": true
+        },
+        {
+          "question": "How do I improve my net margin?",
+          "statusCode": 200,
+          "latencyMs": 13470,
+          "ttfbMs": 13470,
+          "responseBytes": 2600,
+          "success": true
+        },
+        {
+          "question": "What is gross profit vs net profit?",
+          "statusCode": 200,
+          "latencyMs": 12328,
+          "ttfbMs": 12328,
+          "responseBytes": 2426,
+          "success": true
+        },
+        {
+          "question": "What is a good gross margin for e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 11579,
+          "ttfbMs": 11579,
+          "responseBytes": 2233,
+          "success": true
+        },
+        {
+          "question": "How do I analyze profitability by product category?",
+          "statusCode": 200,
+          "latencyMs": 13803,
+          "ttfbMs": 13802,
+          "responseBytes": 2384,
+          "success": true
+        },
+        {
+          "question": "What is absorption costing vs variable costing?",
+          "statusCode": 200,
+          "latencyMs": 12011,
+          "ttfbMs": 12010,
+          "responseBytes": 2286,
+          "success": true
+        },
+        {
+          "question": "How do I factor in shipping costs to calculate true margin?",
+          "statusCode": 200,
+          "latencyMs": 13640,
+          "ttfbMs": 13640,
+          "responseBytes": 2781,
+          "success": true
+        },
+        {
+          "question": "What is the impact of discounting on annual margin?",
+          "statusCode": 200,
+          "latencyMs": 11625,
+          "ttfbMs": 11625,
+          "responseBytes": 2442,
+          "success": true
+        },
+        {
+          "question": "How do I set prices to hit a target margin?",
+          "statusCode": 200,
+          "latencyMs": 14282,
+          "ttfbMs": 14282,
+          "responseBytes": 2858,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T11:11:09.451Z"
+    }
+  ],
+  "generatedAt": "2026-04-18T11:11:09.453Z"
+}

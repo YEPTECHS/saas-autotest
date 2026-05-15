@@ -3,42 +3,70 @@
     "id": "ME-01",
     "category": "ME",
     "q": "?",
-    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "a": "好的，没问题！从现在起，我会用中文回答您的所有问题。\n作为您的营销助手，我可以为您提供以下帮助：\n\n店铺分析：分析您的 Shopify 店铺数据，提供销售洞察。\n内容创作：撰写小红书/Instagram 文案、SEO 博客文章或产品描述。\n关键词研究：针对 2026 年的市场趋势进行深度 SEO 调研。\n图像生成：为您制作高品质的品牌宣传图或产品展示图。\n\n针对您刚才提到的高端简约风格，您是希望我为您写一段品牌故事，还是为您的一件滑雪板或陶瓷杯撰写详细的产品详情页文案？请告诉我您的下一步计划。",
     "status": "PASS"
   },
   {
     "id": "ME-02",
     "category": "ME",
     "q": "help",
-    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "a": "I am your dedicated Marketing Content Assistant, designed to help you grow your e-commerce brand with data-driven strategies and high-quality content.\nHere are the specific ways I can help you right now:\n1. Store & Sales Analysis\n\n\"Analyze my store performance\": I'll check your Shopify data to find ",
     "status": "PASS"
   },
   {
     "id": "ME-03",
     "category": "ME",
     "q": "Your suggestions are terrible and completely useless. Try again.",
-    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "a": "I am your dedicated Marketing Content Assistant, designed to help you grow your e-commerce brand with data-driven strategies and high-quality content.\nHere are the specific ways I can help you right now:\n1. Store & Sales Analysis\n\n\"Analyze my store performance\": I'll check your Shopify data to find ",
     "status": "PASS"
   },
   {
     "id": "ME-04",
     "category": "ME",
     "q": "marketing marketing marketing marketing marketing",
-    "a": "我正在结合 2026 年最新的奢侈品牌营销趋势以及您的店铺数据，为您总结目前最有效的营销策略。我将重点关注如何利用“静奢风”和“技术权威”来提升您的品牌价值。",
+    "a": "I am your dedicated Marketing Content Assistant, designed to help you grow your e-commerce brand with data-driven strategies and high-quality content.\nHere are the specific ways I can help you right now:\n1. Store & Sales Analysis\n\n\"Analyze my store performance\": I'll check your Shopify data to find ",
     "status": "PASS"
   },
   {
     "id": "ME-05",
     "category": "ME",
     "q": "Why are my sales down this month?",
-    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections...",
-    "status": "WARN"
+    "a": "I am your dedicated Marketing Content Assistant, designed to help you grow your e-commerce brand with data-driven strategies and high-quality content.\nHere are the specific ways I can help you right now:\n1. Store & Sales Analysis\n\n\"Analyze my store performance\": I'll check your Shopify data to find ",
+    "status": "PASS"
   },
   {
     "id": "ME-06",
     "category": "ME",
     "q": "What was my best performing campaign last quarter?",
-    "a": "I'm analyzing your store data for the last quarter (Q1 2026) to identify your best performing campaign. Gathering products, orders, customers, and collections now...",
+    "a": "I'm analyzing your store data for the last quarter to identify your best-performing campaign — gathering orders, customers, and product metrics...",
     "status": "WARN"
+  },
+  {
+    "id": "ME-07",
+    "category": "ME",
+    "q": "42",
+    "a": "42 is indeed the \"Answer to the Ultimate Question of Life, the Universe, and Everything,\" but in the world of e-commerce marketing, I like to think of it as a target!\nAre we aiming for:\n\n42% increase in your email open rates?\n42 new leads for your \"GlowUp\" skincare launch?\n42 sales for your premium ",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-08",
+    "category": "ME",
+    "q": "WRITE ME AN INSTAGRAM BIO RIGHT NOW",
+    "a": "Here are 3 high-impact Instagram Bio options for your brand, optimized for 2026 Rugged Luxury and Technical Authority.\nOption 1: The Unified Brand (Rugged Luxury)\nBest for establishing your overall \"High-End Minimalist\" identity.\nBio:\n🏔️ Engineering for the Peak. Art for the Home.\n🏂 High-Performan",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-09",
+    "category": "ME",
+    "q": "I need a full comprehensive in-depth marketing strategy covering every single aspect of digital mark",
+    "a": "Here are 3 high-impact Instagram Bio options for your brand, optimized for 2026 Rugged Luxury and Technical Authority.\nOption 1: The Unified Brand (Rugged Luxury)\nBest for establishing your overall \"High-End Minimalist\" identity.\nBio:\n🏔️ Engineering for the Peak. Art for the Home.\n🏂 High-Performan",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-10",
+    "category": "ME",
+    "q": "```SELECT * FROM campaigns WHERE ROI > 0```",
+    "a": "Executing query... Gathering performance data for campaigns and product ROI. I'll have the results for you shortly.",
+    "status": "PASS"
   }
 ]

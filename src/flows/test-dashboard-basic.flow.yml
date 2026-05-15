@@ -1,0 +1,42 @@
+# YepAI Dashboard Page — Basic Stub Test
+# Verifies the /dashboard route loads after login.
+# NOTE: Existing test-home covers "/" but not "/dashboard" explicitly.
+
+name: test-dashboard-basic
+description: Stub test for the Dashboard page (/dashboard) — verifies route loads and renders main content
+
+steps:
+  # Shared login flow
+  - include: _shared/login.steps.yml
+
+  # Navigate to dashboard
+  - id: navigate-dashboard
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/dashboard"
+      waitUntil: "networkidle"
+
+  # Wait for main content to render
+  - id: wait-main-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, h1, [class*='dashboard'], [class*='content']"
+      timeout: 15000
+
+  # Verify sidebar is present (confirms we're inside the app shell)
+  - id: verify-sidebar
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='sidebar'], nav, aside"
+      timeout: 5000
+
+  # Capture a screenshot for visual reference
+  - id: screenshot-dashboard
+    action: browser.screenshot
+    params:
+      name: "dashboard-basic"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Dashboard page stub test completed successfully!"

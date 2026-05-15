@@ -35,14 +35,15 @@ const AGENT_ARG =
   'maya';
 
 const AGENT_PATHS: Record<string, string> = {
-  maya: '/ai-team/marketing/chat',
-  oscar: '/ai-team/operation/chat',
+  maya:   '/ai-team/marketing/chat',
+  oscar:  '/ai-team/operation/chat',
   daniel: '/ai-team/profit/chat',
+  cody:   '/ai-team/seo/chat',
 };
 
 const agentPath = AGENT_PATHS[AGENT_ARG];
 if (!agentPath) {
-  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel`);
+  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel, cody`);
   process.exit(1);
 }
 

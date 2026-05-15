@@ -1,0 +1,107 @@
+[
+  {
+    "id": "AC-01",
+    "category": "AC",
+    "q": "What does SKU mean in inventory?",
+    "a": "SKU stands for Stock Keeping Unit.\nIt is a unique code (usually a mix of letters and numbers) used by retailers to identify and track specific products in their inventory.\nWhy SKUs Matter:\n\nIdentification: A SKU distinguishes between different versions of the same product (e.g., a \"Blue Snowboard - ",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-02",
+    "category": "AC",
+    "q": "What does COGS stand for and how is it calculated?",
+    "a": "COGS stands for Cost of Goods Sold.\nIt represents the direct costs your business incurs to produce or purchase the products you sell. It basically answers: \"How much did it cost me to get this item physically ready to leave the shelf?\"\nHow it is calculated:\nFor most e-commerce merchants, COGS is the",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-03",
+    "category": "AC",
+    "q": "What is gross margin and how does it differ from net margin?",
+    "a": "Gross Margin and Net Margin are both vital indicators of your business health, but they measure different things:\n\n\nGross Margin (毛利率): This measures your product-level profitability.\n\nFormula: (Revenue - COGS) / Revenue\nIt only considers the direct cost of producing or buying the product. It tells ",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-04",
+    "category": "AC",
+    "q": "What is contribution margin and why is it important?",
+    "a": "Contribution Margin is what’s left from a sale after subtracting all variable costs (costs that change based on how much you sell).\n\nFormula: Selling Price - Variable Costs = Contribution Margin\nVariable Costs include: COGS (manufacturing), shipping fees, packaging, and credit card processing fees.\n",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-05",
+    "category": "AC",
+    "q": "What is break-even point and how do you calculate it?",
+    "a": "盈亏平衡点 (Break-even Point) 是指您的总收入等于总成本（既没有利润也没有亏损）的状态。\n如何计算？\n\n\n按销量计算（单位数量）：\n固定成本 / (单位售价 - 单位变动成本)\n例如：如果您的固定支出（租金、软件费）是 $1,000，每卖出一个产品赚 $20（售价 $50 - 成本 $30），您需要卖出 50 个产品才能达到盈亏平衡。\n\n\n按销售额计算（金额）：\n固定成本 / 毛利率 %\n例如：$1,000 / 0.40 (40% 毛利) = $2,500 销售额。\n\n\n为什么这很重要？\n了解每个 SKU 的毛利率是计算盈亏平衡点的基础。只有毛利足够高，您才能更快地覆盖固定成",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-06",
+    "category": "AC",
+    "q": "What is the difference between markup and margin?",
+    "a": "加价率 (Markup) 和 毛利率 (Margin) 是衡量利润的两个不同维度，经常容易混淆：\n\n\n毛利率 (Margin)：利润占售价的百分比。\n\n公式：(售价 - 成本) / 售价\n例子：成本 $30，售价 $50，毛利 $20。毛利率 = $20 / $50 = 40%。\n零售商通常使用毛利率，因为它直接反映了每销售 $1 之后你能留下多少钱。\n\n\n\n加价率 (Markup)：利润占成本的百分比。\n\n公式：(售价 - 成本) / 成本\n例子：成本 $30，售价 $50，毛利 $20。加价率 = $20 / $30 = 66.7%。\n进货商通常使用加价率，用来决定在成本的基础上增加多少钱",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-07",
+    "category": "AC",
+    "q": "What does MAP pricing stand for?",
+    "a": "MAP stands for Minimum Advertised Price.\nIt is the lowest price a manufacturer or brand allows a retailer to publicly list for a product in any advertisement or on their website.\nWhy MAP Pricing Matters:\n\nBrand Protection: It prevents \"price wars\" that can devalue a premium brand's image.\nMargin Sta",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-08",
+    "category": "AC",
+    "q": "What is price elasticity of demand?",
+    "a": "价格需求弹性 (Price Elasticity of Demand) 衡量的是：当产品价格变化时，消费者需求量变化的敏感程度。\n简单来说：\n\n富有弹性 (Elastic): 价格小幅上涨，销量大幅下降。通常发生在竞争激烈或非必需品类（如奢侈品）。\n缺乏弹性 (Inelastic): 价格变动对销量影响很小。通常发生在必需品、垄断性产品或拥有极高品牌忠诚度的产品（如某些医疗用品或 iPhone）。\n\n为什么这在毛利优化中很重要？\n如果您产品的需求是缺乏弹性的，那么提高价格可以直接显著增加毛利，而销量不会明显减少。反之，如果富有弹性，则需要通过降低成本（COGS）而非提价来优化毛利。\n为了看看您",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-09",
+    "category": "AC",
+    "q": "What is the difference between variable costs and fixed costs?",
+    "a": "变动成本 (Variable Costs) 和 固定成本 (Fixed Costs) 的核心区别在于它们是否随销量而变化：\n\n\n变动成本 (Variable Costs)：随销量增减而变化。\n\n例子：原材料、包装费、运费、信用卡手续费。\n如果你卖出 0 件产品，变动成本就是 $0。这些成本直接决定了你的毛利。\n\n\n\n固定成本 (Fixed Costs)：无论销量多少，支出基本保持不变。\n\n例子：仓库租金、员工固定工资、Shopify 订阅费、保险费。\n无论你卖出 0 件还是 1,000 件，这些钱都得花。\n\n\n\n为什么这很重要？\n在进行 SKU 分析时，我们首先关注变动成本（即 COGS），因",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-10",
+    "category": "AC",
+    "q": "What does ROI stand for and how do you calculate it?",
+    "a": "ROI stands for Return on Investment.\nIt measures the gain or loss generated on an investment relative to the amount of money invested. It is usually expressed as a percentage.\nHow it is calculated:\nThe basic formula is:\nROI = ((Net Profit / Cost of Investment) × 100)\nIn e-commerce, you typically loo",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-11",
+    "category": "AC",
+    "q": "What is ABC analysis in inventory management?",
+    "a": "ABC Analysis is an inventory categorization technique used to divide your products into three categories based on their importance and value to your business:\n\nCategory A (High Value): These are your \"VIP\" products. They usually represent about 20% of your SKUs but account for 70-80% of your total r",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-12",
+    "category": "AC",
+    "q": "What is the difference between FIFO and LIFO costing methods?",
+    "a": "FIFO and LIFO are two different ways to value your inventory and calculate your COGS when your purchase costs change over time:\n\n\nFIFO (First-In, First-Out):\n\nConcept: Assumes the first items you bought are the first ones you sell.\nImpact: In a period of rising prices (inflation), FIFO results in a ",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-13",
+    "category": "AC",
+    "q": "What does EBITDA stand for?",
+    "a": "EBITDA stands for Earnings Before Interest, Taxes, Depreciation, and Amortization.\nIt is a widely used measure of a company's overall financial performance and is often used as an alternative to net income because it focuses on the profitability of core operations.\nBreaking it down:\n\nEarnings: Your ",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-14",
+    "category": "AC",
+    "q": "What is inventory carrying cost and what does it include?",
+    "a": "库存持有成本 (Inventory Carrying Cost)，也称为持有成本，是指企业在一定时期内存储和维护库存所产生的各项费用。\n通常包括以下四大类：\n\n资金占用成本 (Capital Cost)：这是最大的部分。指资金被库存占用而产生的机会成本（即这些钱如果不买库存，可以用于投资或赚取利息）。\n仓储空间成本 (Storage Space Cost)：包括仓库租金、水电费、安保费以及仓库设备的折旧费。\n库存服务成本 (Inventory Service Cost)：包括库存保险费、相关税收以及用于库存管理的软硬件费用。\n库存风险成本 (Inventory Risk Cost)：包括产品过",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-15",
+    "category": "AC",
+    "q": "What is a profit waterfall chart?",
+    "a": "A Profit Waterfall Chart (also known as a Price or Margin Bridge) is a visualization that shows the step-by-step journey from your Gross Revenue down to your Net Profit.\nIt \"cascades\" downward as various costs and deductions are applied, helping you identify exactly where you are losing money.\nA typ",
+    "status": "PASS"
+  }
+]

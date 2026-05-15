@@ -1,0 +1,107 @@
+[
+  {
+    "id": "AC-01",
+    "category": "AC",
+    "q": "What does SEO stand for?",
+    "a": "SEO stands for Search Engine Optimization.\nIn simple terms, it is the process of improving your website to increase its visibility when people search for products or services related to your business in Google, Bing, and other search engines.\nFor your store, effective SEO means that when someone sea",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-02",
+    "category": "AC",
+    "q": "What does CTR stand for in digital marketing?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-03",
+    "category": "AC",
+    "q": "What does ROAS stand for and how is it calculated?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-04",
+    "category": "AC",
+    "q": "What is the difference between reach and impressions on social media?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-05",
+    "category": "AC",
+    "q": "What does A/B testing mean in marketing?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-06",
+    "category": "AC",
+    "q": "What is a conversion rate in e-commerce?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-07",
+    "category": "AC",
+    "q": "What does CPM stand for and what does it measure?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-08",
+    "category": "AC",
+    "q": "What is bounce rate in web analytics?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-09",
+    "category": "AC",
+    "q": "What is the difference between organic and paid social media traffic?",
+    "a": "CTR stands for Click-Through Rate.\nIt is a key metric in digital marketing that measures the percentage of people who click on a specific link (like an ad, an email, or a search engine result) out of the total number of people who saw it (impressions).\nHow to Calculate It:\nCTR = (Total Clicks / Tota",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-10",
+    "category": "AC",
+    "q": "What does CTA stand for?",
+    "a": "CTA stands for Call to Action.\nIn marketing, a CTA is an instruction designed to prompt an immediate response from your audience. It is usually a short, punchy phrase or a button that tells the customer exactly what to do next.\nWhy CTAs are critical for your store:\nWithout a clear CTA, a customer mi",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-11",
+    "category": "AC",
+    "q": "What is email open rate and what is considered a good benchmark?",
+    "a": "CTA stands for Call to Action.\nIn marketing, a CTA is an instruction designed to prompt an immediate response from your audience. It is usually a short, punchy phrase or a button that tells the customer exactly what to do next.\nWhy CTAs are critical for your store:\nWithout a clear CTA, a customer mi",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-12",
+    "category": "AC",
+    "q": "What is the difference between B2B and B2C marketing?",
+    "a": "Understanding the difference between B2B (Business-to-Business) and B2C (Business-to-Consumer) marketing is vital for your store, as your products—high-end snowboards and artisan ceramics—actually have massive potential in both sectors.\nHere is the breakdown of how these strategies differ in 2026:\n1",
+    "status": "PASS"
+  },
+  {
+    "id": "AC-13",
+    "category": "AC",
+    "q": "What does UGC stand for and why is it valuable?",
+    "a": "Understanding the difference between B2B (Business-to-Business) and B2C (Business-to-Consumer) marketing is vital for your store, as your products—high-end snowboards and artisan ceramics—actually have massive potential in both sectors.\nHere is the breakdown of how these strategies differ in 2026:\n1",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-14",
+    "category": "AC",
+    "q": "What is a sales funnel and what are its stages?",
+    "a": "Understanding the difference between B2B (Business-to-Business) and B2C (Business-to-Consumer) marketing is vital for your store, as your products—high-end snowboards and artisan ceramics—actually have massive potential in both sectors.\nHere is the breakdown of how these strategies differ in 2026:\n1",
+    "status": "FAIL"
+  },
+  {
+    "id": "AC-15",
+    "category": "AC",
+    "q": "What is retargeting in digital advertising?",
+    "a": "Understanding the difference between B2B (Business-to-Business) and B2C (Business-to-Consumer) marketing is vital for your store, as your products—high-end snowboards and artisan ceramics—actually have massive potential in both sectors.\nHere is the breakdown of how these strategies differ in 2026:\n1",
+    "status": "FAIL"
+  }
+]

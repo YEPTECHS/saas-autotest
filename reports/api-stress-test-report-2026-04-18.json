@@ -1,0 +1,156 @@
+{
+  "reportTitle": "API 压力测试报告",
+  "date": "2026-04-18",
+  "testedBy": "kc@vivacityapp.com",
+  "testAccount": "baobaobao5959@gmail.com",
+  "apiEndpoint": "POST https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+  "agents": ["Maya (marketing)", "Oscar (operation)", "Daniel (profit)"],
+  "summary": {
+    "Maya": { "round1": "FAIL 4/6", "round2": "PARTIAL 6/6", "rating": "不稳定", "avgLatency": "30~40s" },
+    "Oscar": { "round1": "FAIL 5/6", "round2": "PASS 6/6", "rating": "良好", "avgLatency": "~10s" },
+    "Daniel": { "round1": "PASS 6/6", "round2": "—", "rating": "优秀", "avgLatency": "~12s" }
+  },
+  "scenarios": [
+    { "id": "ST-API-01", "name": "顺序基准", "description": "顺序发送 20 个请求" },
+    { "id": "ST-API-02", "name": "5 并发爆发", "description": "同时发送 5 个请求" },
+    { "id": "ST-API-03", "name": "10 并发爆发", "description": "同时发送 10 个请求" },
+    { "id": "ST-API-04", "name": "20 并发爆发", "description": "同时发送 20 个请求" },
+    { "id": "ST-API-05", "name": "递增压力", "description": "逐级加压 1→5→10→20→30 并发，共 66 请求" },
+    { "id": "ST-API-06", "name": "持续负载", "description": "60 秒内持续发送 50 个请求，每 1.2 秒一个" }
+  ],
+  "results": {
+    "Maya": {
+      "path": "/ai-team/marketing/chat",
+      "round1": {
+        "condition": "服务器过载",
+        "scenarios": [
+          { "id": "ST-API-01", "ok": 17, "total": 20, "successRate": 85.0, "avgLatencyMs": 40676, "p95LatencyMs": 60072, "status": "PARTIAL" },
+          { "id": "ST-API-02", "ok": 4,  "total": 5,  "successRate": 80.0, "avgLatencyMs": 43364, "p95LatencyMs": 59085, "status": "PARTIAL" },
+          { "id": "ST-API-03", "ok": 0,  "total": 10, "successRate": 0.0,  "avgLatencyMs": null,  "p95LatencyMs": null,  "status": "FAIL" },
+          { "id": "ST-API-04", "ok": 0,  "total": 20, "successRate": 0.0,  "avgLatencyMs": null,  "p95LatencyMs": null,  "status": "FAIL" },
+          { "id": "ST-API-05", "ok": 3,  "total": 66, "successRate": 4.5,  "avgLatencyMs": 16865, "p95LatencyMs": 17256, "status": "FAIL" },
+          { "id": "ST-API-06", "ok": 0,  "total": 50, "successRate": 0.0,  "avgLatencyMs": null,  "p95LatencyMs": null,  "status": "FAIL" }
+        ],
+        "pass": 0, "partial": 2, "fail": 4
+      },
+      "round2": {
+        "condition": "服务器正常",
+        "scenarios": [
+          { "id": "ST-API-01", "ok": 16, "total": 20, "successRate": 80.0, "avgLatencyMs": 30512, "p95LatencyMs": 58400, "status": "PARTIAL" },
+          { "id": "ST-API-02", "ok": 4,  "total": 5,  "successRate": 80.0, "avgLatencyMs": 35842, "p95LatencyMs": 53059, "status": "PARTIAL" },
+          { "id": "ST-API-03", "ok": 9,  "total": 10, "successRate": 90.0, "avgLatencyMs": 27541, "p95LatencyMs": 55843, "status": "PARTIAL" },
+          { "id": "ST-API-04", "ok": 16, "total": 20, "successRate": 80.0, "avgLatencyMs": 35277, "p95LatencyMs": 59638, "status": "PARTIAL" },
+          { "id": "ST-API-05", "ok": 54, "total": 66, "successRate": 81.8, "avgLatencyMs": 30216, "p95LatencyMs": 59622, "status": "PARTIAL" },
+          { "id": "ST-API-06", "ok": 41, "total": 50, "successRate": 82.0, "avgLatencyMs": 33725, "p95LatencyMs": 59643, "status": "PARTIAL" }
+        ],
+        "pass": 0, "partial": 6, "fail": 0
+      }
+    },
+    "Oscar": {
+      "path": "/ai-team/operation/chat",
+      "round1": {
+        "condition": "服务器过载",
+        "scenarios": [
+          { "id": "ST-API-01", "ok": 20, "total": 20, "successRate": 100.0, "avgLatencyMs": 10620, "p95LatencyMs": 15289, "status": "PASS" },
+          { "id": "ST-API-02", "ok": 2,  "total": 5,  "successRate": 40.0,  "avgLatencyMs": 10419, "p95LatencyMs": 10757, "status": "FAIL" },
+          { "id": "ST-API-03", "ok": 3,  "total": 10, "successRate": 30.0,  "avgLatencyMs": 7993,  "p95LatencyMs": 8606,  "status": "FAIL" },
+          { "id": "ST-API-04", "ok": 0,  "total": 20, "successRate": 0.0,   "avgLatencyMs": null,  "p95LatencyMs": null,  "status": "FAIL" },
+          { "id": "ST-API-05", "ok": 1,  "total": 66, "successRate": 1.5,   "avgLatencyMs": 14972, "p95LatencyMs": 14972, "status": "FAIL" },
+          { "id": "ST-API-06", "ok": 0,  "total": 50, "successRate": 0.0,   "avgLatencyMs": null,  "p95LatencyMs": null,  "status": "FAIL" }
+        ],
+        "pass": 1, "partial": 0, "fail": 5
+      },
+      "round2": {
+        "condition": "服务器正常",
+        "scenarios": [
+          { "id": "ST-API-01", "ok": 19, "total": 20, "successRate": 95.0,  "avgLatencyMs": 10915, "p95LatencyMs": 15962, "status": "PASS" },
+          { "id": "ST-API-02", "ok": 5,  "total": 5,  "successRate": 100.0, "avgLatencyMs": 9955,  "p95LatencyMs": 11459, "status": "PASS" },
+          { "id": "ST-API-03", "ok": 10, "total": 10, "successRate": 100.0, "avgLatencyMs": 12050, "p95LatencyMs": 16418, "status": "PASS" },
+          { "id": "ST-API-04", "ok": 20, "total": 20, "successRate": 100.0, "avgLatencyMs": 12125, "p95LatencyMs": 14149, "status": "PASS" },
+          { "id": "ST-API-05", "ok": 66, "total": 66, "successRate": 100.0, "avgLatencyMs": 12246, "p95LatencyMs": 14819, "status": "PASS" },
+          { "id": "ST-API-06", "ok": 50, "total": 50, "successRate": 100.0, "avgLatencyMs": 10616, "p95LatencyMs": 14631, "status": "PASS" }
+        ],
+        "pass": 6, "partial": 0, "fail": 0
+      }
+    },
+    "Daniel": {
+      "path": "/ai-team/profit/chat",
+      "round1": {
+        "condition": "服务器正常（仅测一轮，结果稳定）",
+        "scenarios": [
+          { "id": "ST-API-01", "ok": 20, "total": 20, "successRate": 100.0, "avgLatencyMs": 11989, "p95LatencyMs": 15577, "status": "PASS" },
+          { "id": "ST-API-02", "ok": 5,  "total": 5,  "successRate": 100.0, "avgLatencyMs": 10516, "p95LatencyMs": 13101, "status": "PASS" },
+          { "id": "ST-API-03", "ok": 10, "total": 10, "successRate": 100.0, "avgLatencyMs": 10447, "p95LatencyMs": 13081, "status": "PASS" },
+          { "id": "ST-API-04", "ok": 20, "total": 20, "successRate": 100.0, "avgLatencyMs": 11496, "p95LatencyMs": 14244, "status": "PASS" },
+          { "id": "ST-API-05", "ok": 66, "total": 66, "successRate": 100.0, "avgLatencyMs": 13285, "p95LatencyMs": 16694, "status": "PASS" },
+          { "id": "ST-API-06", "ok": 50, "total": 50, "successRate": 100.0, "avgLatencyMs": 12069, "p95LatencyMs": 14282, "status": "PASS" }
+        ],
+        "pass": 6, "partial": 0, "fail": 0
+      }
+    }
+  },
+  "comparison": {
+    "successRate": {
+      "ST-API-01": { "Maya": 80.0, "Oscar": 95.0, "Daniel": 100.0 },
+      "ST-API-02": { "Maya": 80.0, "Oscar": 100.0, "Daniel": 100.0 },
+      "ST-API-03": { "Maya": 90.0, "Oscar": 100.0, "Daniel": 100.0 },
+      "ST-API-04": { "Maya": 80.0, "Oscar": 100.0, "Daniel": 100.0 },
+      "ST-API-05": { "Maya": 81.8, "Oscar": 100.0, "Daniel": 100.0 },
+      "ST-API-06": { "Maya": 82.0, "Oscar": 100.0, "Daniel": 100.0 }
+    },
+    "latency": {
+      "Maya":   { "sequentialAvgMs": 30512, "concurrent20AvgMs": 35277, "p95MaxMs": 59638 },
+      "Oscar":  { "sequentialAvgMs": 10915, "concurrent20AvgMs": 12125, "p95MaxMs": 16418 },
+      "Daniel": { "sequentialAvgMs": 11989, "concurrent20AvgMs": 11496, "p95MaxMs": 16694 }
+    },
+    "stabilityRating": {
+      "Maya":   "低（受服务器状态影响大，延迟是 Oscar/Daniel 的 3 倍）",
+      "Oscar":  "中（服务器正常时 100%，过载时崩溃）",
+      "Daniel": "高（两轮均 100%，最稳定）"
+    }
+  },
+  "bugs": [
+    {
+      "id": "BUG-ST-01",
+      "title": "Maya 响应延迟过高",
+      "severity": "HIGH",
+      "description": "Maya 平均响应时间 30~40s，P95 接近 60s，远高于 Oscar 和 Daniel（avg ~10s）",
+      "impact": "用户等待体验差，高并发下容易触发 60s 网关超时",
+      "recommendation": "排查 Maya（marketing）Agent 的 LLM 配置，检查模型选择、prompt 复杂度、向量检索耗时"
+    },
+    {
+      "id": "BUG-ST-02",
+      "title": "服务器过载时 Maya / Oscar 大量 504",
+      "severity": "HIGH",
+      "description": "服务器在短时间内接收大量请求后，后续请求全部返回 504 Gateway Timeout",
+      "impact": "Kong API Gateway 强制断开超时请求，服务不可用",
+      "recommendation": "增加请求队列和限速机制；延长 Kong 超时配置（60s → 120s）；服务器端增加熔断保护"
+    },
+    {
+      "id": "BUG-ST-03",
+      "title": "Dashboard 用户触发 lead_required 错误",
+      "severity": "MEDIUM",
+      "description": "hemopiv218 和 wipepix900 账号在 dashboard 页面也被 lead 收集拦截（HTTP 209）",
+      "rootCause": "服务器未区分 platform:dashboard 和外部 widget 访客，已登录用户不应触发 lead gate",
+      "recommendation": "后端判断 platform 字段，dashboard 用户直接跳过 lead 检查"
+    }
+  ],
+  "recommendations": [
+    { "priority": "HIGH",   "action": "优先排查 Maya 延迟问题，avg 30s 是 Oscar/Daniel 的 3 倍" },
+    { "priority": "HIGH",   "action": "服务器端加入请求保护机制（限流、熔断），避免高负载下全部崩溃" },
+    { "priority": "MEDIUM", "action": "修复 lead_required 对 dashboard 用户的误触发（产品逻辑 bug）" },
+    { "priority": "MEDIUM", "action": "增加更多测试账号，多用户并发测试目前受限于单账号 quota" }
+  ],
+  "config": {
+    "apiEndpoint": "POST https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+    "requestTimeoutScript": "90s",
+    "requestTimeoutKong": "60s",
+    "testScript": "scripts/stress-test-api.ts",
+    "jsonReports": [
+      "reports/maya-api-stress-results.json",
+      "reports/oscar-api-stress-results.json",
+      "reports/daniel-api-stress-results.json"
+    ]
+  },
+  "generatedAt": "2026-04-18T00:00:00.000Z"
+}

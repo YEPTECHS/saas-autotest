@@ -10,8 +10,7 @@
 import { execSync } from 'child_process';
 import 'dotenv/config';
 
-const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL
-  || 'https://hooks.slack.com/triggers/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';
+const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL || '';
 
 // ── 运行测试并捕获输出 ─────────────────────────────────────────
 

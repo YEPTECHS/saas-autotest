@@ -1,0 +1,107 @@
+[
+  {
+    "id": "NT-01",
+    "category": "NT",
+    "q": "Hey, how's inventory looking?",
+    "a": "面对供应商停止生产（Discontinued）某种产品的情况，您可以采取以下步骤在 Shopify 店铺中进行处理：\n1. 立即锁定库存设置\n\n关闭“超卖”：确保该产品没有勾选“在缺货时继续销售”。这样一旦现有库存卖完，系统会自动显示为“已售罄”，防止您无法履行新订单。\n核实残余库存：您可以告诉我具体的产品名称，我帮您查清所有库位的剩余准确数量。\n\n2. 调整产品在前端的可见性\n根据您的剩余库存量，有几种策略：\n\n方案 A：清仓大促 (如果库存还多)：为该产品添加“清仓 (Clearance)”或“最后一件 (Last Chance)”标签，并适当降价促销，加快回笼资金。\n方案 B：隐藏产品 ",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-02",
+    "category": "NT",
+    "q": "Quick question — how many orders do I have right now?",
+    "a": "目前系统中显示的订单总数为 0。\n无论是在过去 48 小时内，还是在整个店铺的记录中，目前都没有查询到任何订单。如果您刚刚完成了交易，可能需要一点时间让数据同步到 Shopify API 中。如果您有特定的订单编号需要我核实，请随时告诉我。",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-03",
+    "category": "NT",
+    "q": "Yo, what's the product count?",
+    "a": "目前您商店中的产品总数为 22 个。如果您需要更详细的产品列表或特定分类的数据，请告诉我！",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-04",
+    "category": "NT",
+    "q": "I'm panicking — I think I'm out of stock on my best seller. Help!",
+    "a": "请别担心，我立刻为您核查了当前的库存情况。\n根据系统数据，以下是目前已售罄或库存极低的产品。请看看您的畅销单品是否在其中：\n🚫 已售罄 (库存为 0)\n\nThe Out of Stock Snowboard (所有位置均无货)\nGift Card (所有面额均无货)\npau no prod (无库存)\npau multi size - S码 (无库存)\n\n🚨 极度预警 (仅剩 2 件)\n\nThe Videographer Snowboard (目前仅剩 2 件，存放在 Shop location)\n\n⚠️ 低库存预警 (剩余 10 件)\n\nSelling Plans Ski Wax (所有",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-05",
+    "category": "NT",
+    "q": "Just give me the short version, please",
+    "a": "好的，这是精简版库存警报：\n\n已售罄：Out of Stock Snowboard、礼品卡、pau no prod、pau multi size (S码)。\n仅剩 2 件：The Videographer Snowboard。\n低库存 (10件)：Ski Wax、Complete Snowboard、pau test prod。\n\n您的畅销品在里面吗？如果不在，请告诉我名称。",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-06",
+    "category": "NT",
+    "q": "Can you be more casual? You sound very formal.",
+    "a": "没问题，咱们随意点儿！这就给您划重点：\n\n空了：Out of Stock Snowboard、礼品卡、pau no prod 还有 pau multi size (S码) 都卖光了。\n告急：The Videographer Snowboard 只剩最后 2 块了，得赶紧。\n不多了：Ski Wax 和 Complete Snowboard 各剩 10 来件。\n\n您说的那款畅销货在里头吗？没在的话赶紧告诉我名字，我再帮您盯一下。",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-07",
+    "category": "NT",
+    "q": "Talk to me like a human, not a robot",
+    "a": "哈哈，收到！确实，刚才说话有点太像说明书了。\n咱说人话哈：库存这块儿，那款 Videographer 滑雪板真得留神了，就剩 2 块，眨个眼可能就没了。剩下的像 Ski Wax 什么的虽然还有 10 来件，但也得心里有个数。\n你刚才说心慌，到底哪款是你最宝贝的畅销款？跟我念叨念叨，我这就去后台给你盯着，保准不让它断供！😉",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-08",
+    "category": "NT",
+    "q": "I need the facts fast — skip the preamble",
+    "a": "库存现状：\n\n已售罄 (0件)：Out of Stock Snowboard、Gift Card（所有面额）、pau no prod、pau multi size (S码)\n极低 (2件)：The Videographer Snowboard\n预警 (10件)：Selling Plans Ski Wax、The Complete Snowboard、The Compare at Price Snowboard、pau test prod\n\n订单：\n\n近期订单数为 0。\n\n产品总数：\n\n22 个。",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-09",
+    "category": "NT",
+    "q": "You're too wordy. Cut it in half.",
+    "a": "库存：\n\n卖光：Out of Stock Snowboard、礼品卡、pau (no prod / S码)\n剩2件：The Videographer Snowboard\n剩10件：Ski Wax、Complete Snowboard、pau test\n\n订单： 0\n产品： 22款",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-10",
+    "category": "NT",
+    "q": "Pretend you're my operations assistant sitting next to me. What would you say?",
+    "a": "“老大，刚才扫了一眼，Videographer 那款滑雪板只剩 2 块了，估计今天就能卖空。\n还有 Ski Wax 和 Complete 那系列现在都只有 10 件，得考虑补货了。其他的没啥大事，产品一共 22 款，最近单子还没进来。\n你要盯哪款畅销货？我再帮你细查一下。”",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-11",
+    "category": "NT",
+    "q": "Be direct — just answer, don't explain how you're going to answer",
+    "a": "“老大，Videographer 滑雪板就剩 2 块，快卖没了。Ski Wax 和 Complete 系列也只有 10 件。最近没单子，货一共 22 款。你要盯哪款？”",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-12",
+    "category": "NT",
+    "q": "I have 30 seconds. Give me the most important inventory info right now.",
+    "a": "紧急：The Videographer Snowboard 仅剩 2 件。\n低库存：Ski Wax、Complete Snowboard、pau test prod 各剩 10 件。\n售罄：Out of Stock Snowboard、礼品卡、pau (no prod/S码) 已空。\n动态：近期 0 订单，总计 22 款产品。建议优先补货 Videographer。",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-13",
+    "category": "NT",
+    "q": "Stop saying \"One moment please.\" Just give me the answer.",
+    "a": "收到了。以后直接说重点，不废话。有什么想查的？",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-14",
+    "category": "NT",
+    "q": "Can you use a table format? It's much easier to read.",
+    "a": "状态产品数量紧急The Videographer Snowboard2告急Ski Wax, Complete Snowboard, pau test10售罄Out of Stock Snowboard, 礼品卡, pau (no prod/S码)0\n概况：22款产品，近期 0 订单。建议立刻补货 Videographer。还要看哪款？",
+    "status": "WARN"
+  },
+  {
+    "id": "NT-15",
+    "category": "NT",
+    "q": "Bullet points only — no full sentences",
+    "a": "紧急 (2件)：The Videographer Snowboard\n预警 (10件)：Ski Wax、Complete Snowboard、pau test\n售罄 (0件)：Out of Stock Snowboard、礼品卡、pau (no prod / S码)\n动态：22款产品、近期 0 订单\n建议：优先补货 Videographer\n待命：具体查哪个 SKU？",
+    "status": "WARN"
+  }
+]

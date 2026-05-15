@@ -60,8 +60,8 @@ const APP_CONTEXT = `
 - Login:                   {{YEPAI_BASE_URL}}/auth/login
 - Dashboard:               {{YEPAI_BASE_URL}}/dashboard
 - Maya  (Marketing AI):    {{YEPAI_BASE_URL}}/ai-team/marketing/chat
-- Oscar (Operations AI):   {{YEPAI_BASE_URL}}/ai-team/operations/chat
-- Daniel (Analytics AI):   {{YEPAI_BASE_URL}}/ai-team/analytics/chat
+- Oscar (Operations AI):   {{YEPAI_BASE_URL}}/ai-team/operation/chat
+- Daniel (Profit AI):      {{YEPAI_BASE_URL}}/ai-team/profit/chat
 - Cody  (SEO AI):          {{YEPAI_BASE_URL}}/ai-team/seo/chat
 - Analytics overview:      {{YEPAI_BASE_URL}}/analytics/overview
 - Customers:               {{YEPAI_BASE_URL}}/customers

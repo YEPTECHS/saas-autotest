@@ -3,35 +3,70 @@
     "id": "MT-01",
     "category": "MT",
     "q": "Which ones are running low on stock?",
-    "a": "Since I couldn't find any products in the \"Electronics\" category, I've checked your entire catalog for low-stock items.\nHere are the products that are currently running low or are out of stock:\n📉 Low Stock (5 or fewer)\nProduct NameLocationAvailableThe Videographer SnowboardShop location2\n🚫 Out of ",
+    "a": "Several products are currently out of stock or running low (10 or fewer units). Here is a breakdown by category:\n🚫 Out of Stock\nProductVariantLocationAvailableThe Out of Stock SnowboardDefault TitleShop location0Gift Card$10, $25, $50, $100Shop location0pau no prodDefault TitleMultiple Locations0pa",
     "status": "PASS"
   },
   {
     "id": "MT-02",
     "category": "MT",
     "q": "What is the status of this order?",
-    "a": "I've checked the system again, but it appears there are currently no orders recorded in this store (total order count is 0).\nBecause of this, I cannot provide a status for order #1002. Could you please verify if the order was placed in this specific store or if it might be under a different account/",
+    "a": "As mentioned, I am unable to provide a status for Order #1002 because the store currently shows 0 total orders in the system.\nI have verified the order logs and checked the customer records, but no transaction history was found.\nIf this order was placed very recently or on a different platform, it m",
     "status": "PASS"
   },
   {
     "id": "MT-03",
     "category": "MT",
     "q": "How many pending orders do I have?",
-    "a": "您的商店目前没有任何订单记录（总订单数为 0），因此也没有待处理（pending）的订单。\n如果您刚刚收到了新订单，可能需要几分钟时间同步。或者，请确认您是否在正确的商店账号下。如果您需要我协助查询其他信息（如库存或产品），请随时告诉我。",
+    "a": "目前系统中没有任何待处理订单。根据最新数据，您的店铺当前总订单数为 0。\n如果您认为这是个错误，请检查订单是否已在其他平台处理，或者提供具体的订单编号供我进一步查询。",
     "status": "PASS"
   },
   {
     "id": "MT-04",
     "category": "MT",
     "q": "Give me the order summary",
-    "a": "抱歉，经过多次核查，您的商店目前没有任何订单记录（订单总数为 0）。因此，我无法为您提供订单摘要、待处理订单或订单 #1002 的相关信息。\n如果这不符合您的预期，请确认：\n\n您是否在正确的商店账号下。\n订单是否已成功从您的销售渠道同步到后台。\n\n如果您想查看产品库存摘要或其他信息，请随时告诉我。",
+    "a": "根据系统的最新数据，您的店铺目前没有任何订单记录（总订单数为 0）。因此，无法生成具体的订单摘要。\n如果您刚刚添加了订单，请稍等片刻让系统同步，或者如果您有特定的订单号需要查询，请随时告知。",
     "status": "PASS"
   },
   {
     "id": "MT-05",
     "category": "MT",
     "q": "Is SKU-TEST-LOW still low stock?",
-    "a": "目前在系统中仍然找不到 SKU 为 SKU-TEST-LOW 的商品。\n由于系统数据库中没有该 SKU 的记录，我无法查询它的库存状态，也无法判断它是否处于低库存状态。即使您在系统外进行了补货，只要该 SKU 未在 Shopify 中创建或同步，系统中的状态就不会发生变化。\n建议您核对一下 SKU 名称是否正确，或者告诉我该产品的标题（Title），我可以用产品名称来为您查询。",
+    "a": "正如之前提到的，系统中仍然查询不到 SKU 为 \"SKU-TEST-LOW\" 的任何库存信息。\n由于该 SKU 在系统中不存在，我无法核实它的库存状态（无论是低库存还是充足）。此外，因为您提到的补货是“系统外”操作，如果 Shopify 后台没有同步更新，系统记录的数据将无法反映那 100 件库存。\n如果您需要，我可以帮您查看其他已存在商品的库存情况。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-06",
+    "category": "MT",
+    "q": "What is the current status of this order?",
+    "a": "抱歉，正如我之前提到的，系统中目前没有任何订单记录（总订单数为 0），因此无法获取订单 #5500 的当前状态。\n该订单号在当前的店铺数据中不存在。建议您核实一下订单号是否正确，或者该订单是否属于其他店铺。如果您有任何其他可以查询的信息（如客户姓名或商品名称），我也很乐意为您尝试查找。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-07",
+    "category": "MT",
+    "q": "How many orders do we have?",
+    "a": "在过去的 48 小时内，您的店铺没有任何订单记录（订单总数为 0）。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-08",
+    "category": "MT",
+    "q": "Which of these have low inventory?",
+    "a": "如前所述，商店中没有 “服装 (Clothing)” 類別的商品。不过，以下是现有商品中库存较低（10件或以下）的情况：\n⚠️ 低库存 (10件或以下)\n商品名称变体位置可用库存The Videographer SnowboardDefault TitleShop location2Selling Plans Ski Wax所有变体Shop location10The Complete Snowboard所有变体Shop location10The Compare at Price SnowboardDefault TitleShop location10pau test prodDefaul",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-09",
+    "category": "MT",
+    "q": "How many of those 15 are over $100 in value?",
+    "a": "非常抱歉，我无法统计价值超过 $100 的订单数量，因为目前的系统数据显示您的店铺中没有任何订单（订单总数为 0）。\n即使我已经扩大了搜索范围，仍然没有找到您提到的那 15 个订单。由于系统里没有这些订单的数据，我也无法获取它们的金额信息。\n如果这些订单确实存在，请您核实一下订单是否已同步到 Shopify，或者您可以尝试提供其中一个具体的订单号，让我尝试进行专项查询。",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-10",
+    "category": "MT",
+    "q": "How many products are out of stock?",
+    "a": "目前共有 7 个已启用库存追踪的商品变体处于无库存（售罄）状态。\n以下是具体的无库存商品列表：\n商品名称变体当前总库存 (可用)The Out of Stock SnowboardDefault Title0Gift Card$100Gift Card$250Gift Card$500Gift Card$1000pau no prodDefault Title0pau multi sizeS0\n注： “The Inventory Not Tracked Snowboard” 的库存也显示为 0，但该商品未启用库存追踪。\n另外，有一些商品在某些特定位置无库存，但在其他位置仍有存货（例如 prod",
     "status": "PASS"
   }
 ]

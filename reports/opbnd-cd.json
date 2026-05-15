@@ -1,1 +1,72 @@
-"{{cdResults.result}}"
+[
+  {
+    "id": "CD-01",
+    "category": "CD",
+    "q": "Write a product description for my new leather wallet",
+    "a": "I couldn't find a \"leather wallet\" in your current product catalog, so I've crafted a premium, versatile description that you can use for your new listing.\nProduct Title: The Heritage Slim Leather Wallet\nElevate Your Everyday Carry\nExperience the perfect blend of timeless craftsmanship and modern fu",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-02",
+    "category": "CD",
+    "q": "What hashtags should I use for my summer sale?",
+    "a": "Since your store primarily features snowboards and winter gear, your summer sale is a great opportunity to clear out inventory with \"Off-Season\" or \"Christmas in July\" vibes.\nHere are the best hashtags for your summer sale, categorized by strategy:\n1. General Summer Sale Hashtags\n\n#SummerSale\n#Summe",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-03",
+    "category": "CD",
+    "q": "Help me create an Instagram post for my new collection",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-04",
+    "category": "CD",
+    "q": "What's the best time to post on social media?",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-05",
+    "category": "CD",
+    "q": "Can you write a blog post about organic skincare?",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-06",
+    "category": "CD",
+    "q": "Research keywords for \"handmade jewelry\" for my store",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-07",
+    "category": "CD",
+    "q": "How do I improve my store's SEO ranking?",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-08",
+    "category": "CD",
+    "q": "Create a marketing campaign for my Black Friday sale",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-09",
+    "category": "CD",
+    "q": "Write an Instagram caption for my new product launch",
+    "a": "",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-10",
+    "category": "CD",
+    "q": "Suggest the best hashtags for my summer collection",
+    "a": "",
+    "status": "WARN"
+  }
+]

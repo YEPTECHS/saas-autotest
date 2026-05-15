@@ -1,0 +1,452 @@
+# Phase 1 TC2: 手动触发"立即重新同步"
+# 验证目标:
+#   1. 点击 Sync Now 后立即出现扫描动画
+#   2. 进度条 0% → 100% 平滑流转
+#   3. lambdatask 接口返回 200，response.message 以 InJavaWorkflow: 开头
+#   4. 同步完成后能看到商品
+#   5. Console 无红色 ERROR
+#
+# 使用方法:
+#   pnpm flow phase1-tc2-sync-now
+#
+# 前置条件: 账号已绑定 Shopify 店铺
+
+name: phase1-tc2-sync-now
+description: "[Phase 1] TC2 - 手动立即同步并验证 InJavaWorkflow: 路径"
+
+steps:
+  # ========================================
+  # PHASE 1: 登录
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "=== Phase 1: 登录 ==="
+
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, [class*='sidebar']"
+      timeout: 30000
+
+  - id: log-login-ok
+    action: log
+    params:
+      message: "✅ 登录成功"
+
+  # ========================================
+  # PHASE 2: 导航到 Product Training 页面
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "=== Phase 2: 导航到 Product Training 页面 ==="
+
+  - id: navigate-shopify-integration
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/product"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-shopify-page
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-page-settle
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-shopify-page
+    action: browser.screenshot
+    params:
+      name: "tc2-product-training-page"
+
+  - id: log-page-loaded
+    action: log
+    params:
+      message: "✅ Product Training 页面已加载"
+
+  # ========================================
+  # PHASE 3: 在当前页面安装 fetch 拦截器
+  # ========================================
+
+  - id: log-phase3
+    action: log
+    params:
+      message: "=== Phase 3: 安装 lambdatask 拦截器 ==="
+
+  - id: setup-fetch-interceptor
+    action: browser.execute
+    params:
+      script: |
+        window.__lambdaTaskResult = null;
+        window.__lambdaTaskStatus = null;
+        window.__consoleErrors = [];
+        window.__allFetchUrls = [];
+
+        const origError = console.error.bind(console);
+        console.error = (...args) => {
+          window.__consoleErrors.push(args.join(' '));
+          origError(...args);
+        };
+
+        const origFetch = window.fetch.bind(window);
+        window.fetch = async function(url, ...args) {
+          const urlStr = typeof url === 'string' ? url : url?.url || '';
+          const res = await origFetch(url, ...args);
+          window.__allFetchUrls.push({ url: urlStr, status: res.status });
+          if (urlStr.includes('lambdatask') || urlStr.includes('lambda') || urlStr.includes('sync') || urlStr.includes('train')) {
+            window.__lambdaTaskStatus = res.status;
+            try {
+              const clone = res.clone();
+              clone.json().then(data => {
+                window.__lambdaTaskResult = data;
+              }).catch(e => {
+                window.__lambdaTaskResult = { error: e.message };
+              });
+            } catch(e) {}
+          }
+          return res;
+        };
+
+        return 'interceptor-ready';
+
+  - id: log-interceptor-ready
+    action: log
+    params:
+      message: "✅ 拦截器已安装在当前页面"
+
+  # ========================================
+  # PHASE 4: 点击"立即同步"
+  # ========================================
+
+  - id: log-phase4
+    action: log
+    params:
+      message: "=== Phase 4: 触发立即同步 ==="
+
+  - id: click-sync-now
+    action: browser.execute
+    params:
+      script: |
+        // 找到所有可见的含 sync 文字的按钮，优先匹配 "Sync now"
+        const candidates = Array.from(document.querySelectorAll('button'));
+        const syncKeywords = ['sync now', '立即同步', 'train now', 'save & sync', 'save & train', 'resync'];
+        let target = null;
+        for (const kw of syncKeywords) {
+          target = candidates.find(b => {
+            const t = (b.textContent || '').trim().toLowerCase();
+            const rect = b.getBoundingClientRect();
+            return t === kw && rect.width > 0 && rect.height > 0;
+          });
+          if (target) break;
+        }
+        // fallback: 任何含 sync 且可见的按钮
+        if (!target) {
+          target = candidates.find(b => {
+            const t = (b.textContent || '').trim().toLowerCase();
+            const rect = b.getBoundingClientRect();
+            return t.includes('sync') && rect.width > 0 && rect.height > 0 && !b.disabled;
+          });
+        }
+        if (target) {
+          target.scrollIntoView({ block: 'center' });
+          console.log('[TC2] Clicking sync button:', target.textContent?.trim());
+          target.click();
+          return target.textContent?.trim();
+        }
+        throw new Error('Sync button not found or not visible');
+
+  - id: log-sync-clicked
+    action: log
+    params:
+      message: "✅ 已点击同步按钮"
+
+  - id: screenshot-sync-started
+    action: browser.screenshot
+    params:
+      name: "tc2-sync-started"
+
+  # ========================================
+  # PHASE 5: 验证扫描动画出现
+  # ========================================
+
+  - id: log-phase5
+    action: log
+    params:
+      message: "=== Phase 5: 验证扫描动画 ==="
+
+  - id: wait-for-animation
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='progress'], [class*='scan'], [class*='loading'], [class*='sync'], [role='progressbar']"
+      timeout: 15000
+    continueOnError: true
+
+  - id: screenshot-animation
+    action: browser.screenshot
+    params:
+      name: "tc2-sync-animation"
+
+  - id: verify-animation-visible
+    action: browser.execute
+    params:
+      script: |
+        const animEl = document.querySelector(
+          "[class*='progress'], [class*='scan'], [class*='loading'], [class*='sync'], [role='progressbar']"
+        );
+        console.log('[TC2] Animation element:', animEl ? animEl.className : 'NOT FOUND');
+        return !!animEl;
+
+  # ========================================
+  # PHASE 6: 等待 lambdatask 响应
+  # ========================================
+
+  - id: log-phase6
+    action: log
+    params:
+      message: "=== Phase 6: 等待 lambdatask 响应 ==="
+
+  - id: wait-for-lambdatask
+    action: browser.execute
+    params:
+      script: |
+        // 等待 lambdatask 响应（已初始化为 null，所以 !== null 表示真正有响应）
+        return new Promise(resolve => {
+          let attempts = 0;
+          const check = setInterval(() => {
+            attempts++;
+            if (window.__lambdaTaskResult !== null || attempts >= 30) {
+              clearInterval(check);
+              resolve(window.__lambdaTaskResult);
+            }
+          }, 500);
+        });
+
+  - id: check-all-fetch-urls
+    action: browser.execute
+    output: fetchDump
+    params:
+      script: |
+        const urls = window.__allFetchUrls || [];
+        return { count: urls.length, urls: urls.map(u => u.url + ' [' + u.status + ']') };
+
+  - id: log-all-urls
+    action: log
+    params:
+      message: ">>> 点击同步后捕获到 {{fetchDump.result.count}} 个 fetch 请求"
+
+  - id: save-fetch-urls
+    action: data.saveJson
+    params:
+      file: "tc2-fetch-urls.json"
+      data: "{{fetchDump.result.urls}}"
+
+  - id: check-lambdatask-status
+    action: browser.execute
+    output: lambdaDump
+    params:
+      script: |
+        const result = window.__lambdaTaskResult;
+        const status = window.__lambdaTaskStatus;
+        const urls = (window.__allFetchUrls || []).map(u => u.url + ' [' + u.status + ']');
+        return { status, result, allUrls: urls };
+
+  - id: log-lambda-dump
+    action: log
+    params:
+      message: ">>> lambdatask status={{lambdaDump.result.status}} result={{lambdaDump.result.result}}"
+
+  - id: verify-injawaworkflow-prefix
+    action: browser.execute
+    output: tc2Check
+    params:
+      script: |
+        const result = window.__lambdaTaskResult;
+        if (!result) {
+          return { pass: false, reason: 'NO_RESPONSE', message: '(无响应)', httpStatus: window.__lambdaTaskStatus };
+        }
+        const msg = result.message || '';
+        const isNewPath = msg.startsWith('InJavaWorkflow:');
+        const isOldPath = msg.startsWith('arn:aws:states:');
+        if (isNewPath) {
+          return { pass: true, reason: 'NEW_PATH', message: msg, httpStatus: window.__lambdaTaskStatus };
+        } else if (isOldPath) {
+          return { pass: false, reason: 'OLD_PATH_ARN', message: msg, httpStatus: window.__lambdaTaskStatus };
+        } else {
+          return { pass: false, reason: 'UNKNOWN_FORMAT', message: msg, httpStatus: window.__lambdaTaskStatus };
+        }
+
+  - id: log-tc2-check-result
+    action: log
+    params:
+      message: ">>> TC2 lambdatask 检查: pass={{tc2Check.result.pass}} | reason={{tc2Check.result.reason}} | httpStatus={{tc2Check.result.httpStatus}} | message={{tc2Check.result.message}}"
+
+  - id: screenshot-after-lambdatask
+    action: browser.screenshot
+    params:
+      name: "tc2-after-lambdatask-response"
+
+  # ========================================
+  # PHASE 7: 等待同步完成
+  # ========================================
+
+  - id: log-phase7
+    action: log
+    params:
+      message: "=== Phase 7: 等待同步完成 ==="
+
+  - id: wait-for-sync-complete
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='success'], [class*='complete'], [class*='done'], button:has-text('Done'), button:has-text('完成')"
+      timeout: 300000
+    continueOnError: true
+
+  - id: screenshot-sync-complete
+    action: browser.screenshot
+    params:
+      name: "tc2-sync-complete"
+
+  - id: verify-sync-completed
+    action: browser.execute
+    params:
+      script: |
+        const successEl = document.querySelector(
+          "[class*='success'], [class*='complete'], [class*='done']"
+        );
+        const bodyText = document.body.innerText;
+        const hasSuccessText = bodyText.includes('完成') || bodyText.includes('Success') ||
+          bodyText.includes('Complete') || bodyText.includes('Done') || bodyText.includes('成功');
+        console.log('[TC2] Success element found:', !!successEl);
+        console.log('[TC2] Success text found:', hasSuccessText);
+        return { successEl: !!successEl, successText: hasSuccessText };
+
+  # ========================================
+  # PHASE 8: 验证 Knowledge Sources 中有商品
+  # ========================================
+
+  - id: log-phase8
+    action: log
+    params:
+      message: "=== Phase 8: 验证 Knowledge Sources 商品列表 ==="
+
+  - id: navigate-knowledge-sources
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-knowledge-page
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-content-settle
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-knowledge-sources
+    action: browser.screenshot
+    params:
+      name: "tc2-knowledge-sources"
+
+  - id: verify-products-visible
+    action: browser.execute
+    params:
+      script: |
+        const items = document.querySelectorAll('[class*="item"], [class*="card"], [class*="product"], tr, li');
+        const bodyText = document.body.innerText;
+        const hasProducts = items.length > 0;
+        console.log('[TC2] Knowledge source items count:', items.length);
+        console.log('[TC2] Has product-related content:', bodyText.toLowerCase().includes('product') || bodyText.includes('商品'));
+        return { itemCount: items.length, hasProducts };
+
+  # ========================================
+  # PHASE 9: 检查 Console 错误
+  # ========================================
+
+  - id: log-phase9
+    action: log
+    params:
+      message: "=== Phase 9: 检查 Console 错误 ==="
+
+  - id: check-console-errors
+    action: browser.execute
+    params:
+      script: |
+        const errors = window.__consoleErrors || [];
+        if (errors.length > 0) {
+          console.warn('[TC2] Console errors detected:', errors.join('\n'));
+        } else {
+          console.log('[TC2 PASS] ✅ 无 Console 错误');
+        }
+        return { errorCount: errors.length, errors };
+
+  # ========================================
+  # PHASE 10: 最终报告
+  # ========================================
+
+  - id: log-final-report
+    action: log
+    params:
+      message: "=== TC2 测试完成，请查看截图和 Console 日志 ==="
+
+  - id: final-report
+    action: browser.execute
+    output: tc2Report
+    params:
+      script: |
+        const lambdaResult = window.__lambdaTaskResult;
+        const lambdaStatus = window.__lambdaTaskStatus;
+        const consoleErrors = window.__consoleErrors || [];
+        const msg = lambdaResult?.message || '(无响应)';
+        const isNewPath = msg.startsWith('InJavaWorkflow:');
+        return {
+          lambdaStatus,
+          lambdaMessage: msg,
+          isNewPath,
+          consoleErrorCount: consoleErrors.length,
+          consoleErrors,
+        };
+
+  - id: log-final-summary
+    action: log
+    params:
+      message: "========== TC2 最终报告 ========== | lambdatask HTTP状态: {{tc2Report.result.lambdaStatus}} | message: {{tc2Report.result.lambdaMessage}} | 走新路径: {{tc2Report.result.isNewPath}} | Console错误数: {{tc2Report.result.consoleErrorCount}} | ================================="

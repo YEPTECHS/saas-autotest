@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ME-01",
+    "category": "ME",
+    "q": "?",
+    "a": "I've analyzed your store's products and identified several SKUs that have high optimization potential (due to factors like high discounts, high revenue impact, or inventory levels).\nTo help you improve your gross margins, please choose one of the products from the list I sent above.\nOnce you select ",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-02",
+    "category": "ME",
+    "q": "help",
+    "a": "I am Daniel, your SKU gross margin optimization analyst. I help you identify which products are losing the most profit and how to fix their pricing.\nHere is how I can help you right now:\n\nRank your products: I have already analyzed your store and ranked products that have the most \"win\" potential if",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-03",
+    "category": "ME",
+    "q": "42",
+    "a": "I'm not sure what \"42\" refers to—I couldn't find a product with that name or ID in your catalog.\nAre you referring to the cost of a product, or would you like to see more SKUs?\nTo give you a precise margin report, please select one of the products from the list below (or type its name). Once you pic",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-04",
+    "category": "ME",
+    "q": "margin",
+    "a": "I'm not sure what \"42\" refers to—I couldn't find a product with that name or ID in your catalog.\nAre you referring to the cost of a product, or would you like to see more SKUs?\nTo give you a precise margin report, please select one of the products from the list below (or type its name). Once you pic",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-05",
+    "category": "ME",
+    "q": "...",
+    "a": "I'm ready when you are! Just pick one of the products from the list above, and we can start the deep-dive analysis.\n我准备好了！只需从上面的列表中选择一个产品，我们就可以开始深度分析。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-06",
+    "category": "ME",
+    "q": "利润率是多少？",
+    "a": "我已经为您分析了店铺中毛利优化潜力最高的 SKU。由于目前我还不清楚这些产品的具体成本（COGS），所以我暂时无法给出准确的毛利率。\n通过分析折扣率、销售额和库存情况，我为您列出了最值得关注的产品。请选择其中一个，输入成本后，我将为您计算实际毛利，并与市场价格进行对比分析。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-07",
+    "category": "ME",
+    "q": "asdfghjkl zxcvbnm",
+    "a": "抱歉，我没能找到名为 \"asdfghjkl zxcvbnm\" 的产品。\n请从下方的列表中选择一个您想要深入分析毛利的产品，或者输入一个正确的产品名称。",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-08",
+    "category": "ME",
+    "q": "waht iz my margn percentag?",
+    "a": "To calculate your Gross Margin Percentage, use this formula:\n((Selling Price - Cost) / Selling Price) × 100\nUsing your example from earlier ($30 cost and $50 price):\n(($50 - $30) / $50) × 100 = 40%\nI have analyzed your store's products and ranked them by which ones need margin optimization the most.",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-09",
+    "category": "ME",
+    "q": "I have a product that I have been selling for three years and the cost has gone up and down and I am",
+    "a": "That's a complex situation, but it's exactly what I'm here to help you solve. To decide whether to lower your price, find a new supplier, or discontinue the item, we need to look at the Hard Numbers vs. the Market Reality.\nHere is my plan for you:\n\nPick the product from your list below so I can see ",
+    "status": "PASS"
+  },
+  {
+    "id": "ME-10",
+    "category": "ME",
+    "q": "<script>alert(\"test\")</script>",
+    "a": "I couldn't find a product matching that input in your catalog.\nTo help you with your gross margin analysis, please select one of the high-priority products from the list below, or type a valid product name.",
+    "status": "PASS"
+  }
+]

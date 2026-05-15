@@ -34,8 +34,8 @@ const REPORTS_DIR        = join(process.cwd(), 'reports');
 const PAGES = [
   { name: 'dashboard',            route: '/dashboard',                     label: 'Dashboard'             },
   { name: 'marketing-chat',       route: '/ai-team/marketing/chat',        label: 'Maya – Marketing AI'   },
-  { name: 'operations-chat',      route: '/ai-team/operations/chat',       label: 'Oscar – Operations AI' },
-  { name: 'analytics-chat',       route: '/ai-team/analytics/chat',        label: 'Daniel – Analytics AI' },
+  { name: 'operations-chat',      route: '/ai-team/operation/chat',        label: 'Oscar – Operations AI' },
+  { name: 'analytics-chat',       route: '/ai-team/profit/chat',           label: 'Daniel – SKU Gross Margin Analyst' },
   { name: 'seo-chat',             route: '/ai-team/seo/chat',              label: 'Cody – SEO AI'         },
   { name: 'analytics-overview',   route: '/analytics',                     label: 'Analytics'             },
   { name: 'customers',            route: '/customers',                     label: 'Customers'             },

@@ -3,35 +3,70 @@
     "id": "MT-01",
     "category": "MT",
     "q": "Write me an Instagram caption for a new product",
-    "a": "I'm researching current Instagram engagement trends for luxury technical brands and generating a custom image for your new product announcement. I'll have that caption ready for you in a moment!",
-    "status": "FAIL"
+    "a": "I'm researching the SEO landscape for handmade leather bags targeting professional women. I'll identify the best keywords and content strategies to help you reach your 30-45 year old audience.",
+    "status": "PASS"
   },
   {
     "id": "MT-02",
     "category": "MT",
     "q": "Write a short product description",
-    "a": "I'm digging up some high-performance keywords for your Oxygen series snowboard to make sure this description hits the mark! 🏂✨ I'll have a playful and punchy description ready for you in a flash. ⚡️",
-    "status": "PASS"
+    "a": "The Collection Snowboard: Oxygen\nBreathe Life into Your Ride.\nExperience the pinnacle of mountain performance with the Oxygen Snowboard. Engineered for riders who demand precision and effortless control, this board combines a featherweight core with advanced dampening technology to smooth out the ha",
+    "status": "WARN"
   },
   {
     "id": "MT-03",
     "category": "MT",
     "q": "What SEO keywords should I focus on?",
-    "a": "I've been digging through the deepest snowbanks of search data to find the golden keywords for your brand! 🏔️✨ Since it's off-season for half the world but prime-time for the other half, I've built a strategy that captures both. I'm putting the finishing touches on your tailored SEO roadmap now! 🚀",
-    "status": "FAIL"
+    "a": "I'm researching the best SEO keywords for your vegan and cruelty-free beauty products. I'll map out the primary keywords, long-tail opportunities, and competitor strategies for you...",
+    "status": "PASS"
   },
   {
     "id": "MT-04",
     "category": "MT",
     "q": "Help me write a marketing message for our launch announcement",
-    "a": "I'll help you craft a high-impact launch message in Japanese, blending your playful brand voice with the technical authority Japanese luxury consumers expect. I'm also generating a celebration-themed visual to mark this milestone!",
+    "a": "日本市場向けのローンチ発表メッセージを作成します。Instagram用の投稿と、お客様向けのメール配信案を日本語でご提案します。まず、ブランドのクリーンで高級感のあるイメージに合わせた画像を生成します。",
     "status": "PASS"
   },
   {
     "id": "MT-05",
     "category": "MT",
     "q": "Recommend a marketing plan for me",
-    "a": "I'll help you craft a high-impact launch message in Japanese, blending your playful brand voice with the technical authority Japanese luxury consumers expect. I'm also generating a celebration-themed visual to mark this milestone!",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to build your marketing plan...",
     "status": "WARN"
+  },
+  {
+    "id": "MT-06",
+    "category": "MT",
+    "q": "Write a launch email subject line for GlowUp",
+    "a": "Exciting news about the \"GlowUp\" launch! Skincare for the 13-18 demographic is a fast-moving space in 2026. I'm researching the latest trends and high-intent keywords to ensure your launch hits the right note with Gen Alpha and Gen Z. I'll provide a keyword report and a tailored launch strategy!",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-07",
+    "category": "MT",
+    "q": "Write a product description for our new water bottle",
+    "a": "I've created your \"GlowUp\" launch post with exactly the fun and humorous vibe you're looking for!\nI went with the \"Skincare that isn't a part-time job\" angle to really lean into how Gen Z and Gen Alpha feel about over-complicated routines. I also generated a high-energy, vibrant image that fits the ",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-08",
+    "category": "MT",
+    "q": "Give me 3 Instagram captions for our new bamboo toothbrush",
+    "a": "I'm crafting 3 high-impact Instagram posts for your new bamboo toothbrush, optimized for 2026 trends like 'Bio-Luxury' and 'Intelligent Skinimalism'. Gathering the visuals and copy now...",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-09",
+    "category": "MT",
+    "q": "What tone should I use for my product descriptions?",
+    "a": "I'm crafting 3 high-impact Instagram posts for your new bamboo toothbrush, optimized for 2026 trends like 'Bio-Luxury' and 'Intelligent Skinimalism'. Gathering the visuals and copy now...",
+    "status": "FAIL"
+  },
+  {
+    "id": "MT-10",
+    "category": "MT",
+    "q": "Write a countdown email for 3 days before the sale",
+    "a": "That's a major milestone! A sitewide 30% discount is a powerful \"hook\" for Black Friday 2026.\nI'm currently researching high-intent keywords and the latest 2026 BFCM trends to ensure your sale cuts through the noise. I'll provide an SEO report and a full social media strategy shortly!",
+    "status": "PASS"
   }
 ]

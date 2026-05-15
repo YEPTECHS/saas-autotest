@@ -1,0 +1,107 @@
+[
+  {
+    "id": "NT-01",
+    "category": "NT",
+    "q": "What is my margin?",
+    "a": "汇率变动会直接影响您的 到岸成本 (Landed Cost)，进而对毛利产生重大影响：\n\n本币贬值（或外币升值）：如果您用美元支付给海外供应商，而您的销售币种汇率下跌，您的 COGS（销售成本）会增加。这意味着即使售价不变，您的毛利也会缩水。\n本币升值：反之，您的采购成本会降低，从而提升毛利率，这通常是调价或进行促销的好时机。\n\n为了帮您量化汇率变动对具体产品的实际影响，我建议我们针对一个具体的 SKU 进行核算。\n我已经根据折扣率、收入贡献和库存压力为您排查了店铺中的 SKU。请选择一个进行深入分析：",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-02",
+    "category": "NT",
+    "q": "I need numbers, not paragraphs",
+    "a": "汇率变动会直接影响您的 到岸成本 (Landed Cost)，进而对毛利产生重大影响：\n\n本币贬值（或外币升值）：如果您用美元支付给海外供应商，而您的销售币种汇率下跌，您的 COGS（销售成本）会增加。这意味着即使售价不变，您的毛利也会缩水。\n本币升值：反之，您的采购成本会降低，从而提升毛利率，这通常是调价或进行促销的好时机。\n\n为了帮您量化汇率变动对具体产品的实际影响，我建议我们针对一个具体的 SKU 进行核算。\n我已经根据折扣率、收入贡献和库存压力为您排查了店铺中的 SKU。请选择一个进行深入分析：",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-03",
+    "category": "NT",
+    "q": "Just the profit data, please",
+    "a": "To provide exact profit data and margin percentages, I need your production or acquisition costs (COGS).\nPlease select one of the products from the list above. Once selected, I'll ask for its cost and then immediately generate a report with your profit numbers, margin, and market comparison.",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-04",
+    "category": "NT",
+    "q": "Can you prioritize by margin percentage?",
+    "a": "To provide exact profit data and margin percentages, I need your production or acquisition costs (COGS).\nPlease select one of the products from the list above. Once selected, I'll ask for its cost and then immediately generate a report with your profit numbers, margin, and market comparison.",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-05",
+    "category": "NT",
+    "q": "Give me a quick update on profitability",
+    "a": "To provide exact profit data and margin percentages, I need your production or acquisition costs (COGS).\nPlease select one of the products from the list above. Once selected, I'll ask for its cost and then immediately generate a report with your profit numbers, margin, and market comparison.",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-06",
+    "category": "NT",
+    "q": "What do I need to fix TODAY to improve margins?",
+    "a": "Based on my analysis of your current inventory and 90-day sales, here are the three things you need to address today to protect your margins:\n\nInventory Velocity Risk: Your top products, like The Multi-location Snowboard (100 units), have high stock levels but zero sales in the last 90 days. You are",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-07",
+    "category": "NT",
+    "q": "Make it concise—one page maximum",
+    "a": "📋 店铺盈利能力速报 (过去 90 天)\n\n销售总额： $0.00 (由于 90 天内无订单，当前实际毛利为 0)\n库存压力： 累计 500+ 件商品积压。高库存 + 零动销 = 极高的资金占用成本。\n核心风险： 您的滑雪板系列（如 \"Multi-location\"）库存充足但未产生销售，可能是定价与市场脱节。\n\n今日必做： 针对高库存 SKU 进行市场价格对标，确认是否需要调整价格或加大促销力度以回笼资金。\n请在下方选择一个产品，我将为您调取市场实时价格并计算优化空间：",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-08",
+    "category": "NT",
+    "q": "I do not need full details, just the margin summary",
+    "a": "Here is the margin optimization summary for your top SKUs (ranked by priority score):\n\nThe Multi-location Snowboard: $729.95 (0% avg. discount)\nThe Multi-managed Snowboard: $629.95 (0% avg. discount)\nThe Collection Snowboard: Oxygen: $1025.00 (0% avg. discount)\nThe Collection Snowboard: Liquid: $749",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-09",
+    "category": "NT",
+    "q": "What are my top 3 margin issues to handle now?",
+    "a": "Based on my analysis of your store's data, here are your top 3 margin issues to address immediately:\n\nInventory Stagnation: Your top-priority SKUs, like \"The Multi-location Snowboard,\" have high stock levels (100 units) but zero sales in the last 90 days. Your capital is currently tied up in invento",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-10",
+    "category": "NT",
+    "q": "Can you break this down by product category?",
+    "a": "Based on the analysis of your top-priority SKUs, here is the breakdown by category:\n\nSnowboard (滑雪板): 7 products. This is your primary category with the most capital tied up. Most items have 50-100 units in stock but 0 sales in the last 90 days, making them the highest priority for pricing optimizat",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-11",
+    "category": "NT",
+    "q": "Use short bullets, not sentences",
+    "a": "📊 SKU 分类摘要\n\nSnowboard (滑雪板)\n\n7 款产品，500+ 件积压库存\n过去 90 天销量为 0\n核心问题：定价过高或市场需求不足\n\n\n未分类 (Uncategorized)\n\n3 款产品，库存较少\n同样处于动销停滞状态\n\n\n\n请从下方选择一个产品进行深度毛利核算：",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-12",
+    "category": "NT",
+    "q": "What is the most critical pricing issue right now?",
+    "a": "🚨 最紧迫的定价问题\n\n价格与市场脱节：滑雪板单价（$600 - $1,025）极高，但 90 天销量为 0，表明定价未能吸引目标客群。\n折扣失效：如 \"Liquid\" 型号即便标价从 $1,023 降至 $749，依然没有动销，说明当前的折扣策略不足以抵消库存压力。\n资金占用危机：500+ 件高价值库存积压。每多放一天，都在产生隐形的库存持有成本，直接稀释未来利润。\n\n建议行动： 立即选择一个 SKU 进行市场比价，确认您的价格是否远高于同行。\n请选择一个产品开始分析：",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-13",
+    "category": "NT",
+    "q": "Give me data I can use in a board meeting",
+    "a": "📊 Board Meeting Summary: Store Performance (Last 90 Days)\nKey Metrics:\n\nTotal Revenue: $0.00\nTotal Orders: 0\nActive SKU Count: 20\nTotal Inventory Units: ~600 units\nAvg. Discount Rate: 0%\n\nStrategic Assessment:\n\nInventory Stagnation: 100% of your top-tier inventory (Snowboards) has zero sales veloci",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-14",
+    "category": "NT",
+    "q": "I need this in a financial report format",
+    "a": "STORE PROFITABILITY & INVENTORY ASSET REPORT\nReporting Period: Last 90 Days\nReport Date: April 16, 2026\n\nI. FINANCIAL PERFORMANCE SUMMARY\nMetricValueGross Revenue$0.00Total Orders0Gross Margin (Actual)0% (No Sales)Average Discount Rate0.00%\nII. INVENTORY ASSET ANALYSIS\n\nTotal Active SKUs: 20\nTotal U",
+    "status": "PASS"
+  },
+  {
+    "id": "NT-15",
+    "category": "NT",
+    "q": "What does our margin forecast look like?",
+    "a": "📉 Margin Forecast Summary\nBased on current performance (0 sales in 90 days), your Forecasted Margin is Stagnant.\nWithout sales velocity, your gross margin remains theoretical, while your Net Margin is actively declining due to accumulating inventory carrying costs. To move from a \"Zero Forecast\" to",
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "CD-01",
+    "category": "CD",
+    "q": "What is my current inventory level for all products?",
+    "a": "I specialize in SEO optimization (titles, descriptions, and meta tags). Inventory management is outside my scope—I recommend checking with your inventory management tools or an assistant like Daniel for those details.",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-02",
+    "category": "CD",
+    "q": "What is the gross margin for my best-selling product?",
+    "a": "I specialize in SEO optimization. Pricing and margin analysis are outside my scope—I suggest asking Daniel or checking your financial reports for that information.",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-03",
+    "category": "CD",
+    "q": "Write a blog post about the benefits of bamboo kitchenware.",
+    "a": "I specialize in SEO optimization for products. Blog post creation is outside my scope—I recommend working with a marketing assistant for content like this.",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-04",
+    "category": "CD",
+    "q": "Create an Instagram campaign for my summer sale.",
+    "a": "I specialize in SEO optimization for products. Creating social media campaigns is outside my scope—I recommend working with a marketing assistant for that.",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-05",
+    "category": "CD",
+    "q": "How many orders were placed this week?",
+    "a": "I specialize in SEO optimization for products. Tracking orders and sales data is outside my scope—I suggest checking your Shopify reports or asking a sales assistant for those details.",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-06",
+    "category": "CD",
+    "q": "Send a promotional email to all my customers.",
+    "a": "I specialize in SEO optimization for products. Sending promotional emails is outside my scope—I recommend working with a marketing agent for that.",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-07",
+    "category": "CD",
+    "q": "Update the price of my leather wallet to $39.99.",
+    "a": "I specialize in SEO optimization for products. Price updates are outside my scope—I suggest asking Daniel or updating them in your Shopify admin.",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-08",
+    "category": "CD",
+    "q": "What is my store revenue for this month?",
+    "a": "I specialize in SEO optimization for products. Revenue analysis is outside my scope—I suggest asking Daniel or checking your Shopify analytics for that information.",
+    "status": "PASS"
+  }
+]

@@ -3,35 +3,70 @@
     "id": "HP-01",
     "category": "HP",
     "q": "What is the exact conversion rate of my store?",
-    "a": "我正在分析您的店铺数据以计算转化率。正在调取订单、客户和流量相关数据...",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to calculate your performance metrics...",
     "status": "WARN"
   },
   {
     "id": "HP-02",
     "category": "HP",
     "q": "How many followers does my Instagram account have right now?",
-    "a": "我正在分析您的店铺数据以计算转化率。正在调取订单、客户和流量相关数据...",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to calculate your performance metrics...",
     "status": "WARN"
   },
   {
     "id": "HP-03",
     "category": "HP",
     "q": "Tell me my exact ROAS from last month's ad campaigns",
-    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "a": "I'm analyzing your store data for last month to calculate your ROAS. I can pull your total revenue from Shopify, and then I'll ask you for your ad spend to get the exact figure...",
     "status": "WARN"
   },
   {
     "id": "HP-04",
     "category": "HP",
     "q": "What is the average CTR for my email campaigns?",
-    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "a": "I'm analyzing your store data for last month to calculate your ROAS. I can pull your total revenue from Shopify, and then I'll ask you for your ad spend to get the exact figure...",
     "status": "WARN"
   },
   {
     "id": "HP-05",
     "category": "HP",
     "q": "Is my competitor \"StyleCo\" running ads right now?",
-    "a": "正在调取您 3 月份（上个月）的订单数据以计算 ROAS。请注意，我可以直接看到您的收入数据，但需要您提供广告支出的具体金额才能得出精确结果。",
+    "a": "I'm checking the ad platforms and search results to see if StyleCo is currently running any active marketing campaigns. I'll search through the Meta Ad Library, Google Ads, and other sources...",
+    "status": "FAIL"
+  },
+  {
+    "id": "HP-06",
+    "category": "HP",
+    "q": "What is the exact bounce rate for my store right now?",
+    "a": "I'm researching your store's traffic and conversion metrics to get your exact bounce rate. Checking your Shopify analytics setup now...",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-07",
+    "category": "HP",
+    "q": "What is the exact price of my competitor's bestselling product?",
+    "a": "I'm researching your store's traffic and conversion metrics to get your exact bounce rate. Checking your Shopify analytics setup now...",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-08",
+    "category": "HP",
+    "q": "Tell me the exact click-through rate for my current ad campaigns",
+    "a": "I'm analyzing your store data for the current period... I'll pull your Shopify metrics and compare them with 2026 industry benchmarks to give you a clear picture of your click-through performance.",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-09",
+    "category": "HP",
+    "q": "Predict exactly how many sales I will get from my next campaign",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to provide a data-driven sales projection...",
+    "status": "WARN"
+  },
+  {
+    "id": "HP-10",
+    "category": "HP",
+    "q": "What is the exact open rate for my email list right now?",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to provide a data-driven sales projection...",
     "status": "WARN"
   }
 ]

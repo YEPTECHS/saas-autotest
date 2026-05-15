@@ -1,0 +1,393 @@
+# Phase 1 TC3: 带过滤条件的同步
+# 验证目标:
+#   1. 取消勾选某个商品后触发同步，该商品不出现在 Knowledge Sources
+#   2. 选中特定合集后同步，只有合集内的商品出现
+#   3. Console 无报错
+#
+# 使用方法:
+#   pnpm flow phase1-tc3-filtered-sync
+#
+# 前置条件: 账号已绑定 Shopify 店铺且有至少 2 个商品
+
+name: phase1-tc3-filtered-sync
+description: "[Phase 1] TC3 - 带商品/合集过滤的同步验证"
+
+steps:
+  # ========================================
+  # PHASE 1: 登录
+  # ========================================
+
+  - id: log-phase1
+    action: log
+    params:
+      message: "=== Phase 1: 登录 ==="
+
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, [class*='sidebar']"
+      timeout: 30000
+
+  - id: log-login-ok
+    action: log
+    params:
+      message: "✅ 登录成功"
+
+  # ========================================
+  # PHASE 2: 设置拦截器 + 记录同步前商品列表
+  # ========================================
+
+  - id: log-phase2
+    action: log
+    params:
+      message: "=== Phase 2: 记录同步前商品列表 ==="
+
+  - id: setup-interceptor
+    action: browser.execute
+    params:
+      script: |
+        window.__lambdaTaskResult = null;
+        window.__consoleErrors = [];
+        const origError = console.error.bind(console);
+        console.error = (...args) => { window.__consoleErrors.push(args.join(' ')); origError(...args); };
+        const origFetch = window.fetch.bind(window);
+        window.fetch = async function(url, ...args) {
+          const res = await origFetch(url, ...args);
+          const urlStr = typeof url === 'string' ? url : url?.url || '';
+          if (urlStr.includes('lambdatask')) {
+            try { res.clone().json().then(d => { window.__lambdaTaskResult = d; }); } catch(e) {}
+          }
+          return res;
+        };
+        return 'interceptor-ready';
+
+  - id: navigate-knowledge-before
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "networkidle"
+
+  - id: wait-knowledge-page
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: record-before-products
+    action: browser.execute
+    params:
+      script: |
+        const items = Array.from(document.querySelectorAll('[class*="item"], [class*="card"], [class*="product"], tr')).map(el => el.textContent?.trim().substring(0, 100));
+        window.__productsBefore = items;
+        console.log('[TC3] Products before sync:', items.length, 'items');
+        return items.length;
+
+  - id: screenshot-before
+    action: browser.screenshot
+    params:
+      name: "tc3-knowledge-before-sync"
+
+  # ========================================
+  # PHASE 3: 进入商品选择页面并取消勾选第一个商品
+  # ========================================
+
+  - id: log-phase3
+    action: log
+    params:
+      message: "=== Phase 3: 取消勾选商品 ==="
+
+  - id: navigate-shopify-products
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/product"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-shopify-page
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-products-load
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-product-selection
+    action: browser.screenshot
+    params:
+      name: "tc3-product-selection-page"
+
+  - id: find-product-checkboxes
+    action: browser.execute
+    params:
+      script: |
+        const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+        console.log('[TC3] Found checkboxes:', checkboxes.length);
+        const checkedBoxes = checkboxes.filter(c => c.checked);
+        console.log('[TC3] Currently checked:', checkedBoxes.length);
+        return { total: checkboxes.length, checked: checkedBoxes.length };
+
+  - id: uncheck-first-product
+    action: browser.execute
+    params:
+      script: |
+        // 找到所有勾选的 checkbox，取消第一个（跳过"全选"框）
+        const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+        const checkedItems = checkboxes.filter(c => c.checked);
+
+        // 尝试找非"全选"的第一个
+        let target = null;
+        for (const cb of checkedItems) {
+          const label = cb.closest('label, tr, li, [class*="item"]');
+          const text = label?.textContent?.trim() || '';
+          // 跳过可能是"全选"的
+          if (!text.toLowerCase().includes('select all') && !text.toLowerCase().includes('全选')) {
+            target = cb;
+            break;
+          }
+        }
+        if (!target && checkedItems.length > 0) {
+          target = checkedItems[checkedItems.length - 1]; // 用最后一个
+        }
+
+        if (target) {
+          const label = target.closest('label, tr, li, [class*="item"]');
+          window.__uncheckedProductText = label?.textContent?.trim().substring(0, 80) || 'unknown';
+          target.click();
+          console.log('[TC3] Unchecked product:', window.__uncheckedProductText);
+          return window.__uncheckedProductText;
+        } else {
+          console.warn('[TC3] No checkbox found to uncheck');
+          return null;
+        }
+    continueOnError: true
+
+  - id: wait-after-uncheck
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-after-uncheck
+    action: browser.screenshot
+    params:
+      name: "tc3-after-uncheck"
+
+  # ========================================
+  # PHASE 4: 触发同步
+  # ========================================
+
+  - id: log-phase4
+    action: log
+    params:
+      message: "=== Phase 4: 触发同步 ==="
+
+  - id: click-sync-now
+    action: browser.execute
+    params:
+      script: |
+        const candidates = Array.from(document.querySelectorAll('button'));
+        const syncKeywords = ['sync now', '立即同步', 'train now', 'save & sync', 'save & train', 'resync'];
+        let target = null;
+        for (const kw of syncKeywords) {
+          target = candidates.find(b => {
+            const t = (b.textContent || '').trim().toLowerCase();
+            const rect = b.getBoundingClientRect();
+            return t === kw && rect.width > 0 && rect.height > 0;
+          });
+          if (target) break;
+        }
+        if (!target) {
+          target = candidates.find(b => {
+            const t = (b.textContent || '').trim().toLowerCase();
+            const rect = b.getBoundingClientRect();
+            return t.includes('sync') && rect.width > 0 && rect.height > 0 && !b.disabled;
+          });
+        }
+        if (target) {
+          target.scrollIntoView({ block: 'center' });
+          console.log('[TC3] Clicking sync button:', target.textContent?.trim());
+          target.click();
+          return target.textContent?.trim();
+        }
+        throw new Error('Sync button not found');
+
+  - id: screenshot-sync-triggered
+    action: browser.screenshot
+    params:
+      name: "tc3-sync-triggered"
+
+  - id: wait-for-lambdatask
+    action: browser.execute
+    params:
+      script: |
+        return new Promise(resolve => {
+          let attempts = 0;
+          const check = setInterval(() => {
+            attempts++;
+            if (window.__lambdaTaskResult !== null || attempts >= 20) {
+              clearInterval(check);
+              resolve(window.__lambdaTaskResult);
+            }
+          }, 500);
+        });
+
+  - id: log-sync-in-progress
+    action: log
+    params:
+      message: "同步已触发，等待完成..."
+
+  - id: wait-sync-complete
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='success'], [class*='complete'], [class*='done']"
+      timeout: 300000
+    continueOnError: true
+
+  - id: screenshot-sync-done
+    action: browser.screenshot
+    params:
+      name: "tc3-sync-complete"
+
+  # ========================================
+  # PHASE 5: 验证过滤结果
+  # ========================================
+
+  - id: log-phase5
+    action: log
+    params:
+      message: "=== Phase 5: 验证过滤结果 ==="
+
+  - id: navigate-knowledge-after
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "networkidle"
+
+  - id: wait-knowledge-after
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-settle-after
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-after-sync
+    action: browser.screenshot
+    params:
+      name: "tc3-knowledge-after-sync"
+
+  - id: verify-filtered-product-absent
+    action: browser.execute
+    params:
+      script: |
+        const uncheckedText = window.__uncheckedProductText || '';
+        const bodyText = document.body.innerText;
+        const items = Array.from(document.querySelectorAll('[class*="item"], [class*="card"], [class*="product"], tr')).map(el => el.textContent?.trim().substring(0, 100));
+        window.__productsAfter = items;
+
+        if (!uncheckedText || uncheckedText === 'unknown') {
+          console.warn('[TC3] 无法确认被取消的商品名，请手动验证截图');
+          return { pass: null, reason: 'UNKNOWN_PRODUCT', itemCount: items.length };
+        }
+
+        // 取商品名前30字作关键字（避免噪声）
+        const keyword = uncheckedText.substring(0, 30).trim();
+        const stillPresent = bodyText.includes(keyword);
+
+        if (!stillPresent) {
+          console.log('[TC3 PASS] ✅ 被取消勾选的商品已不在 Knowledge Sources 中');
+          return { pass: true, reason: 'PRODUCT_FILTERED_OUT', keyword, itemCount: items.length };
+        } else {
+          console.error('[TC3 FAIL] ❌ 被取消勾选的商品仍出现在 Knowledge Sources 中！');
+          return { pass: false, reason: 'PRODUCT_STILL_PRESENT', keyword, itemCount: items.length };
+        }
+
+  - id: verify-other-products-present
+    action: browser.execute
+    params:
+      script: |
+        const items = window.__productsAfter || [];
+        const beforeCount = (window.__productsBefore || []).length;
+        console.log('[TC3] Before items:', beforeCount, '| After items:', items.length);
+        // 同步后应该仍有商品（只是少了一个）
+        const hasContent = items.length > 0;
+        console.log(hasContent
+          ? '[TC3 PASS] ✅ Knowledge Sources 中仍有其他商品'
+          : '[TC3 WARN] ⚠️ Knowledge Sources 为空，请手动验证'
+        );
+        return { hasContent, itemCount: items.length };
+
+  - id: check-console-errors
+    action: browser.execute
+    params:
+      script: |
+        const errors = window.__consoleErrors || [];
+        console.log(errors.length === 0
+          ? '[TC3 PASS] ✅ 无 Console 错误'
+          : `[TC3 WARN] ⚠️ ${errors.length} 个 Console 错误`
+        );
+        return { errorCount: errors.length };
+
+  # ========================================
+  # PHASE 6: 最终报告
+  # ========================================
+
+  - id: final-report
+    action: browser.execute
+    params:
+      script: |
+        const lambdaMsg = window.__lambdaTaskResult?.message || '(无响应)';
+        const errors = window.__consoleErrors || [];
+        const report = {
+          '检查点: lambdatask message 前缀': lambdaMsg.startsWith('InJavaWorkflow:') ? '✅ InJavaWorkflow:' : `❌ ${lambdaMsg}`,
+          '检查点: Console 错误': errors.length === 0 ? '✅ 无错误' : `⚠️ ${errors.length} 个`,
+          '被取消勾选的商品': window.__uncheckedProductText || '(未知)',
+          '说明': '请结合截图 tc3-knowledge-after-sync 确认过滤是否生效',
+        };
+        console.log('\n========== TC3 测试报告 ==========');
+        for (const [k, v] of Object.entries(report)) console.log(`${k}: ${v}`);
+        console.log('===================================\n');
+        return report;
+
+  - id: log-done
+    action: log
+    params:
+      message: "=== TC3 完成，请查看截图和 Console 日志 ==="

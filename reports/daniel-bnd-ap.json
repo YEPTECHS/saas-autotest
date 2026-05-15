@@ -1,0 +1,72 @@
+[
+  {
+    "id": "AP-01",
+    "category": "AP",
+    "q": "I sell a SKU for $75. My COGS is $45. What is the exact gross margin?",
+    "a": "Your exact gross margin is 40%.\nCalculation:\n($75.00 - $45.00) / $75.00 = 0.40 (40%)\nThis means for every dollar of revenue, you are keeping $0.40 to cover your operating expenses and profit.\nTo see how this compares to your actual store products and the current market prices, please select one of y",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-02",
+    "category": "AP",
+    "q": "What is my SKU profitability rank compared to my top 100 competitors?",
+    "a": "I have ranked your products by Gross Margin Optimization Priority, which identifies which of your SKUs have the most room for profit improvement based on your internal sales and inventory data.\nI cannot see your competitors' internal profitability (as that is private data), but I can benchmark your ",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-03",
+    "category": "AP",
+    "q": "I have a product priced at $200 with a 35% gross margin. What is my COGS?",
+    "a": "Your COGS (Cost of Goods Sold) is $130.\nCalculation:\n$200 * (1 - 0.35) = $130\nThis means it costs you $130 to produce or acquire the item, leaving you with $70 in gross profit.\nWould you like to analyze how the margins on your actual store products compare? Please select one from the list below to s",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-04",
+    "category": "AP",
+    "q": "Compare margins: Product A ($50 price, $30 COGS) vs Product B ($80 price, $50 COGS). Which is better",
+    "a": "Here is the margin comparison for your two products:\n\nProduct A:\n\nProfit: $20 ($50 - $30)\nGross Margin: 40%\n\n\nProduct B:\n\nProfit: $30 ($80 - $50)\nGross Margin: 37.5%\n\n\n\nWhich is \"better\"?\n\nProduct A is more efficient. It gives you a higher return on every dollar sold (40%). This means you have more ",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-05",
+    "category": "AP",
+    "q": "My $100 product gets a 25% discount. COGS is $40. What is the new margin?",
+    "a": "Your new gross margin after the discount is 46.7%.\nHere is the breakdown:\n\nDiscounted Price: $75 ($100 - 25% discount)\nProfit: $35 ($75 - $40 COGS)\nNew Margin: ($35 / $75) = 46.67%\n\nEven with a 25% discount, your margin remains healthy because your initial markup was quite high. However, in e-commer",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-06",
+    "category": "AP",
+    "q": "My COGS has 3 parts: materials $10, labor $5, overhead $3. What is total COGS per unit?",
+    "a": "Your total COGS per unit is $18.\nCalculation:\n$10 (Materials) + $5 (Labor) + $3 (Overhead) = $18\nNow that we've broken down your cost structure, let's see how it impacts the profitability of your actual products. Which product from your store would you like to analyze first?",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-07",
+    "category": "AP",
+    "q": "Fixed costs are $10,000/month. Contribution margin is $20/unit. How many units to break even?",
+    "a": "You need to sell 500 units per month to break even.\nCalculation:\n$10,000 (Fixed Costs) / $20 (Contribution Margin per Unit) = 500 units\nEvery unit sold after the 500th will contribute $20 directly to your net profit.\nTo see how your actual products are performing against their own break-even targets",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-08",
+    "category": "AP",
+    "q": "How much revenue do I need to achieve $50,000 profit at a 25% net margin?",
+    "a": "To achieve a $50,000 profit at a 25% net margin, you need $200,000 in total revenue.\nCalculation:\n$50,000 / 0.25 = $200,000\nAchieving a 25% net margin is an excellent goal, but it requires very healthy gross margins at the product level to cover your marketing, shipping, and operational costs.\nLet's",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-09",
+    "category": "AP",
+    "q": "Three SKUs with margins 40%, 30%, 20% sell 100, 200, 300 units respectively. What is the weighted av",
+    "a": "Your weighted average margin is 26.67%.\nCalculation:\n\nSKU 1: 40% × 100 = 4,000\nSKU 2: 30% × 200 = 6,000\nSKU 3: 20% × 300 = 6,000\nTotal: (4,000 + 6,000 + 6,000) / 600 units = 26.67%\n\nThis demonstrates how your high-volume, low-margin products (SKU 3) pull down your overall store profitability.\nTo see",
+    "status": "PASS"
+  },
+  {
+    "id": "AP-10",
+    "category": "AP",
+    "q": "My COGS is $40. If costs increase by 15%, what is the new COGS and margin at $100 price?",
+    "a": "If your costs increase by 15%, your new COGS will be $46.00 and your gross margin will drop to 54%.\nThe Breakdown:\n\nNew COGS: $40.00 * 1.15 = $46.00\nGross Profit: $100.00 - $46.00 = $54.00\nNew Margin: ($54.00 / $100.00) = 54%\n\nEven a relatively small 15% increase in cost can eat away 6% of your tota",
+    "status": "PASS"
+  }
+]

@@ -3,56 +3,70 @@
     "id": "IC-01",
     "category": "IC",
     "q": "Write a blog post about eco-friendly packaging in exactly 3 paragraphs",
-    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "a": "Based on your store's focus on high-end snowboards ($900+) and artisan ceramic mugs, your tone of voice should reflect \"The Authority of Quality.\"\nSince your products are high-ticket and handmade, customers aren't just buying an object; they are buying an experience and a standard of excellence.\nHer",
     "status": "FAIL"
   },
   {
     "id": "IC-02",
     "category": "IC",
     "q": "Give me exactly 5 SEO keywords for \"organic face cream\" — numbered list only",
-    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
-    "status": "WARN"
+    "a": "certified organic face cream for dry skin\nmicrobiome-friendly organic face moisturizer\nrefillable organic face cream for sensitive skin\nplant-based retinol alternative face cream organic\nchemical-free organic hydrating face cream",
+    "status": "FAIL"
   },
   {
     "id": "IC-03",
     "category": "IC",
     "q": "Write an Instagram caption for summer sale in under 50 words",
-    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "a": "I'm creating a punchy Instagram caption and a vibrant summer image for your sale...",
     "status": "PASS"
   },
   {
     "id": "IC-04",
     "category": "IC",
     "q": "Write product descriptions for a leather wallet in both English and Chinese",
-    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "a": "I'm researching high-performing keywords for leather wallets in both English and Chinese to ensure your descriptions are SEO-optimized and compelling!",
     "status": "FAIL"
   },
   {
     "id": "IC-05",
     "category": "IC",
     "q": "Give me a marketing strategy for my store using bullet points only, no paragraphs",
-    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "a": "English Product Description\nThe Heritage Bifold: Handmade Full-Grain Leather Wallet\nBuilt for the Long Haul, Designed for the Modern Carry.\nIn a world of fast fashion and disposable goods, the Heritage Bifold stands as a testament to the art of traditional leathercraft. Each wallet is hand-stitched ",
     "status": "WARN"
   },
   {
     "id": "IC-06",
     "category": "IC",
     "q": "Write a blog title and ONE sentence summary for 5 different blog topics about skincare",
-    "a": "I'm drafting a punchy, high-end Instagram caption for your summer sale now.",
+    "a": "English Product Description\nThe Heritage Bifold: Handmade Full-Grain Leather Wallet\nBuilt for the Long Haul, Designed for the Modern Carry.\nIn a world of fast fashion and disposable goods, the Heritage Bifold stands as a testament to the art of traditional leathercraft. Each wallet is hand-stitched ",
     "status": "WARN"
   },
   {
     "id": "IC-07",
     "category": "IC",
     "q": "Suggest 3 Instagram post ideas for my coffee brand — keep each idea under 20 words",
-    "a": "I'm researching current Instagram engagement trends for coffee brands in 2026 to provide you with high-performing post ideas.",
+    "a": "Here are 3 Instagram post ideas for your coffee brand, each under 20 words:\n\nASMR Reel: 15-second ASMR video of a slow pour-over brew with soothing steam and crisp pouring sounds.\nRoast Guide: Educational Carousel matching our signature roasts to different personality types and morning energy levels",
     "status": "WARN"
   },
   {
     "id": "IC-08",
     "category": "IC",
     "q": "Write a promotional email subject line for a flash sale — no more than 8 words",
-    "a": "Rare Opportunity: 30% Off The Oxygen Series",
+    "a": "Flash Sale: 24 Hours to Shred the Prices! 🏂🔥",
+    "status": "WARN"
+  },
+  {
+    "id": "IC-09",
+    "category": "IC",
+    "q": "Write exactly 3 bullet points about why customers should trust my store",
+    "a": "High-Performance Technical Standards: Every snowboard, including our flagship Oxygen and Liquid models, is engineered for elite durability and precision performance in the toughest mountain conditions.\nArtisanal Safety & Integrity: Our ceramic collection is hand-thrown on the wheel and finished with",
+    "status": "FAIL"
+  },
+  {
+    "id": "IC-10",
+    "category": "IC",
+    "q": "Translate the following into Spanish: \"Free shipping on orders over $50, limited time only!\"",
+    "a": "¡Envío gratis en pedidos superiores a $50, solo por tiempo limitado!",
     "status": "PASS"
   }
 ]

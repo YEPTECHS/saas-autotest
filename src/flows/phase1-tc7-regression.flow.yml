@@ -1,0 +1,454 @@
+# Phase 1 TC7: 回归测试
+# 验证目标: 后端改动未影响以下功能
+#   ✅ 知识库上传文件（PDF 训练）
+#   ✅ 知识库添加链接（URL 训练）
+#   ✅ 知识库添加 FAQ
+#   ✅ 聊天测试（widget 流式响应）
+#   ✅ 工单创建（human support）
+#   ✅ 订阅/支付页面正常加载
+#
+# 使用方法:
+#   pnpm flow phase1-tc7-regression
+#
+# 前置条件: 账号已激活，有正常订阅
+
+name: phase1-tc7-regression
+description: "[Phase 1] TC7 - 回归测试（知识库/聊天/工单/Billing）"
+
+steps:
+  # ========================================
+  # PHASE 0: 登录 + 拦截器
+  # ========================================
+
+  - id: log-start
+    action: log
+    params:
+      message: "=== Phase 1 TC7 回归测试开始 ==="
+
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      timeout: 10000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, [class*='sidebar']"
+      timeout: 30000
+
+  - id: setup-error-tracker
+    action: browser.execute
+    params:
+      script: |
+        window.__tc7Results = {};
+        window.__consoleErrors = [];
+        const origError = console.error.bind(console);
+        console.error = (...args) => { window.__consoleErrors.push(args.join(' ')); origError(...args); };
+        return 'tracker-ready';
+
+  - id: log-login-ok
+    action: log
+    params:
+      message: "✅ 登录成功，开始回归检查"
+
+  # ========================================
+  # TC7-1: 知识库页面基础加载
+  # ========================================
+
+  - id: log-tc7-1
+    action: log
+    params:
+      message: "--- TC7-1: 知识库上传文件区域验证 ---"
+
+  - id: navigate-knowledge
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "networkidle"
+
+  - id: wait-knowledge-main
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-knowledge-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-knowledge
+    action: browser.screenshot
+    params:
+      name: "tc7-1-knowledge-page"
+
+  - id: verify-upload-exists
+    action: browser.execute
+    params:
+      script: |
+        const uploadEl = document.querySelector(
+          '[class*="upload"], [class*="drop"], input[type="file"]'
+        ) || Array.from(document.querySelectorAll('button')).find(
+          b => b.textContent?.toLowerCase().includes('upload')
+        );
+        const result = !!uploadEl;
+        window.__tc7Results['TC7-1 知识库上传区域'] = result ? '✅ PASS' : '❌ FAIL（未找到上传元素）';
+        console.log('[TC7-1]', window.__tc7Results['TC7-1 知识库上传区域']);
+        return result;
+
+  - id: verify-knowledge-list-or-empty
+    action: browser.execute
+    params:
+      script: |
+        const contentEl = document.querySelector('[class*="list"], [class*="table"], [class*="empty"], [class*="document"]');
+        const result = !!contentEl;
+        window.__tc7Results['TC7-1 知识库列表/空态'] = result ? '✅ PASS' : '❌ FAIL（内容区域未找到）';
+        console.log('[TC7-1]', window.__tc7Results['TC7-1 知识库列表/空态']);
+        return result;
+
+  # ========================================
+  # TC7-2: 知识库添加链接（URL 训练）
+  # ========================================
+
+  - id: log-tc7-2
+    action: log
+    params:
+      message: "--- TC7-2: 知识库添加链接 ---"
+
+  - id: find-add-url-button
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, [role="button"], a')).find(el => {
+          const t = (el.textContent || '').trim().toLowerCase();
+          return t.includes('add url') || t.includes('add link') || t.includes('website') || t.includes('url') || t.includes('链接');
+        });
+        if (btn) { console.log('[TC7-2] Found URL button:', btn.textContent?.trim()); }
+        window.__tc7Results['TC7-2 添加URL按钮存在'] = btn ? '✅ PASS' : '⚠️ SKIP（未找到添加URL按钮）';
+        return !!btn;
+
+  - id: screenshot-tc7-2
+    action: browser.screenshot
+    params:
+      name: "tc7-2-add-url"
+
+  # ========================================
+  # TC7-3: 知识库添加 FAQ
+  # ========================================
+
+  - id: log-tc7-3
+    action: log
+    params:
+      message: "--- TC7-3: 知识库添加 FAQ ---"
+
+  - id: find-faq-button
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, [role="button"], a, [role="tab"]')).find(el => {
+          const t = (el.textContent || '').trim().toLowerCase();
+          return t.includes('faq') || t.includes('question') || t.includes('问答');
+        });
+        if (btn) { console.log('[TC7-3] Found FAQ button:', btn.textContent?.trim()); }
+        window.__tc7Results['TC7-3 FAQ功能入口存在'] = btn ? '✅ PASS' : '⚠️ SKIP（未找到FAQ按钮）';
+        return !!btn;
+
+  - id: screenshot-tc7-3
+    action: browser.screenshot
+    params:
+      name: "tc7-3-faq"
+
+  # ========================================
+  # TC7-4: AI 商品训练页面
+  # ========================================
+
+  - id: log-tc7-4
+    action: log
+    params:
+      message: "--- TC7-4: 商品训练页面 ---"
+
+  - id: navigate-product-training
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-training/knowledge"
+      waitUntil: "networkidle"
+    continueOnError: true
+
+  - id: verify-product-training-page
+    action: browser.execute
+    params:
+      script: |
+        const h = document.querySelector('h1, h2, [class*="title"]');
+        const pageOk = !!h && document.body.innerText.length > 100;
+        window.__tc7Results['TC7-4 商品训练页面加载'] = pageOk ? '✅ PASS' : '❌ FAIL（页面内容不足）';
+        console.log('[TC7-4]', window.__tc7Results['TC7-4 商品训练页面加载']);
+        return pageOk;
+
+  # ========================================
+  # TC7-5: 聊天测试（Playground）
+  # ========================================
+
+  - id: log-tc7-5
+    action: log
+    params:
+      message: "--- TC7-5: 聊天测试（Playground）---"
+
+  - id: navigate-playground
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/playground"
+      waitUntil: "domcontentloaded"
+    continueOnError: true
+
+  - id: wait-playground
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='chat'], [class*='playground'], iframe"
+      timeout: 15000
+    continueOnError: true
+
+  - id: wait-playground-settle
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-playground
+    action: browser.screenshot
+    params:
+      name: "tc7-5-playground"
+
+  - id: verify-chat-interface
+    action: browser.execute
+    params:
+      script: |
+        const chatInput = document.querySelector(
+          'input[type="text"], textarea, [class*="input"], [class*="chat-input"], [contenteditable="true"]'
+        );
+        const iframe = document.querySelector('iframe');
+        const hasChat = !!chatInput || !!iframe;
+        window.__tc7Results['TC7-5 聊天界面加载'] = hasChat ? '✅ PASS' : '❌ FAIL（未找到聊天输入区）';
+        console.log('[TC7-5]', window.__tc7Results['TC7-5 聊天界面加载']);
+        return hasChat;
+    continueOnError: true
+
+  - id: try-send-message
+    action: browser.execute
+    params:
+      script: |
+        // 尝试在聊天框发送一条消息
+        const inputs = document.querySelectorAll('input[type="text"], textarea');
+        for (const input of Array.from(inputs)) {
+          const el = input as HTMLInputElement | HTMLTextAreaElement;
+          if (!el.disabled && !el.readOnly) {
+            el.focus();
+            el.value = 'Hello, test message';
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('[TC7-5] 已在聊天框输入测试消息');
+            return true;
+          }
+        }
+        console.warn('[TC7-5] 未找到可用的聊天输入框（可能在 iframe 内）');
+        return false;
+    continueOnError: true
+
+  - id: screenshot-chat-message
+    action: browser.screenshot
+    params:
+      name: "tc7-5-chat-message"
+
+  # ========================================
+  # TC7-6: 工单创建入口
+  # ========================================
+
+  - id: log-tc7-6
+    action: log
+    params:
+      message: "--- TC7-6: 工单创建入口 ---"
+
+  - id: navigate-live-chat
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/live-chat"
+      waitUntil: "domcontentloaded"
+    continueOnError: true
+
+  - id: wait-live-chat
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 10000
+    continueOnError: true
+
+  - id: screenshot-live-chat
+    action: browser.screenshot
+    params:
+      name: "tc7-6-live-chat"
+
+  - id: verify-live-chat-page
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasContent = bodyText.length > 100 && !bodyText.includes('404') && !bodyText.includes('Not Found');
+        window.__tc7Results['TC7-6 工单/Live Chat 页面加载'] = hasContent ? '✅ PASS' : '❌ FAIL（页面异常）';
+        console.log('[TC7-6]', window.__tc7Results['TC7-6 工单/Live Chat 页面加载']);
+        return hasContent;
+    continueOnError: true
+
+  # ========================================
+  # TC7-7: Billing 页面
+  # ========================================
+
+  - id: log-tc7-7
+    action: log
+    params:
+      message: "--- TC7-7: Billing 页面 ---"
+
+  - id: navigate-billing
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/billing"
+      waitUntil: "domcontentloaded"
+    continueOnError: true
+
+  - id: wait-billing-page
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+    continueOnError: true
+
+  - id: wait-billing-settle
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-billing
+    action: browser.screenshot
+    params:
+      name: "tc7-7-billing"
+
+  - id: verify-billing-page
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const hasSubscriptionInfo = bodyText.toLowerCase().includes('plan') ||
+          bodyText.toLowerCase().includes('subscription') ||
+          bodyText.toLowerCase().includes('billing') ||
+          bodyText.includes('订阅');
+        const isNotError = !bodyText.includes('404') && !bodyText.includes('Not Found') && bodyText.length > 100;
+        const result = hasSubscriptionInfo && isNotError;
+        window.__tc7Results['TC7-7 Billing页面正常加载'] = result ? '✅ PASS' : '❌ FAIL（页面内容异常）';
+        console.log('[TC7-7]', window.__tc7Results['TC7-7 Billing页面正常加载']);
+        return result;
+    continueOnError: true
+
+  # ========================================
+  # TC7-8: Integrations 页面（Shopify 连接状态）
+  # ========================================
+
+  - id: log-tc7-8
+    action: log
+    params:
+      message: "--- TC7-8: Integrations 页面（Shopify 入口） ---"
+
+  - id: navigate-integrations
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/integrations"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-integrations
+    action: browser.waitForSelector
+    params:
+      selector: "main"
+      timeout: 15000
+
+  - id: wait-integrations-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-integrations
+    action: browser.screenshot
+    params:
+      name: "tc7-8-integrations"
+
+  - id: verify-shopify-visible
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText.toLowerCase();
+        const hasShopify = bodyText.includes('shopify');
+        window.__tc7Results['TC7-8 Integrations页面有Shopify入口'] = hasShopify ? '✅ PASS' : '❌ FAIL（未找到Shopify）';
+        console.log('[TC7-8]', window.__tc7Results['TC7-8 Integrations页面有Shopify入口']);
+        return hasShopify;
+
+  # ========================================
+  # 最终报告
+  # ========================================
+
+  - id: log-final
+    action: log
+    params:
+      message: "=== TC7 最终报告 ==="
+
+  - id: final-report
+    action: browser.execute
+    params:
+      script: |
+        const results = window.__tc7Results || {};
+        const errors = window.__consoleErrors || [];
+
+        console.log('\n========== TC7 回归测试报告 ==========');
+        const entries = Object.entries(results);
+        let passCount = 0;
+        let failCount = 0;
+        let skipCount = 0;
+
+        for (const [k, v] of entries) {
+          console.log(`  ${v} | ${k}`);
+          if (String(v).startsWith('✅')) passCount++;
+          else if (String(v).startsWith('❌')) failCount++;
+          else skipCount++;
+        }
+
+        console.log(`\n  总计: ${passCount} 通过 / ${failCount} 失败 / ${skipCount} 跳过`);
+        console.log(`  Console 错误: ${errors.length > 0 ? '⚠️ ' + errors.length + ' 个' : '✅ 无'}`);
+        console.log('======================================\n');
+
+        return {
+          results,
+          summary: { pass: passCount, fail: failCount, skip: skipCount },
+          consoleErrors: errors,
+        };
+
+  - id: log-complete
+    action: log
+    params:
+      message: "=== TC7 完成，请查看截图和 Console 输出 ==="

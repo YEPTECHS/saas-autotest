@@ -1,0 +1,72 @@
+[
+  {
+    "id": "CD-01",
+    "category": "CD",
+    "q": "How should I position my product on Instagram?",
+    "a": "Instagram positioning should be driven by your Margin and Pricing Strategy:\n\n\nIf you have High Margins (e.g., >60%):\n\nPosition as a Premium/Lifestyle brand.\nFocus on \"The Why\"—high-quality aesthetics, influencer partnerships, and storytelling. You have the margin \"cushion\" to pay for high-end conten",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-02",
+    "category": "CD",
+    "q": "What is my current inventory level?",
+    "a": "Based on the store analysis, here are the current inventory levels for your top products:\n\nThe Multi-location Snowboard: 100 units\nThe Multi-managed Snowboard: 100 units\nThe Collection Snowboard (Oxygen, Liquid, Hydrogen): 50 units each\nThe Hidden Snowboard: 50 units\nThe Complete Snowboard: 50 units",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-03",
+    "category": "CD",
+    "q": "Help me design an email newsletter for my summer sale.",
+    "a": "Designing a summer sale newsletter is a great way to clear inventory. To make it profitable, you should structure it based on your margins:\n1. The \"Hero\" Offer (High-Margin items)\n\nWhat to feature: Products like The Multi-location Snowboard (if it has a high margin).\nStrategy: These are your \"doorbu",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-04",
+    "category": "CD",
+    "q": "How should I optimize my warehouse layout for faster picking?",
+    "a": "Optimizing your warehouse layout is all about reducing \"travel time\"—the distance your team walks to pick an order. Here is how to use your data to design it:\n1. The \"Gold Zone\" (ABC Analysis)\n\n\"A\" Items (Top 20%): These are your high-velocity products (the ones with the most orders). Place them at ",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-05",
+    "category": "CD",
+    "q": "What social media ad strategy should I use for my new product launch?",
+    "a": "Your social media ad strategy for a product launch is entirely dependent on your Margin Ceiling—the maximum amount you can spend to acquire one customer (CAC) while still staying profitable.\n1. The \"Testing\" Phase (Low Budget/High Precision)\n\nPlatform: Meta (Facebook/Instagram) or TikTok.\nGoal: Find",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-06",
+    "category": "CD",
+    "q": "Which shipping carrier should I use for international orders?",
+    "a": "The best carrier for international shipping depends on your Product Weight and Target Margin. Since you sell snowboards, which are \"Oversized\" items, shipping will be one of your largest variable costs.\n1. Express Carriers (DHL, UPS, FedEx)\n\nPros: Fast (3-5 days), reliable tracking, high customer sa",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-07",
+    "category": "CD",
+    "q": "What brand colors work best for a luxury skincare line?",
+    "a": "For a luxury skincare line, brand colors should convey trust, quality, and exclusivity. Color choice directly impacts your Pricing Power—the ability to charge more without losing customers.\n1. The \"Timeless Minimalist\" (High Price Point)\n\nColors: Monochrome (Black & White) with Gold or Silver accent",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-08",
+    "category": "CD",
+    "q": "How do I handle customer returns and refund processing?",
+    "a": "Returns are one of the biggest \"hidden\" threats to your Net Margin. When a customer returns a product, you don't just lose the sale—you often lose the shipping cost, the labor to inspect it, and potentially the value of the item if it's damaged.\n1. The Financial Impact\nIf you sell a snowboard for $5",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-09",
+    "category": "CD",
+    "q": "Write me a blog post about sustainable fashion trends.",
+    "a": "Here is a blog post drafted for your store, focusing on how sustainability and profitability can go hand-in-hand:\n\nSustainable Fashion Trends 2024: Why \"Slow\" is the New Fast\nIn 2024, fashion is no longer just about the look—it’s about the legacy. Consumers are moving away from disposable \"fast fash",
+    "status": "PASS"
+  },
+  {
+    "id": "CD-10",
+    "category": "CD",
+    "q": "How can I reduce my supply chain lead times?",
+    "a": "Reducing Supply Chain Lead Times is one of the most effective ways to improve your cash flow and protect your margins from stockouts or overstocking.\nHere are the key strategies:\n\nLocal Sourcing: While overseas suppliers may have lower COGS, local suppliers reduce lead times from months to days, all",
+    "status": "FAIL"
+  }
+]

@@ -19,9 +19,7 @@ import 'dotenv/config';
 
 // ── Config ────────────────────────────────────────────────────
 
-const SLACK_WEBHOOK =
-  process.env.SLACK_WEBHOOK_URL ||
-  'https://hooks.slack.com/triggers/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';
+const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL || '';
 
 const REPORTS_DIR = join(process.cwd(), 'reports');
 const OUTPUT_DIR  = join(process.cwd(), 'reports');
@@ -30,6 +28,7 @@ const AGENT_FILE_PREFIXES: Record<string, string[]> = {
   maya:   ['maya-', 'mktbnd-'],
   oscar:  ['oscar-', 'opbnd-'],
   daniel: ['daniel-', 'danielbnd-'],
+  cody:   ['cody-'],
 };
 
 // ── Arg parsing ───────────────────────────────────────────────
@@ -41,7 +40,7 @@ const postSlack  = args.includes('--slack');
 const sendEmail  = args.includes('--email');
 const agents = agentArg && agentArg !== 'all'
   ? [agentArg]
-  : ['maya', 'oscar', 'daniel'];
+  : ['maya', 'oscar', 'daniel', 'cody'];
 
 // ── Data loading ──────────────────────────────────────────────
 
@@ -246,17 +245,96 @@ function renderAgentCard(s: AgentSummary): string {
 </div>`;
 }
 
+const AGENT_ICONS: Record<string, string> = {
+  maya: '📢', oscar: '⚙️', daniel: '💰', cody: '🔍',
+};
+
 function renderAgentSection(s: AgentSummary): string {
   const sectionHtml = s.sections.map(sec => renderSection(sec)).join('');
-  const icon = s.agent === 'maya' ? '📢' : s.agent === 'oscar' ? '⚙️' : '💰';
+  const icon = AGENT_ICONS[s.agent] || '🤖';
   return `
 <h2>${icon} ${s.agent.toUpperCase()}</h2>
 ${sectionHtml}`;
 }
 
+// ── Triage panel ──────────────────────────────────────────────
+
+function loadLatestJson(prefix: string): Record<string, any> | null {
+  if (!existsSync(REPORTS_DIR)) return null;
+  const files = readdirSync(REPORTS_DIR)
+    .filter(f => f.startsWith(prefix) && f.endsWith('.json'))
+    .sort().reverse();
+  if (!files.length) return null;
+  try { return JSON.parse(readFileSync(join(REPORTS_DIR, files[0]), 'utf-8')); }
+  catch { return null; }
+}
+
+function renderTriagePanel(): string {
+  const data = loadLatestJson('triage-');
+  if (!data) return '';
+
+  const failures: any[] = data.failures || [];
+  if (!failures.length) return `<h2>🔎 Triage</h2><p style="color:#6b7280">No failures found in last run.</p>`;
+
+  const rows = failures.map((f: any) => {
+    const cls = f.classification === 'BUG' ? 'FAIL' : f.classification === 'FLAKY' ? 'PARTIAL' : 'WARN';
+    const ticket = f.linearTicketId ? ` <span style="font-size:11px;color:#6366f1">${h(f.linearTicketId)}</span>` : '';
+    return `<tr>
+      <td>${h(f.agent?.toUpperCase() || '')}</td>
+      <td>${h(f.testId || f.scenario || f.testType || '')}</td>
+      <td><span class="badge ${cls}">${h(f.classification)}</span> <span style="font-size:11px;color:#9ca3af">${h(f.confidence || '')}</span>${ticket}</td>
+      <td class="detail">${h(f.reasoning || '')}</td>
+      <td class="detail">${h(f.recommendation || '')}</td>
+    </tr>`;
+  }).join('');
+
+  const byClass = data.byClass || {};
+  return `
+<h2>🔎 Triage <span style="font-size:14px;font-weight:400;color:#6b7280">— ${h(data.generatedAt?.slice(0,10) || '')}</span></h2>
+<p style="font-size:13px;color:#6b7280;margin:0 0 12px">
+  🐛 BUG: ${byClass.BUG ?? 0} &nbsp;|&nbsp; 🌊 FLAKY: ${byClass.FLAKY ?? 0} &nbsp;|&nbsp; ⚙️ ENV: ${byClass.ENV ?? 0}
+  ${data.summary ? `<br><em>${h(data.summary)}</em>` : ''}
+</p>
+<table>
+  <thead><tr><th>Agent</th><th>Test</th><th>Class</th><th>Reasoning</th><th>Action</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function renderChangeWatchPanel(): string {
+  const data = loadLatestJson('change-watch-');
+  if (!data) return '';
+
+  const analysed: any[] = data.analysed || [];
+  if (!analysed.length) return `<h2>👁 Change Watch</h2><p style="color:#6b7280">No changes detected in last run.</p>`;
+
+  const rows = analysed.map((a: any) => {
+    const cls = a.classification === 'REGRESSION' ? 'FAIL' : a.classification === 'IMPROVEMENT' ? 'PASS' : 'PARTIAL';
+    const delta = a.delta !== undefined ? ` (${a.delta > 0 ? '+' : ''}${a.delta.toFixed(1)}pp)` : '';
+    const acc = a.accuracy ? `${(a.accuracy.passRate * 100).toFixed(1)}%${delta}` : '—';
+    const ticket = a.linearTicketId ? ` <span style="font-size:11px;color:#6366f1">${h(a.linearTicketId)}</span>` : '';
+    return `<tr>
+      <td>${h(a.change?.agent?.toUpperCase() || '')}</td>
+      <td><span class="badge ${cls}">${h(a.classification)}</span>${ticket}</td>
+      <td style="font-size:12px;color:#9ca3af">${h(a.change?.oldHash || '—')} → ${h(a.change?.newHash || '')}</td>
+      <td>${h(acc)}</td>
+      <td class="detail">${h(a.notes || '')}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+<h2>👁 Change Watch <span style="font-size:14px;font-weight:400;color:#6b7280">— ${h(data.generatedAt?.slice(0,10) || '')}</span></h2>
+<table>
+  <thead><tr><th>Agent</th><th>Classification</th><th>Hash diff</th><th>Accuracy</th><th>Notes</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
 function buildHtml(summaries: AgentSummary[], generatedAt: string): string {
   const cards  = summaries.map(renderAgentCard).join('');
   const bodies = summaries.map(renderAgentSection).join('');
+  const triage      = renderTriagePanel();
+  const changeWatch = renderChangeWatchPanel();
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -270,6 +348,8 @@ function buildHtml(summaries: AgentSummary[], generatedAt: string): string {
   <h1>YepAI Agent Test Report</h1>
   <p class="subtitle">Generated: ${generatedAt}</p>
   <div class="agent-grid">${cards}</div>
+  ${changeWatch}
+  ${triage}
   ${bodies}
 </div>
 </body>

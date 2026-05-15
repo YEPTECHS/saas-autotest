@@ -1,0 +1,1586 @@
+{
+  "testType": "api-stress",
+  "agent": "oscar",
+  "baseUrl": "https://bot-test.yepai.io",
+  "apiEndpoint": "https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+  "isStreaming": false,
+  "user": "baobaobao5959@gmail.com",
+  "maxConcurrency": 20,
+  "scenarios": 6,
+  "passed": 6,
+  "partial": 0,
+  "failed": 0,
+  "results": [
+    {
+      "id": "ST-API-01",
+      "name": "Sequential Baseline (20 requests)",
+      "concurrency": 1,
+      "totalRequests": 20,
+      "successCount": 19,
+      "failCount": 1,
+      "successRate": 0.95,
+      "latency": {
+        "min": 7995,
+        "avg": 10915,
+        "p50": 10862,
+        "p75": 11647,
+        "p90": 13383,
+        "p95": 15962,
+        "p99": 15962,
+        "max": 15962
+      },
+      "ttfb": {
+        "avg": 10915,
+        "p95": 15962
+      },
+      "throughputRps": 0.07,
+      "durationMs": 268055,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 9890,
+          "ttfbMs": 9888,
+          "responseBytes": 2052,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 9754,
+          "ttfbMs": 9753,
+          "responseBytes": 1791,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 11514,
+          "ttfbMs": 11513,
+          "responseBytes": 1898,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 11612,
+          "ttfbMs": 11612,
+          "responseBytes": 1775,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 8089,
+          "ttfbMs": 8089,
+          "responseBytes": 1643,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 504,
+          "latencyMs": 60661,
+          "ttfbMs": 60660,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 15962,
+          "ttfbMs": 15962,
+          "responseBytes": 1893,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 7995,
+          "ttfbMs": 7994,
+          "responseBytes": 1744,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 10381,
+          "ttfbMs": 10380,
+          "responseBytes": 1763,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 11482,
+          "ttfbMs": 11482,
+          "responseBytes": 1804,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 8597,
+          "ttfbMs": 8596,
+          "responseBytes": 1740,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 11500,
+          "ttfbMs": 11500,
+          "responseBytes": 1698,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 11647,
+          "ttfbMs": 11646,
+          "responseBytes": 1928,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 8257,
+          "ttfbMs": 8256,
+          "responseBytes": 1723,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 13383,
+          "ttfbMs": 13383,
+          "responseBytes": 1764,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 10058,
+          "ttfbMs": 10058,
+          "responseBytes": 1863,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 10611,
+          "ttfbMs": 10610,
+          "responseBytes": 2083,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 13322,
+          "ttfbMs": 13322,
+          "responseBytes": 1759,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 10862,
+          "ttfbMs": 10861,
+          "responseBytes": 1791,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 12476,
+          "ttfbMs": 12475,
+          "responseBytes": 1890,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:00:06.337Z"
+    },
+    {
+      "id": "ST-API-02",
+      "name": "Concurrent Burst (5 simultaneous)",
+      "concurrency": 5,
+      "totalRequests": 5,
+      "successCount": 5,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 6929,
+        "avg": 9955,
+        "p50": 10917,
+        "p75": 11437,
+        "p90": 11459,
+        "p95": 11459,
+        "p99": 11459,
+        "max": 11459
+      },
+      "ttfb": {
+        "avg": 9954,
+        "p95": 11458
+      },
+      "throughputRps": 0.44,
+      "durationMs": 11461,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 9033,
+          "ttfbMs": 9033,
+          "responseBytes": 1630,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 6929,
+          "ttfbMs": 6929,
+          "responseBytes": 1697,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 11437,
+          "ttfbMs": 11436,
+          "responseBytes": 2019,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 10917,
+          "ttfbMs": 10916,
+          "responseBytes": 1857,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 11459,
+          "ttfbMs": 11458,
+          "responseBytes": 1943,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:00:17.800Z"
+    },
+    {
+      "id": "ST-API-03",
+      "name": "Concurrent Burst (10 simultaneous)",
+      "concurrency": 10,
+      "totalRequests": 10,
+      "successCount": 10,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 7984,
+        "avg": 12050,
+        "p50": 11329,
+        "p75": 13904,
+        "p90": 14849,
+        "p95": 16418,
+        "p99": 16418,
+        "max": 16418
+      },
+      "ttfb": {
+        "avg": 12050,
+        "p95": 16418
+      },
+      "throughputRps": 0.61,
+      "durationMs": 16420,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 13904,
+          "ttfbMs": 13904,
+          "responseBytes": 1886,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 7984,
+          "ttfbMs": 7984,
+          "responseBytes": 1625,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 13071,
+          "ttfbMs": 13071,
+          "responseBytes": 1749,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 7999,
+          "ttfbMs": 7998,
+          "responseBytes": 1749,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 14849,
+          "ttfbMs": 14849,
+          "responseBytes": 1813,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 16418,
+          "ttfbMs": 16418,
+          "responseBytes": 1816,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 10859,
+          "ttfbMs": 10858,
+          "responseBytes": 1992,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 11310,
+          "ttfbMs": 11310,
+          "responseBytes": 2037,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 12778,
+          "ttfbMs": 12778,
+          "responseBytes": 2080,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 11329,
+          "ttfbMs": 11328,
+          "responseBytes": 1786,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:00:34.221Z"
+    },
+    {
+      "id": "ST-API-04",
+      "name": "Concurrent Burst (20 simultaneous)",
+      "concurrency": 20,
+      "totalRequests": 20,
+      "successCount": 20,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 8814,
+        "avg": 12125,
+        "p50": 11879,
+        "p75": 12696,
+        "p90": 13573,
+        "p95": 14149,
+        "p99": 15153,
+        "max": 15153
+      },
+      "ttfb": {
+        "avg": 12125,
+        "p95": 14148
+      },
+      "throughputRps": 1.32,
+      "durationMs": 15159,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 11653,
+          "ttfbMs": 11653,
+          "responseBytes": 1772,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 12696,
+          "ttfbMs": 12695,
+          "responseBytes": 1641,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 11858,
+          "ttfbMs": 11858,
+          "responseBytes": 2012,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 11767,
+          "ttfbMs": 11767,
+          "responseBytes": 1877,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 11880,
+          "ttfbMs": 11880,
+          "responseBytes": 1993,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 11516,
+          "ttfbMs": 11516,
+          "responseBytes": 1766,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 11693,
+          "ttfbMs": 11693,
+          "responseBytes": 1678,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 11879,
+          "ttfbMs": 11878,
+          "responseBytes": 1701,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 11651,
+          "ttfbMs": 11651,
+          "responseBytes": 1761,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 9136,
+          "ttfbMs": 9135,
+          "responseBytes": 1676,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 12139,
+          "ttfbMs": 12139,
+          "responseBytes": 1876,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 13573,
+          "ttfbMs": 13572,
+          "responseBytes": 2008,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 13103,
+          "ttfbMs": 13102,
+          "responseBytes": 1819,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 12499,
+          "ttfbMs": 12499,
+          "responseBytes": 1808,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 13372,
+          "ttfbMs": 13372,
+          "responseBytes": 1851,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 11705,
+          "ttfbMs": 11705,
+          "responseBytes": 1650,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 15153,
+          "ttfbMs": 15152,
+          "responseBytes": 2149,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 12271,
+          "ttfbMs": 12271,
+          "responseBytes": 2052,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 8814,
+          "ttfbMs": 8814,
+          "responseBytes": 1717,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 14149,
+          "ttfbMs": 14148,
+          "responseBytes": 2086,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:00:49.380Z"
+    },
+    {
+      "id": "ST-API-05",
+      "name": "Ramp-Up (1→5→10→20→30)",
+      "concurrency": 30,
+      "totalRequests": 66,
+      "successCount": 66,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 7426,
+        "avg": 12246,
+        "p50": 12608,
+        "p75": 13665,
+        "p90": 14721,
+        "p95": 14819,
+        "p99": 16223,
+        "max": 16223
+      },
+      "ttfb": {
+        "avg": 12245,
+        "p95": 14818
+      },
+      "throughputRps": 0.84,
+      "durationMs": 78662,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 8047,
+          "ttfbMs": 8047,
+          "responseBytes": 1648,
+          "success": true
+        },
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 10226,
+          "ttfbMs": 10226,
+          "responseBytes": 1865,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 14819,
+          "ttfbMs": 14818,
+          "responseBytes": 1832,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 7426,
+          "ttfbMs": 7426,
+          "responseBytes": 1718,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 11315,
+          "ttfbMs": 11314,
+          "responseBytes": 2273,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 12119,
+          "ttfbMs": 12119,
+          "responseBytes": 1747,
+          "success": true
+        },
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 11684,
+          "ttfbMs": 11684,
+          "responseBytes": 1770,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 10042,
+          "ttfbMs": 10040,
+          "responseBytes": 1930,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 12848,
+          "ttfbMs": 12848,
+          "responseBytes": 1795,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 7626,
+          "ttfbMs": 7625,
+          "responseBytes": 1676,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 12560,
+          "ttfbMs": 12559,
+          "responseBytes": 2038,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 12958,
+          "ttfbMs": 12958,
+          "responseBytes": 1800,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 14293,
+          "ttfbMs": 14293,
+          "responseBytes": 1785,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 9059,
+          "ttfbMs": 9058,
+          "responseBytes": 1734,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 10393,
+          "ttfbMs": 10392,
+          "responseBytes": 1793,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 11126,
+          "ttfbMs": 11126,
+          "responseBytes": 1809,
+          "success": true
+        },
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 13616,
+          "ttfbMs": 13615,
+          "responseBytes": 1991,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 10387,
+          "ttfbMs": 10386,
+          "responseBytes": 1732,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 11951,
+          "ttfbMs": 11950,
+          "responseBytes": 1956,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 8365,
+          "ttfbMs": 8364,
+          "responseBytes": 1615,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 13825,
+          "ttfbMs": 13825,
+          "responseBytes": 1802,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 11155,
+          "ttfbMs": 11155,
+          "responseBytes": 1727,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 9900,
+          "ttfbMs": 9899,
+          "responseBytes": 1817,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 13725,
+          "ttfbMs": 13724,
+          "responseBytes": 1827,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 11845,
+          "ttfbMs": 11845,
+          "responseBytes": 1892,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 14072,
+          "ttfbMs": 14072,
+          "responseBytes": 1750,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 14134,
+          "ttfbMs": 14133,
+          "responseBytes": 1765,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 12481,
+          "ttfbMs": 12481,
+          "responseBytes": 1970,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 15247,
+          "ttfbMs": 15246,
+          "responseBytes": 1808,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 13158,
+          "ttfbMs": 13158,
+          "responseBytes": 2229,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 13306,
+          "ttfbMs": 13306,
+          "responseBytes": 1792,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 13472,
+          "ttfbMs": 13472,
+          "responseBytes": 1863,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 13214,
+          "ttfbMs": 13214,
+          "responseBytes": 1882,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 13242,
+          "ttfbMs": 13242,
+          "responseBytes": 1838,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 14224,
+          "ttfbMs": 14224,
+          "responseBytes": 1953,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 12071,
+          "ttfbMs": 12071,
+          "responseBytes": 1764,
+          "success": true
+        },
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 11217,
+          "ttfbMs": 11217,
+          "responseBytes": 1669,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 14712,
+          "ttfbMs": 14712,
+          "responseBytes": 1848,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 10893,
+          "ttfbMs": 10893,
+          "responseBytes": 1697,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 14818,
+          "ttfbMs": 14817,
+          "responseBytes": 1805,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 13173,
+          "ttfbMs": 13172,
+          "responseBytes": 1797,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 11071,
+          "ttfbMs": 11070,
+          "responseBytes": 1643,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 12740,
+          "ttfbMs": 12740,
+          "responseBytes": 1772,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 12111,
+          "ttfbMs": 12111,
+          "responseBytes": 1742,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 13553,
+          "ttfbMs": 13552,
+          "responseBytes": 1827,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 16223,
+          "ttfbMs": 16223,
+          "responseBytes": 1882,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 8080,
+          "ttfbMs": 8080,
+          "responseBytes": 1647,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 8826,
+          "ttfbMs": 8826,
+          "responseBytes": 1680,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 15488,
+          "ttfbMs": 15487,
+          "responseBytes": 2105,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 14771,
+          "ttfbMs": 14771,
+          "responseBytes": 1752,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 11401,
+          "ttfbMs": 11400,
+          "responseBytes": 1797,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 12608,
+          "ttfbMs": 12608,
+          "responseBytes": 1940,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 10348,
+          "ttfbMs": 10347,
+          "responseBytes": 1667,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 14721,
+          "ttfbMs": 14721,
+          "responseBytes": 1948,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 11237,
+          "ttfbMs": 11237,
+          "responseBytes": 1929,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 13130,
+          "ttfbMs": 13129,
+          "responseBytes": 1696,
+          "success": true
+        },
+        {
+          "question": "How do I reduce my shipping costs?",
+          "statusCode": 200,
+          "latencyMs": 13226,
+          "ttfbMs": 13226,
+          "responseBytes": 1752,
+          "success": true
+        },
+        {
+          "question": "What is the best way to track supplier performance?",
+          "statusCode": 200,
+          "latencyMs": 13981,
+          "ttfbMs": 13981,
+          "responseBytes": 1896,
+          "success": true
+        },
+        {
+          "question": "How do I handle damaged goods?",
+          "statusCode": 200,
+          "latencyMs": 14690,
+          "ttfbMs": 14690,
+          "responseBytes": 1790,
+          "success": true
+        },
+        {
+          "question": "What is just-in-time inventory?",
+          "statusCode": 200,
+          "latencyMs": 11795,
+          "ttfbMs": 11795,
+          "responseBytes": 1764,
+          "success": true
+        },
+        {
+          "question": "How do I deal with supply chain disruptions?",
+          "statusCode": 200,
+          "latencyMs": 12945,
+          "ttfbMs": 12945,
+          "responseBytes": 1718,
+          "success": true
+        },
+        {
+          "question": "What is ABC analysis for inventory?",
+          "statusCode": 200,
+          "latencyMs": 11143,
+          "ttfbMs": 11142,
+          "responseBytes": 1781,
+          "success": true
+        },
+        {
+          "question": "How do I set reorder points?",
+          "statusCode": 200,
+          "latencyMs": 13269,
+          "ttfbMs": 13269,
+          "responseBytes": 1751,
+          "success": true
+        },
+        {
+          "question": "What is dropshipping and how does it work?",
+          "statusCode": 200,
+          "latencyMs": 13052,
+          "ttfbMs": 13052,
+          "responseBytes": 1919,
+          "success": true
+        },
+        {
+          "question": "How do I manage multiple warehouse locations?",
+          "statusCode": 200,
+          "latencyMs": 13665,
+          "ttfbMs": 13665,
+          "responseBytes": 1758,
+          "success": true
+        },
+        {
+          "question": "What metrics should I track for operations?",
+          "statusCode": 200,
+          "latencyMs": 9394,
+          "ttfbMs": 9394,
+          "responseBytes": 1654,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:02:08.043Z",
+      "levelStats": [
+        {
+          "level": 1,
+          "avgLatency": 8047,
+          "successRate": 1
+        },
+        {
+          "level": 5,
+          "avgLatency": 11181,
+          "successRate": 1
+        },
+        {
+          "level": 10,
+          "avgLatency": 11259,
+          "successRate": 1
+        },
+        {
+          "level": 20,
+          "avgLatency": 12670,
+          "successRate": 1
+        },
+        {
+          "level": 30,
+          "avgLatency": 12609,
+          "successRate": 1
+        }
+      ],
+      "degradationRatio": "1.57x"
+    },
+    {
+      "id": "ST-API-06",
+      "name": "Sustained Load (50 req / 60s)",
+      "concurrency": 1,
+      "totalRequests": 50,
+      "successCount": 50,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 6161,
+        "avg": 10616,
+        "p50": 10199,
+        "p75": 13233,
+        "p90": 14195,
+        "p95": 14631,
+        "p99": 16150,
+        "max": 16150
+      },
+      "ttfb": {
+        "avg": 10616,
+        "p95": 14630
+      },
+      "throughputRps": 0.68,
+      "durationMs": 73256,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 7426,
+          "ttfbMs": 7426,
+          "responseBytes": 1668,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 7208,
+          "ttfbMs": 7208,
+          "responseBytes": 1639,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 11714,
+          "ttfbMs": 11714,
+          "responseBytes": 1931,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 11071,
+          "ttfbMs": 11070,
+          "responseBytes": 1793,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 7071,
+          "ttfbMs": 7070,
+          "responseBytes": 1628,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 10014,
+          "ttfbMs": 10014,
+          "responseBytes": 1794,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 7280,
+          "ttfbMs": 7280,
+          "responseBytes": 1692,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 8743,
+          "ttfbMs": 8743,
+          "responseBytes": 1704,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 8189,
+          "ttfbMs": 8188,
+          "responseBytes": 1691,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 14195,
+          "ttfbMs": 14194,
+          "responseBytes": 1805,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 12149,
+          "ttfbMs": 12149,
+          "responseBytes": 2146,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 9920,
+          "ttfbMs": 9920,
+          "responseBytes": 1776,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 11171,
+          "ttfbMs": 11171,
+          "responseBytes": 1865,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 8866,
+          "ttfbMs": 8866,
+          "responseBytes": 1899,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 7732,
+          "ttfbMs": 7732,
+          "responseBytes": 1647,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 7235,
+          "ttfbMs": 7235,
+          "responseBytes": 1680,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 11971,
+          "ttfbMs": 11971,
+          "responseBytes": 2058,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 9916,
+          "ttfbMs": 9916,
+          "responseBytes": 2064,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 15955,
+          "ttfbMs": 15955,
+          "responseBytes": 1807,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 13830,
+          "ttfbMs": 13830,
+          "responseBytes": 1802,
+          "success": true
+        },
+        {
+          "question": "How do I handle damaged goods?",
+          "statusCode": 200,
+          "latencyMs": 10199,
+          "ttfbMs": 10198,
+          "responseBytes": 1742,
+          "success": true
+        },
+        {
+          "question": "How do I reduce my shipping costs?",
+          "statusCode": 200,
+          "latencyMs": 13334,
+          "ttfbMs": 13334,
+          "responseBytes": 1725,
+          "success": true
+        },
+        {
+          "question": "What is ABC analysis for inventory?",
+          "statusCode": 200,
+          "latencyMs": 8544,
+          "ttfbMs": 8544,
+          "responseBytes": 1760,
+          "success": true
+        },
+        {
+          "question": "What is the best way to track supplier performance?",
+          "statusCode": 200,
+          "latencyMs": 16150,
+          "ttfbMs": 16149,
+          "responseBytes": 1804,
+          "success": true
+        },
+        {
+          "question": "What is just-in-time inventory?",
+          "statusCode": 200,
+          "latencyMs": 13757,
+          "ttfbMs": 13757,
+          "responseBytes": 1786,
+          "success": true
+        },
+        {
+          "question": "How do I deal with supply chain disruptions?",
+          "statusCode": 200,
+          "latencyMs": 12855,
+          "ttfbMs": 12855,
+          "responseBytes": 1789,
+          "success": true
+        },
+        {
+          "question": "What is dropshipping and how does it work?",
+          "statusCode": 200,
+          "latencyMs": 10352,
+          "ttfbMs": 10352,
+          "responseBytes": 1857,
+          "success": true
+        },
+        {
+          "question": "How do I set reorder points?",
+          "statusCode": 200,
+          "latencyMs": 11691,
+          "ttfbMs": 11691,
+          "responseBytes": 1770,
+          "success": true
+        },
+        {
+          "question": "What metrics should I track for operations?",
+          "statusCode": 200,
+          "latencyMs": 8369,
+          "ttfbMs": 8369,
+          "responseBytes": 1671,
+          "success": true
+        },
+        {
+          "question": "Show me my inventory summary",
+          "statusCode": 200,
+          "latencyMs": 7020,
+          "ttfbMs": 7019,
+          "responseBytes": 1622,
+          "success": true
+        },
+        {
+          "question": "How many orders are pending?",
+          "statusCode": 200,
+          "latencyMs": 9018,
+          "ttfbMs": 9017,
+          "responseBytes": 1753,
+          "success": true
+        },
+        {
+          "question": "How do I manage multiple warehouse locations?",
+          "statusCode": 200,
+          "latencyMs": 13798,
+          "ttfbMs": 13797,
+          "responseBytes": 1828,
+          "success": true
+        },
+        {
+          "question": "What are my top 5 selling products?",
+          "statusCode": 200,
+          "latencyMs": 11572,
+          "ttfbMs": 11571,
+          "responseBytes": 1901,
+          "success": true
+        },
+        {
+          "question": "What SKUs need reordering now?",
+          "statusCode": 200,
+          "latencyMs": 6161,
+          "ttfbMs": 6161,
+          "responseBytes": 1654,
+          "success": true
+        },
+        {
+          "question": "What is my fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 13233,
+          "ttfbMs": 13232,
+          "responseBytes": 1902,
+          "success": true
+        },
+        {
+          "question": "How do I improve my inventory turnover?",
+          "statusCode": 200,
+          "latencyMs": 7243,
+          "ttfbMs": 7243,
+          "responseBytes": 1687,
+          "success": true
+        },
+        {
+          "question": "What is my average order processing time?",
+          "statusCode": 200,
+          "latencyMs": 8528,
+          "ttfbMs": 8528,
+          "responseBytes": 1605,
+          "success": true
+        },
+        {
+          "question": "What quality control checks should I do?",
+          "statusCode": 200,
+          "latencyMs": 7210,
+          "ttfbMs": 7210,
+          "responseBytes": 1791,
+          "success": true
+        },
+        {
+          "question": "How do I handle backorders?",
+          "statusCode": 200,
+          "latencyMs": 11419,
+          "ttfbMs": 11419,
+          "responseBytes": 1774,
+          "success": true
+        },
+        {
+          "question": "Which products are below safety stock?",
+          "statusCode": 200,
+          "latencyMs": 14023,
+          "ttfbMs": 14023,
+          "responseBytes": 1797,
+          "success": true
+        },
+        {
+          "question": "What is a good order fulfillment rate?",
+          "statusCode": 200,
+          "latencyMs": 7845,
+          "ttfbMs": 7845,
+          "responseBytes": 1755,
+          "success": true
+        },
+        {
+          "question": "How do I calculate safety stock levels?",
+          "statusCode": 200,
+          "latencyMs": 12285,
+          "ttfbMs": 12285,
+          "responseBytes": 1874,
+          "success": true
+        },
+        {
+          "question": "What is the difference between FIFO and LIFO?",
+          "statusCode": 200,
+          "latencyMs": 7768,
+          "ttfbMs": 7768,
+          "responseBytes": 1747,
+          "success": true
+        },
+        {
+          "question": "How do I manage returns efficiently?",
+          "statusCode": 200,
+          "latencyMs": 13249,
+          "ttfbMs": 13249,
+          "responseBytes": 1986,
+          "success": true
+        },
+        {
+          "question": "How do I forecast demand for seasonal products?",
+          "statusCode": 200,
+          "latencyMs": 8563,
+          "ttfbMs": 8563,
+          "responseBytes": 1724,
+          "success": true
+        },
+        {
+          "question": "How do I reduce shipping errors?",
+          "statusCode": 200,
+          "latencyMs": 12081,
+          "ttfbMs": 12081,
+          "responseBytes": 1980,
+          "success": true
+        },
+        {
+          "question": "What is cycle counting in inventory management?",
+          "statusCode": 200,
+          "latencyMs": 14525,
+          "ttfbMs": 14525,
+          "responseBytes": 1798,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my warehouse layout?",
+          "statusCode": 200,
+          "latencyMs": 9266,
+          "ttfbMs": 9265,
+          "responseBytes": 2311,
+          "success": true
+        },
+        {
+          "question": "What is dead stock and how do I deal with it?",
+          "statusCode": 200,
+          "latencyMs": 14631,
+          "ttfbMs": 14630,
+          "responseBytes": 1946,
+          "success": true
+        },
+        {
+          "question": "What is a 3PL and when should I use one?",
+          "statusCode": 200,
+          "latencyMs": 14449,
+          "ttfbMs": 14449,
+          "responseBytes": 1848,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T13:03:21.300Z"
+    }
+  ],
+  "generatedAt": "2026-04-18T13:03:21.302Z"
+}

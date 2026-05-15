@@ -1,0 +1,72 @@
+[
+  {
+    "id": "SA-01",
+    "category": "SA",
+    "q": "My product costs $30 to make and I sell it for $50. What is my gross margin percentage?",
+    "a": "Your gross margin percentage is 40%.\nCalculation: ($50 - $30) / $50 = 0.40 (40%).\nTo help you optimize your store's profitability, I've analyzed your products and ranked them by margin optimization priority. Which product would you like to deep-dive into first?",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-02",
+    "category": "SA",
+    "q": "What is the difference between markup and margin?",
+    "a": "Markup and Margin are two different ways of looking at profit:\n\n\nMargin (Gross Margin) is profit as a percentage of the selling price.\n\nFormula: (Price - Cost) / Price\nIn your example ($30 cost, $50 price): ($50 - $30) / $50 = 40%.\n\n\n\nMarkup is profit as a percentage of the cost.\n\nFormula: (Price - ",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-03",
+    "category": "SA",
+    "q": "How do I calculate the break-even point for a product?",
+    "a": "The Break-Even Point is the moment your total revenue equals your total costs (meaning you've made $0 profit, but also $0 loss).\nTo calculate it, you need to know your Fixed Costs (rent, salaries, software subscriptions) and your Contribution Margin (Price - Variable Cost).\n\n\nBreak-Even in Units: Ho",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-04",
+    "category": "SA",
+    "q": "What is contribution margin and why does it matter?",
+    "a": "Contribution Margin is what’s left from a sale after subtracting all variable costs (costs that change based on how much you sell).\n\nFormula: Selling Price - Variable Costs = Contribution Margin\nVariable Costs include: COGS (manufacturing), shipping fees, packaging, and credit card processing fees.\n",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-05",
+    "category": "SA",
+    "q": "Explain the difference between gross margin and net margin.",
+    "a": "The difference between Gross Margin and Net Margin is how many \"layers\" of expenses you have subtracted from your revenue:\n\n\nGross Margin (Product Health)\n\nFormula: (Revenue - Cost of Goods Sold) / Revenue\nIt only considers the direct cost of making or buying the product.\nExample: You sell a snowboa",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-06",
+    "category": "SA",
+    "q": "What is operating margin and how is it calculated?",
+    "a": "Operating Margin measures how much profit a company makes on a dollar of sales after paying for variable costs of production, such as wages and raw materials, but before paying interest or tax.\nIt is often called the EBIT Margin (Earnings Before Interest and Taxes).\nThe Formula:\nOperating Margin = (",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-07",
+    "category": "SA",
+    "q": "Break down the typical components of COGS for an e-commerce product.",
+    "a": "In e-commerce, COGS (Cost of Goods Sold) includes only the direct costs of producing or purchasing the products you sell. It basically answers: \"How much did it cost to get this item physically ready to leave the shelf?\"\nHere are the typical components:\n\nProduct Purchase Price / Raw Materials: The w",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-08",
+    "category": "SA",
+    "q": "If I give a 20% discount on a $100 product with $50 COGS, what happens to my margin?",
+    "a": "Giving a discount has a \"multiplier effect\" on your profit—it hurts your bottom line much more than it helps your sales price.\nHere is the breakdown for your $100 product:\n1. Before Discount\n\nPrice: $100\nCOGS: $50\nProfit: $50\nMargin: 50%\n\n2. After 20% Discount\n\nNew Price: $80\nCOGS: $50 (this doesn't",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-09",
+    "category": "SA",
+    "q": "How do I compare margins across multiple SKUs to find the most profitable ones?",
+    "a": "To find your most profitable SKUs, you should look at three specific metrics:\n\nGross Margin % (Efficiency): Which products give you the most profit per dollar sold? (e.g., $50 profit on a $100 item is a 50% margin).\nTotal Gross Profit $ (Volume): A product with a 20% margin that sells 1,000 units is",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-10",
+    "category": "SA",
+    "q": "What is weighted average margin and when should I use it?",
+    "a": "Weighted Average Margin is the average margin of your entire store (or a specific category), but adjusted based on how much revenue each product brings in.\nWhy it matters:\nA simple average can be misleading. If you have two products:\n\nProduct A: 80% margin (but only sells $100/mo)\nProduct B: 20% mar",
+    "status": "PASS"
+  }
+]

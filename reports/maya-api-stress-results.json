@@ -1,0 +1,1586 @@
+{
+  "testType": "api-stress",
+  "agent": "maya",
+  "baseUrl": "https://bot-test.yepai.io",
+  "apiEndpoint": "https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+  "isStreaming": false,
+  "user": "baobaobao5959@gmail.com",
+  "maxConcurrency": 20,
+  "scenarios": 6,
+  "passed": 0,
+  "partial": 6,
+  "failed": 0,
+  "results": [
+    {
+      "id": "ST-API-01",
+      "name": "Sequential Baseline (20 requests)",
+      "concurrency": 1,
+      "totalRequests": 20,
+      "successCount": 16,
+      "failCount": 4,
+      "successRate": 0.8,
+      "latency": {
+        "min": 14313,
+        "avg": 30512,
+        "p50": 19160,
+        "p75": 45771,
+        "p90": 58219,
+        "p95": 58400,
+        "p99": 58400,
+        "max": 58400
+      },
+      "ttfb": {
+        "avg": 30511,
+        "p95": 58399
+      },
+      "throughputRps": 0.03,
+      "durationMs": 730611,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 45771,
+          "ttfbMs": 45769,
+          "responseBytes": 4515,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 19866,
+          "ttfbMs": 19865,
+          "responseBytes": 4647,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 504,
+          "latencyMs": 60429,
+          "ttfbMs": 60429,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 18018,
+          "ttfbMs": 18018,
+          "responseBytes": 1611,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 14313,
+          "ttfbMs": 14312,
+          "responseBytes": 1141,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 54186,
+          "ttfbMs": 54186,
+          "responseBytes": 3699,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 504,
+          "latencyMs": 60826,
+          "ttfbMs": 60826,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 40494,
+          "ttfbMs": 40494,
+          "responseBytes": 3887,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 16181,
+          "ttfbMs": 16180,
+          "responseBytes": 1147,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 52667,
+          "ttfbMs": 52667,
+          "responseBytes": 5855,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 19160,
+          "ttfbMs": 19160,
+          "responseBytes": 1155,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 504,
+          "latencyMs": 60797,
+          "ttfbMs": 60797,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 17151,
+          "ttfbMs": 17151,
+          "responseBytes": 4036,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 200,
+          "latencyMs": 58219,
+          "ttfbMs": 58219,
+          "responseBytes": 8348,
+          "success": true
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 200,
+          "latencyMs": 17997,
+          "ttfbMs": 17996,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 200,
+          "latencyMs": 17452,
+          "ttfbMs": 17452,
+          "responseBytes": 1670,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 504,
+          "latencyMs": 60366,
+          "ttfbMs": 60366,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 58400,
+          "ttfbMs": 58399,
+          "responseBytes": 6285,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 200,
+          "latencyMs": 17253,
+          "ttfbMs": 17252,
+          "responseBytes": 1163,
+          "success": true
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 200,
+          "latencyMs": 21059,
+          "ttfbMs": 21058,
+          "responseBytes": 1688,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T12:45:47.911Z"
+    },
+    {
+      "id": "ST-API-02",
+      "name": "Concurrent Burst (5 simultaneous)",
+      "concurrency": 5,
+      "totalRequests": 5,
+      "successCount": 4,
+      "failCount": 1,
+      "successRate": 0.8,
+      "latency": {
+        "min": 18271,
+        "avg": 35842,
+        "p50": 19884,
+        "p75": 52152,
+        "p90": 53059,
+        "p95": 53059,
+        "p99": 53059,
+        "max": 53059
+      },
+      "ttfb": {
+        "avg": 35841,
+        "p95": 53059
+      },
+      "throughputRps": 0.08,
+      "durationMs": 60482,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 18271,
+          "ttfbMs": 18270,
+          "responseBytes": 1619,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 53059,
+          "ttfbMs": 53059,
+          "responseBytes": 5456,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 52152,
+          "ttfbMs": 52152,
+          "responseBytes": 4971,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 19884,
+          "ttfbMs": 19883,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 504,
+          "latencyMs": 60480,
+          "ttfbMs": 60480,
+          "responseBytes": 534,
+          "success": false
+        }
+      ],
+      "timestamp": "2026-04-18T12:46:48.397Z"
+    },
+    {
+      "id": "ST-API-03",
+      "name": "Concurrent Burst (10 simultaneous)",
+      "concurrency": 10,
+      "totalRequests": 10,
+      "successCount": 9,
+      "failCount": 1,
+      "successRate": 0.9,
+      "latency": {
+        "min": 15294,
+        "avg": 27541,
+        "p50": 19269,
+        "p75": 34398,
+        "p90": 55843,
+        "p95": 55843,
+        "p99": 55843,
+        "max": 55843
+      },
+      "ttfb": {
+        "avg": 27541,
+        "p95": 55843
+      },
+      "throughputRps": 0.16,
+      "durationMs": 60647,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 504,
+          "latencyMs": 60647,
+          "ttfbMs": 60647,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 16626,
+          "ttfbMs": 16625,
+          "responseBytes": 1150,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 34398,
+          "ttfbMs": 34397,
+          "responseBytes": 4162,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 25979,
+          "ttfbMs": 25979,
+          "responseBytes": 4051,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 19269,
+          "ttfbMs": 19269,
+          "responseBytes": 1746,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 55843,
+          "ttfbMs": 55843,
+          "responseBytes": 8711,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 15294,
+          "ttfbMs": 15294,
+          "responseBytes": 1162,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 17135,
+          "ttfbMs": 17135,
+          "responseBytes": 1153,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 47077,
+          "ttfbMs": 47077,
+          "responseBytes": 4640,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 16252,
+          "ttfbMs": 16252,
+          "responseBytes": 1142,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T12:47:49.045Z"
+    },
+    {
+      "id": "ST-API-04",
+      "name": "Concurrent Burst (20 simultaneous)",
+      "concurrency": 20,
+      "totalRequests": 20,
+      "successCount": 16,
+      "failCount": 4,
+      "successRate": 0.8,
+      "latency": {
+        "min": 15790,
+        "avg": 35277,
+        "p50": 30526,
+        "p75": 55480,
+        "p90": 59583,
+        "p95": 59638,
+        "p99": 59638,
+        "max": 59638
+      },
+      "ttfb": {
+        "avg": 35277,
+        "p95": 59637
+      },
+      "throughputRps": 0.33,
+      "durationMs": 60618,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 19946,
+          "ttfbMs": 19946,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 504,
+          "latencyMs": 60476,
+          "ttfbMs": 60476,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 33155,
+          "ttfbMs": 33155,
+          "responseBytes": 5067,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 30526,
+          "ttfbMs": 30525,
+          "responseBytes": 3516,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 21843,
+          "ttfbMs": 21843,
+          "responseBytes": 1614,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 46900,
+          "ttfbMs": 46899,
+          "responseBytes": 7759,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 15790,
+          "ttfbMs": 15789,
+          "responseBytes": 1162,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 504,
+          "latencyMs": 60475,
+          "ttfbMs": 60474,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 16713,
+          "ttfbMs": 16712,
+          "responseBytes": 1147,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 59638,
+          "ttfbMs": 59637,
+          "responseBytes": 5264,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 59583,
+          "ttfbMs": 59583,
+          "responseBytes": 4959,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 200,
+          "latencyMs": 33493,
+          "ttfbMs": 33493,
+          "responseBytes": 3909,
+          "success": true
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 57356,
+          "ttfbMs": 57356,
+          "responseBytes": 6338,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 200,
+          "latencyMs": 20694,
+          "ttfbMs": 20694,
+          "responseBytes": 1149,
+          "success": true
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 200,
+          "latencyMs": 18077,
+          "ttfbMs": 18077,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 200,
+          "latencyMs": 57395,
+          "ttfbMs": 57394,
+          "responseBytes": 5600,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 504,
+          "latencyMs": 60612,
+          "ttfbMs": 60611,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 55480,
+          "ttfbMs": 55480,
+          "responseBytes": 4988,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 200,
+          "latencyMs": 17848,
+          "ttfbMs": 17848,
+          "responseBytes": 1163,
+          "success": true
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 504,
+          "latencyMs": 60612,
+          "ttfbMs": 60612,
+          "responseBytes": 534,
+          "success": false
+        }
+      ],
+      "timestamp": "2026-04-18T12:48:49.663Z"
+    },
+    {
+      "id": "ST-API-05",
+      "name": "Ramp-Up (1→5→10→20→30)",
+      "concurrency": 30,
+      "totalRequests": 66,
+      "successCount": 54,
+      "failCount": 12,
+      "successRate": 0.8181818181818182,
+      "latency": {
+        "min": 14566,
+        "avg": 30216,
+        "p50": 20705,
+        "p75": 51591,
+        "p90": 59126,
+        "p95": 59622,
+        "p99": 60138,
+        "max": 60138
+      },
+      "ttfb": {
+        "avg": 30215,
+        "p95": 59622
+      },
+      "throughputRps": 0.24,
+      "durationMs": 274084,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 23435,
+          "ttfbMs": 23435,
+          "responseBytes": 4150,
+          "success": true
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 17627,
+          "ttfbMs": 17626,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 59126,
+          "ttfbMs": 59125,
+          "responseBytes": 5295,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 19962,
+          "ttfbMs": 19962,
+          "responseBytes": 1664,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 17464,
+          "ttfbMs": 17464,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 14566,
+          "ttfbMs": 14566,
+          "responseBytes": 1141,
+          "success": true
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 14786,
+          "ttfbMs": 14785,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 17161,
+          "ttfbMs": 17161,
+          "responseBytes": 3468,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 504,
+          "latencyMs": 60484,
+          "ttfbMs": 60483,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 19520,
+          "ttfbMs": 19520,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 20241,
+          "ttfbMs": 20241,
+          "responseBytes": 1141,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 54420,
+          "ttfbMs": 54419,
+          "responseBytes": 5372,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 17498,
+          "ttfbMs": 17498,
+          "responseBytes": 1162,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 57774,
+          "ttfbMs": 57773,
+          "responseBytes": 5354,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 19377,
+          "ttfbMs": 19377,
+          "responseBytes": 1697,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 20628,
+          "ttfbMs": 20627,
+          "responseBytes": 1597,
+          "success": true
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 504,
+          "latencyMs": 60446,
+          "ttfbMs": 60446,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 15570,
+          "ttfbMs": 15570,
+          "responseBytes": 1150,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 504,
+          "latencyMs": 60179,
+          "ttfbMs": 60179,
+          "responseBytes": 562,
+          "success": false
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 504,
+          "latencyMs": 60446,
+          "ttfbMs": 60446,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 16742,
+          "ttfbMs": 16742,
+          "responseBytes": 1141,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 15237,
+          "ttfbMs": 15236,
+          "responseBytes": 1165,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 51591,
+          "ttfbMs": 51590,
+          "responseBytes": 5190,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 60138,
+          "ttfbMs": 60138,
+          "responseBytes": 4299,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 55962,
+          "ttfbMs": 55961,
+          "responseBytes": 5535,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 54855,
+          "ttfbMs": 54855,
+          "responseBytes": 4881,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 53065,
+          "ttfbMs": 53064,
+          "responseBytes": 5904,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 200,
+          "latencyMs": 16751,
+          "ttfbMs": 16750,
+          "responseBytes": 1152,
+          "success": true
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 17547,
+          "ttfbMs": 17546,
+          "responseBytes": 1162,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 200,
+          "latencyMs": 16488,
+          "ttfbMs": 16487,
+          "responseBytes": 1149,
+          "success": true
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 504,
+          "latencyMs": 60439,
+          "ttfbMs": 60439,
+          "responseBytes": 562,
+          "success": false
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 200,
+          "latencyMs": 48260,
+          "ttfbMs": 48260,
+          "responseBytes": 4290,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 504,
+          "latencyMs": 60441,
+          "ttfbMs": 60441,
+          "responseBytes": 102,
+          "success": false
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 14781,
+          "ttfbMs": 14781,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 200,
+          "latencyMs": 23003,
+          "ttfbMs": 23002,
+          "responseBytes": 1163,
+          "success": true
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 200,
+          "latencyMs": 20379,
+          "ttfbMs": 20379,
+          "responseBytes": 4418,
+          "success": true
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 32537,
+          "ttfbMs": 32536,
+          "responseBytes": 4607,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 24930,
+          "ttfbMs": 24930,
+          "responseBytes": 3876,
+          "success": true
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 19603,
+          "ttfbMs": 19603,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 16195,
+          "ttfbMs": 16195,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 504,
+          "latencyMs": 60518,
+          "ttfbMs": 60518,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 504,
+          "latencyMs": 60519,
+          "ttfbMs": 60518,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 59129,
+          "ttfbMs": 59129,
+          "responseBytes": 4921,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 17857,
+          "ttfbMs": 17856,
+          "responseBytes": 1153,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 53093,
+          "ttfbMs": 53093,
+          "responseBytes": 4158,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 21884,
+          "ttfbMs": 21884,
+          "responseBytes": 1142,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 47323,
+          "ttfbMs": 47323,
+          "responseBytes": 5540,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 200,
+          "latencyMs": 24576,
+          "ttfbMs": 24575,
+          "responseBytes": 1152,
+          "success": true
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 60013,
+          "ttfbMs": 60013,
+          "responseBytes": 6034,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 504,
+          "latencyMs": 60542,
+          "ttfbMs": 60542,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 200,
+          "latencyMs": 18898,
+          "ttfbMs": 18897,
+          "responseBytes": 1641,
+          "success": true
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 200,
+          "latencyMs": 59622,
+          "ttfbMs": 59622,
+          "responseBytes": 7650,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 200,
+          "latencyMs": 16344,
+          "ttfbMs": 16343,
+          "responseBytes": 1166,
+          "success": true
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 17036,
+          "ttfbMs": 17036,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 504,
+          "latencyMs": 60542,
+          "ttfbMs": 60542,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 200,
+          "latencyMs": 22495,
+          "ttfbMs": 22495,
+          "responseBytes": 1147,
+          "success": true
+        },
+        {
+          "question": "What is the ideal Facebook ad frequency?",
+          "statusCode": 200,
+          "latencyMs": 55253,
+          "ttfbMs": 55252,
+          "responseBytes": 5305,
+          "success": true
+        },
+        {
+          "question": "How do I segment my email list?",
+          "statusCode": 200,
+          "latencyMs": 19884,
+          "ttfbMs": 19884,
+          "responseBytes": 1144,
+          "success": true
+        },
+        {
+          "question": "What is a marketing funnel?",
+          "statusCode": 504,
+          "latencyMs": 60540,
+          "ttfbMs": 60540,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I use customer reviews in marketing?",
+          "statusCode": 200,
+          "latencyMs": 24553,
+          "ttfbMs": 24552,
+          "responseBytes": 1156,
+          "success": true
+        },
+        {
+          "question": "What is social proof and how do I use it?",
+          "statusCode": 504,
+          "latencyMs": 60539,
+          "ttfbMs": 60539,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I create an effective loyalty program?",
+          "statusCode": 200,
+          "latencyMs": 59477,
+          "ttfbMs": 59477,
+          "responseBytes": 4113,
+          "success": true
+        },
+        {
+          "question": "What is cross-selling and up-selling?",
+          "statusCode": 200,
+          "latencyMs": 22644,
+          "ttfbMs": 22643,
+          "responseBytes": 1150,
+          "success": true
+        },
+        {
+          "question": "How do I reduce cart abandonment?",
+          "statusCode": 200,
+          "latencyMs": 20967,
+          "ttfbMs": 20967,
+          "responseBytes": 1146,
+          "success": true
+        },
+        {
+          "question": "What is the best way to announce a new product?",
+          "statusCode": 200,
+          "latencyMs": 20705,
+          "ttfbMs": 20704,
+          "responseBytes": 1160,
+          "success": true
+        },
+        {
+          "question": "How do I run a successful flash sale?",
+          "statusCode": 200,
+          "latencyMs": 22666,
+          "ttfbMs": 22665,
+          "responseBytes": 1150,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-04-18T12:53:23.748Z",
+      "levelStats": [
+        {
+          "level": 1,
+          "avgLatency": 23435,
+          "successRate": 1
+        },
+        {
+          "level": 5,
+          "avgLatency": 25749,
+          "successRate": 1
+        },
+        {
+          "level": 10,
+          "avgLatency": 26823,
+          "successRate": 0.9
+        },
+        {
+          "level": 20,
+          "avgLatency": 32025,
+          "successRate": 0.75
+        },
+        {
+          "level": 30,
+          "avgLatency": 31570,
+          "successRate": 0.8
+        }
+      ],
+      "degradationRatio": "1.35x"
+    },
+    {
+      "id": "ST-API-06",
+      "name": "Sustained Load (50 req / 60s)",
+      "concurrency": 1,
+      "totalRequests": 50,
+      "successCount": 41,
+      "failCount": 9,
+      "successRate": 0.82,
+      "latency": {
+        "min": 14580,
+        "avg": 33725,
+        "p50": 23833,
+        "p75": 53990,
+        "p90": 59171,
+        "p95": 59643,
+        "p99": 60450,
+        "max": 60450
+      },
+      "ttfb": {
+        "avg": 33725,
+        "p95": 59643
+      },
+      "throughputRps": 0.42,
+      "durationMs": 119349,
+      "status": "PARTIAL",
+      "metrics": [
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 15774,
+          "ttfbMs": 15774,
+          "responseBytes": 1164,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 18156,
+          "ttfbMs": 18155,
+          "responseBytes": 1150,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 17476,
+          "ttfbMs": 17476,
+          "responseBytes": 1141,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 200,
+          "latencyMs": 18143,
+          "ttfbMs": 18143,
+          "responseBytes": 1162,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 17309,
+          "ttfbMs": 17309,
+          "responseBytes": 1147,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 19459,
+          "ttfbMs": 19459,
+          "responseBytes": 1611,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 17926,
+          "ttfbMs": 17926,
+          "responseBytes": 1602,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 24921,
+          "ttfbMs": 24921,
+          "responseBytes": 3552,
+          "success": true
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 200,
+          "latencyMs": 17648,
+          "ttfbMs": 17648,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 200,
+          "latencyMs": 16744,
+          "ttfbMs": 16743,
+          "responseBytes": 1166,
+          "success": true
+        },
+        {
+          "question": "What is the ideal Facebook ad frequency?",
+          "statusCode": 200,
+          "latencyMs": 17397,
+          "ttfbMs": 17397,
+          "responseBytes": 1153,
+          "success": true
+        },
+        {
+          "question": "What is cross-selling and up-selling?",
+          "statusCode": 200,
+          "latencyMs": 14580,
+          "ttfbMs": 14580,
+          "responseBytes": 1150,
+          "success": true
+        },
+        {
+          "question": "How do I use customer reviews in marketing?",
+          "statusCode": 200,
+          "latencyMs": 18505,
+          "ttfbMs": 18504,
+          "responseBytes": 1156,
+          "success": true
+        },
+        {
+          "question": "What is a marketing funnel?",
+          "statusCode": 200,
+          "latencyMs": 24990,
+          "ttfbMs": 24989,
+          "responseBytes": 3760,
+          "success": true
+        },
+        {
+          "question": "How do I reduce cart abandonment?",
+          "statusCode": 200,
+          "latencyMs": 21702,
+          "ttfbMs": 21702,
+          "responseBytes": 1617,
+          "success": true
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 60450,
+          "ttfbMs": 60450,
+          "responseBytes": 6136,
+          "success": true
+        },
+        {
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 16051,
+          "ttfbMs": 16051,
+          "responseBytes": 1153,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 200,
+          "latencyMs": 23833,
+          "ttfbMs": 23833,
+          "responseBytes": 4145,
+          "success": true
+        },
+        {
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 504,
+          "latencyMs": 60554,
+          "ttfbMs": 60554,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 52159,
+          "ttfbMs": 52158,
+          "responseBytes": 5941,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 55981,
+          "ttfbMs": 55980,
+          "responseBytes": 4888,
+          "success": true
+        },
+        {
+          "question": "What makes a high-converting landing page?",
+          "statusCode": 200,
+          "latencyMs": 20578,
+          "ttfbMs": 20577,
+          "responseBytes": 1693,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 200,
+          "latencyMs": 19991,
+          "ttfbMs": 19991,
+          "responseBytes": 1152,
+          "success": true
+        },
+        {
+          "question": "How do I grow my email subscriber list?",
+          "statusCode": 200,
+          "latencyMs": 57790,
+          "ttfbMs": 57790,
+          "responseBytes": 6023,
+          "success": true
+        },
+        {
+          "question": "What is user-generated content and how do I leverage it?",
+          "statusCode": 200,
+          "latencyMs": 20659,
+          "ttfbMs": 20659,
+          "responseBytes": 1169,
+          "success": true
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 17515,
+          "ttfbMs": 17515,
+          "responseBytes": 1732,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 200,
+          "latencyMs": 17023,
+          "ttfbMs": 17022,
+          "responseBytes": 1163,
+          "success": true
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 200,
+          "latencyMs": 52184,
+          "ttfbMs": 52184,
+          "responseBytes": 5359,
+          "success": true
+        },
+        {
+          "question": "What is social proof and how do I use it?",
+          "statusCode": 200,
+          "latencyMs": 46254,
+          "ttfbMs": 46253,
+          "responseBytes": 4915,
+          "success": true
+        },
+        {
+          "question": "What is influencer marketing?",
+          "statusCode": 200,
+          "latencyMs": 28428,
+          "ttfbMs": 28428,
+          "responseBytes": 4040,
+          "success": true
+        },
+        {
+          "question": "What is the difference between reach and impressions?",
+          "statusCode": 200,
+          "latencyMs": 20906,
+          "ttfbMs": 20905,
+          "responseBytes": 4227,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 504,
+          "latencyMs": 60752,
+          "ttfbMs": 60752,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 504,
+          "latencyMs": 60550,
+          "ttfbMs": 60550,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I create a marketing budget for a small business?",
+          "statusCode": 200,
+          "latencyMs": 59643,
+          "ttfbMs": 59643,
+          "responseBytes": 6835,
+          "success": true
+        },
+        {
+          "question": "How do I measure the ROI of social media marketing?",
+          "statusCode": 200,
+          "latencyMs": 26156,
+          "ttfbMs": 26155,
+          "responseBytes": 3709,
+          "success": true
+        },
+        {
+          "question": "What is content marketing and why is it important?",
+          "statusCode": 504,
+          "latencyMs": 60524,
+          "ttfbMs": 60524,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I create an effective loyalty program?",
+          "statusCode": 200,
+          "latencyMs": 52188,
+          "ttfbMs": 52188,
+          "responseBytes": 4407,
+          "success": true
+        },
+        {
+          "question": "How do I segment my email list?",
+          "statusCode": 504,
+          "latencyMs": 60550,
+          "ttfbMs": 60550,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 200,
+          "latencyMs": 53990,
+          "ttfbMs": 53989,
+          "responseBytes": 4786,
+          "success": true
+        },
+        {
+          "question": "How do I run a successful flash sale?",
+          "statusCode": 200,
+          "latencyMs": 59171,
+          "ttfbMs": 59171,
+          "responseBytes": 5779,
+          "success": true
+        },
+        {
+          "question": "What is the best way to announce a new product?",
+          "statusCode": 504,
+          "latencyMs": 60543,
+          "ttfbMs": 60543,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 200,
+          "latencyMs": 56821,
+          "ttfbMs": 56821,
+          "responseBytes": 4763,
+          "success": true
+        },
+        {
+          "question": "How do I build a referral program?",
+          "statusCode": 200,
+          "latencyMs": 51029,
+          "ttfbMs": 51028,
+          "responseBytes": 5060,
+          "success": true
+        },
+        {
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 59775,
+          "ttfbMs": 59775,
+          "responseBytes": 4839,
+          "success": true
+        },
+        {
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 200,
+          "latencyMs": 56057,
+          "ttfbMs": 56057,
+          "responseBytes": 5309,
+          "success": true
+        },
+        {
+          "question": "How do retargeting ads work?",
+          "statusCode": 200,
+          "latencyMs": 59201,
+          "ttfbMs": 59198,
+          "responseBytes": 5162,
+          "success": true
+        },
+        {
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 504,
+          "latencyMs": 60609,
+          "ttfbMs": 60609,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "What are the best times to send marketing emails?",
+          "statusCode": 200,
+          "latencyMs": 58176,
+          "ttfbMs": 58175,
+          "responseBytes": 6642,
+          "success": true
+        },
+        {
+          "question": "How do I create a brand voice guide?",
+          "statusCode": 504,
+          "latencyMs": 60192,
+          "ttfbMs": 60192,
+          "responseBytes": 534,
+          "success": false
+        },
+        {
+          "question": "How do I write compelling ad copy?",
+          "statusCode": 504,
+          "latencyMs": 60524,
+          "ttfbMs": 60524,
+          "responseBytes": 534,
+          "success": false
+        }
+      ],
+      "timestamp": "2026-04-18T12:55:23.098Z"
+    }
+  ],
+  "generatedAt": "2026-04-18T12:55:23.100Z"
+}

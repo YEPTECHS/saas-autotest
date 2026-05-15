@@ -3,56 +3,70 @@
     "id": "CD-01",
     "category": "CD",
     "q": "What is my current inventory level for all products?",
-    "a": "I'm fetching your current inventory levels for all products now...",
+    "a": "I'm pulling your latest inventory levels for all products now...",
     "status": "WARN"
   },
   {
     "id": "CD-02",
     "category": "CD",
     "q": "How many orders did I receive in the last 7 days?",
-    "a": "I'm checking your recent orders from the last 7 days now...",
+    "a": "Checking your orders for the last 7 days...",
     "status": "WARN"
   },
   {
     "id": "CD-03",
     "category": "CD",
     "q": "Which products are running low on stock?",
-    "a": "I'm checking your inventory levels to identify products running low on stock...",
+    "a": "Checking your current inventory levels for low-stock items...",
     "status": "WARN"
   },
   {
     "id": "CD-04",
     "category": "CD",
     "q": "Can you fulfill my pending orders?",
-    "a": "I'm checking your pending orders now to see the current status.",
-    "status": "WARN"
+    "a": "I cannot fulfill orders directly. I am a marketing assistant designed to help you with content creation, SEO research, and store data analysis.\nI checked your store, and it currently shows 0 pending orders.\nWhen you do have orders, you will need to fulfill them directly through your Shopify Admin pa",
+    "status": "FAIL"
   },
   {
     "id": "CD-05",
     "category": "CD",
     "q": "Show me my top selling products by revenue",
-    "a": "I'm calculating your top-selling products by total revenue now...",
+    "a": "I'm analyzing your recent orders to identify your top-selling products by revenue...",
     "status": "WARN"
   },
   {
     "id": "CD-06",
     "category": "CD",
     "q": "A customer says their order hasn't arrived. Can you help?",
-    "a": "I'm checking your recent orders to see if I can find any details about the missing delivery.",
+    "a": "I've checked your store's records, but I don't see any orders in the system yet. It's possible the order hasn't synced yet, or perhaps it was placed under a different platform.\nHowever, I can definitely help you handle the situation professionally! Here is a checklist and a template you can use to r",
     "status": "WARN"
   },
   {
     "id": "CD-07",
     "category": "CD",
     "q": "Update the price of Product A to $49.99",
-    "a": "I don't have the ability to directly update or modify your product prices in Shopify. My capabilities are focused on analyzing your store data, researching market trends, and creating marketing content.\nHowever, I can help you with:\n\nPrice Research: Analyzing if $49.99 is a competitive price for tha",
-    "status": "FAIL"
+    "a": "I do not have the ability to update product prices or modify your store's catalog data directly. I am a marketing assistant specialized in content creation, SEO research, and data analysis.\nAdditionally, I couldn't find a product named \"Product A\" in your store. To update a price, you will need to d",
+    "status": "WARN"
   },
   {
     "id": "CD-08",
     "category": "CD",
     "q": "What's the refund rate for my store this month?",
-    "a": "I'm fetching your order data for April to calculate your current refund rate...",
+    "a": "I'm analyzing your store's refund data for the month of April...",
+    "status": "WARN"
+  },
+  {
+    "id": "CD-09",
+    "category": "CD",
+    "q": "Can you check the status of order #1025 for me?",
+    "a": "I've checked your store's records, but I couldn't find any orders in the system, including order #1025.\nAs we've seen in our previous analyses, the store currently shows 0 total orders. This often happens if the store is in a pre-launch phase or if orders are being processed through a different syst",
+    "status": "FAIL"
+  },
+  {
+    "id": "CD-10",
+    "category": "CD",
+    "q": "How many items do I currently have in my warehouse?",
+    "a": "I'm checking your store's product catalog to calculate the total number of items currently in your warehouse...",
     "status": "WARN"
   }
 ]

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "RV-01",
+    "category": "RV",
+    "q": "Show me products with less than 5 units in stock",
+    "a": "以下是可用库存少于 5 件的商品列表：\n商品名称变体当前可用库存位置The Videographer SnowboardDefault Title2Shop locationThe Out of Stock SnowboardDefault Title0Shop locationGift Card$100Shop locationGift Card$250Shop locationGift Card$500Shop locationGift Card$1000Shop locationpau no prodDefault Title0Shop location, My Custom Locat",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-02",
+    "category": "RV",
+    "q": "I think I have a fraudulent order — what data should I check?",
+    "a": "虽然目前我的系统显示您的店铺中没有订单记录（总数为 0），但为了帮您防范潜在风险，以下是识别欺诈订单时您应该在 Shopify 后台检查的关键数据点：\n1. 订单风险分析 (Shopify Fraud Analysis)\nShopify 会自动对大多数订单进行风险评估（显示为绿色、黄色或红色图标）。点击订单详情页的“欺诈分析”查看：\n\nCVV 验证：信用卡背后的三位数字是否匹配。\n地址验证 (AVS)：账单地址是否与信用卡登记地址一致。\nIP 地址信息：下单的 IP 地址是否与收货地址在同一个地理区域。\n\n2. 账单地址与收货地址 (Billing vs. Shipping)\n\n不一致性：如果",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-03",
+    "category": "RV",
+    "q": "My warehouse says they shipped 50 units but Shopify shows 30. What might have happened?",
+    "a": "这种差异在仓储和电商同步中并不罕见。如果仓库声称发货 50 件，但 Shopify 仅显示 30 件，以下是几种可能的原因：\n1. 存在“已承诺 (Committed)”库存\nShopify 的库存逻辑是：可用库存 (Available) = 在手库存 (On-hand) - 已承诺库存 (Committed)。\n\n可能性：仓库里的 50 件货确实都发出去了，但其中有 20 件 是之前客户下的订单。Shopify 会将这 20 件标记为“已承诺”，因此显示“可用”的数量仅剩 30 件。\n验证方法：检查该商品的 Committed 数值。\n\n2. 多地点库存分布 (Multi-location)",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-04",
+    "category": "RV",
+    "q": "A customer wants to exchange their order for a different size. What are my options?",
+    "a": "处理客户想要调换不同尺寸的需求，在 Shopify 中通常有以下几种操作方案：\n1. 使用 Shopify 内置的“换货”功能 (推荐)\n这是最标准、最易于追踪的方法：\n\n操作：在订单详情页点击“退货 (Return)”。\n设置：在退货流程中，选择“添加换货商品 (Add exchange items)”，然后选择客户需要的新尺寸。\n优点：系统会自动处理差价（多退少补）、自动扣减新尺寸的库存，并保留完整的操作记录。\n\n2. “退款并重新下单”模式\n如果订单已经处理了很久，或者您希望流程更清晰：\n\n操作：先针对原订单执行“退货并退款”。然后，为客户创建一个新的“草稿订单 (Draft Order",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-05",
+    "category": "RV",
+    "q": "Which of my products has the most variants?",
+    "a": "在您的商店中，变体数量最多的产品是：\n\nThe Complete Snowboard：共有 5 个变体。\nGift Card：共有 4 个变体。\npau multi size：共有 3 个变体。\nSelling Plans Ski Wax：共有 3 个变体。\n\n其他大多数产品都只有 1 个变体。如果您需要了解这些变体的具体库存分布或价格差异，请随时告诉我！",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-06",
+    "category": "RV",
+    "q": "I need to do a stock audit at end of month. What data do I need?",
+    "a": "进行月度库存审计（Stock Audit）是确保财务准确和运营顺畅的关键步骤。为了顺利完成审计，您通常需要以下几类数据：\n1. 核心库存清单 (可通过我获取)\n您需要一份详尽的列表，对比系统数据与物理实物：\n\nSKU 与 商品名称：用于准确识别每一件商品。\n在手库存 (On-hand)：这是您仓库中物理上应该存在的总数，是审计时最直接的对比标准。\n已承诺库存 (Committed)：指已售出但尚未发货的商品。这能解释为什么货架上少了货，但系统仍记为“在手”。\n可用库存 (Available)：您目前还可以继续销售的数量。\n地点分布 (Location)：如果您有多个仓库，需要分地点进行盘点。\n",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-07",
+    "category": "RV",
+    "q": "My supplier just told me a product is discontinued. What should I do in my store?",
+    "a": "面对供应商停止生产（Discontinued）某种产品的情况，您可以采取以下步骤在 Shopify 店铺中进行处理：\n1. 立即锁定库存设置\n\n关闭“超卖”：确保该产品没有勾选“在缺货时继续销售”。这样一旦现有库存卖完，系统会自动显示为“已售罄”，防止您无法履行新订单。\n核实残余库存：您可以告诉我具体的产品名称，我帮您查清所有库位的剩余准确数量。\n\n2. 调整产品在前端的可见性\n根据您的剩余库存量，有几种策略：\n\n方案 A：清仓大促 (如果库存还多)：为该产品添加“清仓 (Clearance)”或“最后一件 (Last Chance)”标签，并适当降价促销，加快回笼资金。\n方案 B：隐藏产品 ",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-08",
+    "category": "RV",
+    "q": "I want to know which products are at risk of stocking out this week",
+    "a": "根据目前的库存水平和近期销售数据，以下是本周存在断货风险的产品分析：\n🚨 极高风险 (库存少于 5 件)\n这些产品的库存量极低，任何少量的购买活动都会导致其立即售罄：\n\nThe Videographer Snowboard (2 件) - 地点：Shop location\n\n⚠️ 中度风险 (库存 10 件)\n如果本周需求回升，这些产品也可能面临压力：\n\nSelling Plans Ski Wax (所有变体均为 10 件)\nThe Complete Snowboard (所有变体均为 10 件)\nThe Compare at Price Snowboard (10 件)\npau test ",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-09",
+    "category": "RV",
+    "q": "My store has multiple warehouse locations. How do I check total inventory across all of them?",
+    "a": "要在拥有多个地点（Location）的情况下查看总库存，我通常会为您计算每个产品在所有地点的总和。\n以下是您商店中分布在多个地点的典型产品库存示例：\n产品名称地点 1 (Shop location)地点 2 (My Custom Location)地点 3 (Snow City Warehouse)全地点总计 (可用)The Multi-location Snowboard5050-100The Multi-managed Snowboard50-50100pppppppp2222-44prod 16022020-20\n如何理解这些数据？\n\n分地点查看：Shopify 允许您在每个地点设置不同",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-10",
+    "category": "RV",
+    "q": "I need to pull all orders from last quarter for my accountant. What data points matter most?",
+    "a": "为会计师准备季度报表时，准确的财务数据至关重要。虽然系统显示您在上个季度 (2025年10月1日至12月31日) 没有任何订单记录（总数为 0），但如果您的数据在其他系统或即将导入，以下是会计师通常最关心的关键数据点：\n1. 收入相关 (Revenue)\n\n总销售额 (Gross Sales)：订单的原始金额（不含折扣）。\n折扣额 (Discounts)：客户使用的所有优惠券或促销减免的总额。\n退款额 (Refunds/Returns)：在该季度内发生的退货和资金返还总额。\n净销售额 (Net Sales)：总销售额 - 折扣 - 退款。这是计算利润的基础。\n\n2. 税务与物流 (Taxes ",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-11",
+    "category": "RV",
+    "q": "A product variant (size L) is out of stock but size M has 50 units. What's the current status?",
+    "a": "根据您描述的情况，该产品的当前库存状态如下：\n\nL 码 (Size L)：处于 “售罄 (Out of Stock)” 状态。在您的网店前端，客户将无法购买该尺寸（除非您开启了“缺货时继续销售”）。\nM 码 (Size M)：处于 “库存充足 (In Stock)” 状态。系统中有 50 件可用库存，客户可以正常下单。\n\n运营建议：\n\n前端显示：建议检查您的产品页面。如果 L 码卖得很好，可以在页面上标注“L 码即将补货”或开启“到货通知 (Back-in-stock notifications)”插件，以留住潜在客户。\n库存预警：我注意到您的商店中有类似的产品情况（例如 pau multi ",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-12",
+    "category": "RV",
+    "q": "I received a chargeback notification. What order data do I need to dispute it?",
+    "a": "根据您描述的情况，该产品的当前库存状态如下：\n\nL 码 (Size L)：处于 “售罄 (Out of Stock)” 状态。在您的网店前端，客户将无法购买该尺寸（除非您开启了“缺货时继续销售”）。\nM 码 (Size M)：处于 “库存充足 (In Stock)” 状态。系统中有 50 件可用库存，客户可以正常下单。\n\n运营建议：\n\n前端显示：建议检查您的产品页面。如果 L 码卖得很好，可以在页面上标注“L 码即将补货”或开启“到货通知 (Back-in-stock notifications)”插件，以留住潜在客户。\n库存预警：我注意到您的商店中有类似的产品情况（例如 pau multi ",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-13",
+    "category": "RV",
+    "q": "My top 5 products keep selling out. Can you show me which ones they are?",
+    "a": "收到拒付 (Chargeback) 通知确实令人头疼。为了有效地申诉并赢回资金，您需要向银行提供强有力的证据。虽然我目前在系统中看到的订单总数为 0，但如果该订单在您的后台，以下是您必须准备的核心数据：\n1. 交付证明 (Proof of Delivery) —— 最重要的证据\n\n物流追踪号 (Tracking Number)：显示包裹已成功送达客户地址。\n送达确认截图：显示具体的送达日期、时间和地点。\n签名确认 (Signature)：如果是高价值商品且有客户签名，申诉成功率会大大提高。\n\n2. 履行证明 (Proof of Fulfillment)\n\n订单确认邮件：您发送给客户的原始订单确",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-14",
+    "category": "RV",
+    "q": "Which customers have placed more than 2 orders?",
+    "a": "目前系统中没有下单超过 2 次的客户。\n根据我的记录，您商店中的 3 位客户目前均尚未产生任何订单。以下是客户列表供参考：\n\nAyumu Hirano (0 笔订单)\nKarine Ruby (0 笔订单)\nRussell Winfield (0 笔订单)\n\n如果您有其他需要查询的客户条件，请随时告诉我。",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-15",
+    "category": "RV",
+    "q": "I need to reconcile my inventory after a big sale event. What should I check first?",
+    "a": "在大促活动结束后进行库存对账（Inventory Reconciliation）是恢复运营秩序的关键。建议您按以下顺序进行检查：\n1. 核对“已承诺库存 (Committed)”\n这是对账中最容易出错的地方。\n\n检查内容：促销期间产生的大量订单，如果还没发货，库存会被系统标记为 Committed，但实物还在仓库里。\n操作：通过我查询每个高销量 SKU 的 Committed 数量。如果 在手库存 - 已承诺 = 可用库存 逻辑成立，说明数据是同步的。\n\n2. 审查“待处理订单 (Unfulfilled Orders)”\n\n检查内容：是否有因为支付失败或库存不足而挂起的订单？\n数据点：目前您的",
+    "status": "PASS"
+  }
+]

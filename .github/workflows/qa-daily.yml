@@ -1,0 +1,267 @@
+# Daily QA — runs change detection, accuracy tests, triage, and HTML report.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   YEPAI_BASE_URL          e.g. https://bot-test.yepai.io
+#   YEPAI_LOGIN_EMAIL       test account email
+#   YEPAI_LOGIN_PASSWORD    test account password
+#   ANTHROPIC_API_KEY       for triage-agent + change-watch-agent AI analysis
+#   LINEAR_API_KEY          (optional) for auto-creating Linear tickets on regression
+#   REPORT_EMAIL_FROM       Gmail address to send reports from
+#   REPORT_EMAIL_PASS       Gmail app password (not account password)
+#   REPORT_EMAIL_TO         recipient address for HTML reports
+#
+# First-run prerequisite: run `pnpm watch:agents:baseline` locally once
+# to populate data/agent-baselines.json before enabling this workflow.
+
+name: Daily QA
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 01:00 UTC daily (11:00 Melbourne)
+  workflow_dispatch:        # allow manual trigger
+    inputs:
+      run_accuracy:
+        description: 'Run accuracy tests even if no changes detected'
+        type: boolean
+        default: false
+
+env:
+  YEPAI_BASE_URL:        ${{ secrets.YEPAI_BASE_URL }}
+  YEPAI_LOGIN_EMAIL:     ${{ secrets.YEPAI_LOGIN_EMAIL }}
+  YEPAI_LOGIN_PASSWORD:  ${{ secrets.YEPAI_LOGIN_PASSWORD }}
+  ANTHROPIC_API_KEY:     ${{ secrets.ANTHROPIC_API_KEY }}
+  LINEAR_API_KEY:        ${{ secrets.LINEAR_API_KEY }}
+  SLACK_WEBHOOK_URL:     ${{ secrets.SLACK_WEBHOOK_URL }}
+  REPORT_EMAIL_FROM:     ${{ secrets.REPORT_EMAIL_FROM }}
+  REPORT_EMAIL_PASS:     ${{ secrets.REPORT_EMAIL_PASS }}
+  REPORT_EMAIL_TO:       ${{ secrets.REPORT_EMAIL_TO }}
+
+jobs:
+  # ── Job 1: detect agent changes ────────────────────────────────
+  detect-changes:
+    name: Detect Agent Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.watch.outputs.has_changes }}
+      changed_agents: ${{ steps.watch.outputs.changed_agents }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Restore fingerprints cache
+        uses: actions/cache@v4
+        with:
+          path: data/agent-fingerprints.json
+          key: agent-fingerprints-${{ github.ref }}
+          restore-keys: agent-fingerprints-
+
+      - name: Run change watch (fingerprint only)
+        id: watch
+        run: |
+          npx tsx scripts/change-watch-agent.ts 2>&1 || true
+          # Parse changed agents from output file
+          if [ -f data/agent-fingerprints.json ]; then
+            echo "Fingerprints updated"
+          fi
+          # check-watch writes changed agents to change-watch-*.json; extract for downstream
+          CHANGED=$(node -e "
+            const fs = require('fs'), path = require('path');
+            const dir = 'reports';
+            if (!fs.existsSync(dir)) { console.log(''); process.exit(0); }
+            const files = fs.readdirSync(dir)
+              .filter(f => f.startsWith('change-watch-'))
+              .sort().reverse();
+            if (!files.length) { console.log(''); process.exit(0); }
+            const data = JSON.parse(fs.readFileSync(path.join(dir, files[0]), 'utf-8'));
+            const agents = (data.analysed || [])
+              .filter(a => a.change)
+              .map(a => a.change.agent);
+            console.log(agents.join(','));
+          " 2>/dev/null || echo "")
+          echo "changed_agents=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "has_changes=$( [ -n "$CHANGED" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+
+      - name: Save fingerprints cache
+        uses: actions/cache/save@v4
+        with:
+          path: data/agent-fingerprints.json
+          key: agent-fingerprints-${{ github.ref }}
+
+      - name: Upload change-watch report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: change-watch-report
+          path: reports/change-watch-*.json
+          if-no-files-found: ignore
+
+  # ── Job 2: accuracy tests (runs if changes detected or forced) ─
+  accuracy:
+    name: Accuracy Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true' || github.event.inputs.run_accuracy == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: [maya, oscar, daniel, cody]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run accuracy — ${{ matrix.agent }}
+        run: npx tsx scripts/accuracy-test-api.ts --agent ${{ matrix.agent }}
+        timeout-minutes: 15
+
+      - name: Upload accuracy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-${{ matrix.agent }}
+          path: reports/${{ matrix.agent }}-accuracy-results.json
+
+  # ── Job 3: alert (immediate Slack alert if accuracy < threshold) ─
+  alert:
+    name: Accuracy Alert
+    runs-on: ubuntu-latest
+    needs: accuracy
+    if: always() && needs.accuracy.result != 'skipped'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all accuracy reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: accuracy-*
+          path: reports/
+          merge-multiple: true
+
+      - name: Run alert agent
+        run: npx tsx scripts/alert-agent.ts || true
+        timeout-minutes: 5
+        env:
+          ACCURACY_ALERT_THRESHOLD: ${{ vars.ACCURACY_ALERT_THRESHOLD || '80' }}
+
+  # ── Job 4: triage ──────────────────────────────────────────────
+  triage:
+    name: Triage Failures
+    runs-on: ubuntu-latest
+    needs: accuracy
+    if: always() && needs.accuracy.result != 'skipped'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all accuracy reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: accuracy-*
+          path: reports/
+          merge-multiple: true
+
+      - name: Run triage agent
+        run: npx tsx scripts/triage-agent.ts --days 1 --linear --slack
+        timeout-minutes: 10
+
+      - name: Upload triage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: triage-report
+          path: reports/triage-*.json
+
+  # ── Job 5: auto-repair BUG failures ───────────────────────────
+  auto-repair:
+    name: Auto-Repair Broken Flows
+    runs-on: ubuntu-latest
+    needs: triage
+    if: always() && needs.triage.result == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Download triage report
+        uses: actions/download-artifact@v4
+        with:
+          name: triage-report
+          path: reports/
+
+      - name: Run repair agent on failed flows
+        run: npx tsx scripts/repair-agent.ts --all || true
+        timeout-minutes: 20
+
+  # ── Job 6: HTML report + notify ────────────────────────────────
+  report:
+    name: HTML Report & Notify
+    runs-on: ubuntu-latest
+    needs: [accuracy, triage, auto-repair]
+    if: always() && needs.accuracy.result != 'skipped'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports/
+          merge-multiple: true
+
+      - name: Generate HTML report & send email + Slack
+        run: npx tsx scripts/report-html.ts --email --slack
+        timeout-minutes: 5
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: reports/agent-test-report-*.html

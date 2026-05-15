@@ -1,0 +1,72 @@
+[
+  {
+    "id": "CI-01",
+    "category": "CI",
+    "q": "What is the gross margin for a $100 product with $60 COGS?",
+    "a": "Your gross margin is 40%.\nCalculation:\n($100 - $60) / $100 = 0.40 (40%)\nTo help you find similar margin optimization opportunities in your store, please select one of the products I've ranked for you below:",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-02",
+    "category": "CI",
+    "q": "What is the gross margin for a $100 product with $60 COGS?",
+    "a": "Your gross margin is 40%.\nCalculation:\n($100 - $60) / $100 = 0.40 (40%)\nTo help you find similar margin optimization opportunities in your store, please select one of the products I've ranked for you below:",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-03",
+    "category": "CI",
+    "q": "If the margin is 40% and COGS is $60, what should the selling price be?",
+    "a": "To achieve a 40% gross margin with a COGS of $60, your selling price should be $100.\nCalculation:\n$60 / (1 - 0.40) = $100\nWould you like to see how this target margin compares to your actual store products? I've analyzed your catalog and ranked them by optimization priority below. Pick one to see a ",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-04",
+    "category": "CI",
+    "q": "Verify: 40% of $100 selling price equals $40 gross profit. Correct?",
+    "a": "Yes, that is correct! A 40% margin on a $100 selling price results in exactly $40 in gross profit (leaving $60 to cover your COGS).\nNow that we have the math down, let's look at your actual store data. Which product from the list below would you like to deep-dive into first? I've ranked them by thos",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-05",
+    "category": "CI",
+    "q": "Price is $50, COGS is $30. What is the margin percentage?",
+    "a": "您的毛利率是 40%。\n计算方法：\n($50 - $30) / $50 = 0.40 (40%)\n为了帮助您优化店铺的盈利能力，我分析了您店铺的产品并按毛利优化优先级进行了排序。您想深入分析哪一个产品？",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-06",
+    "category": "CI",
+    "q": "What is the gross margin if COGS is $0 and price is $100?",
+    "a": "If your COGS is $0 and your selling price is $100, your gross margin is 100%.\nCalculation:\n($100 - $0) / $100 = 1.00 (100%)\nThis is the maximum possible margin, typically seen in digital products or services with no variable costs. For physical products like the ones in your store, there is always a",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-07",
+    "category": "CI",
+    "q": "My COGS is $120 but I can only sell for $100. What is my margin?",
+    "a": "Your gross margin is -20%.\nCalculation:\n($100 - $120) / $100 = -0.20 (-20%)\nThis is a negative margin, which means you are losing $20 on every unit sold. This situation is unsustainable and usually requires either a significant price increase or a major reduction in your COGS.\nLet's look at your act",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-08",
+    "category": "CI",
+    "q": "Revenue is $1,000,000 with a 35% gross margin. What is the total COGS?",
+    "a": "Your total COGS is $650,000.\nCalculation:\n$1,000,000 × (1 - 0.35) = $650,000\nThis means your gross profit is $350,000.\nTo see how the margins of your actual store products measure up to this 35% benchmark, please select a product from the list I provided earlier to begin a deep-dive analysis.",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-09",
+    "category": "CI",
+    "q": "Product priced at $0.99 with COGS of $0.45. What is the margin?",
+    "a": "您的毛利率约为 54.5%。\n计算方法：\n($0.99 - $0.45) / $0.99 = 0.5454... (约 54.5%)\n这是一个相当不错的毛利率。为了帮助您在实际经营中找到类似的盈利优化点，我分析了您店铺的产品并按优化优先级进行了排序。\n您想深入分析以下哪个产品？我们将结合其实际成本和市场定价为您生成深度报告。",
+    "status": "PASS"
+  },
+  {
+    "id": "CI-10",
+    "category": "CI",
+    "q": "Price is $30, COGS is $20. What is the exact margin percentage?",
+    "a": "Your exact gross margin is 33.33%.\nCalculation:\n($30 - $20) / $30 = 0.3333 (33.33%)\nTo help you find higher-margin opportunities in your own catalog, I've ranked your products by those that need the most margin optimization. Which one should we look at first?",
+    "status": "PASS"
+  }
+]

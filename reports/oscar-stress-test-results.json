@@ -1,0 +1,29 @@
+{
+  "agent": "oscar",
+  "testType": "stress",
+  "users": [
+    "fasigit832@okexbit.com",
+    "hemopiv218@auslank.com",
+    "baobaobao5959@gmail.com",
+    "wipepix900@gavrom.com"
+  ],
+  "scenarios": 1,
+  "passed": 0,
+  "partial": 0,
+  "failed": 0,
+  "errors": 1,
+  "results": [
+    {
+      "id": "FATAL",
+      "name": "Uncaught Error",
+      "status": "ERROR",
+      "details": {
+        "error": "page.waitForTimeout: Target page, context or browser has been closed",
+        "stack": "page.waitForTimeout: Target page, context or browser has been closed\n    at waitSendReady (C:\\Users\\pauki\\Downloads\\saase2etest\\saase2etest\\scripts\\test-stress.ts:314:16)\n    at async runRapidFire (C:\\Users\\pauki\\Downloads\\saase2etest\\saase2etest\\scripts\\test-stress.ts:348:19)\n    at async main (C:\\Users\\pauki\\Downloads\\saase2etest\\saase2etest\\scripts\\test-stress.ts:691:21)"
+      },
+      "duration": 0,
+      "timestamp": "2026-04-15T00:58:19.127Z"
+    }
+  ],
+  "generatedAt": "2026-04-15T00:58:19.391Z"
+}

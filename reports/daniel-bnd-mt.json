@@ -1,0 +1,72 @@
+[
+  {
+    "id": "MT-01",
+    "category": "MT",
+    "q": "My best-selling SKU costs $20 to make.",
+    "a": "That's a helpful starting point! To give you a precise margin and market analysis, could you please tell me the name of this best-selling SKU?\nOnce I have the name, I can look up its current price in your store and compare it against the $20 cost you provided.",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-02",
+    "category": "MT",
+    "q": "I want a 50% margin on that product. What should I price it at?",
+    "a": "To achieve a 50% gross margin on a product that costs $20 to make, you should price it at $40.00.\nCalculation:\n$20.00 / (1 - 0.50) = $40.00\nWhich product in your store are we looking at? Please select it from the list above or type the name below. Once I know the specific product, I can search the m",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-03",
+    "category": "MT",
+    "q": "Actually, the cost went up to $25 now.",
+    "a": "With the cost increasing to $25, to maintain a 50% margin, you would now need to price the product at $50.00.\nCalculation:\n$25.00 / (1 - 0.50) = $50.00\nTo see how this $50.00 target compares to your current store pricing and the rest of the market, we need to link this to a specific product in your ",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-04",
+    "category": "MT",
+    "q": "Recalculate the price for 50% margin with the updated cost.",
+    "a": "The recalculated price to achieve a 50% margin with the updated cost of $25.00 is exactly $50.00.\nCalculation:\n$25.00 / (1 - 0.50) = $50.00\nTo proceed with a full competitive analysis and see how this target price fits your current strategy, please select the specific product this applies to from th",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-05",
+    "category": "MT",
+    "q": "Shipping adds $3 per unit to each order.",
+    "a": "Adding $3.00 for shipping brings your total variable cost per unit to $28.00 ($25 cost + $3 shipping).\nTo maintain your 50% margin goal, you would now need to price the product at $56.00.\nCalculation:\n$28.00 / (1 - 0.50) = $56.00\nTo see how this $56.00 price compares to your competitors and your cur",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-06",
+    "category": "MT",
+    "q": "What is my total cost per unit now including shipping?",
+    "a": "Your total cost per unit is $28.00.\nBreakdown:\n\nProduct Cost: $25.00\nShipping: $3.00\nTotal: $28.00\n\nTo see how this cost impacts your real-world margins and how your pricing compares to the market, please select one of your products from the list below (or type its name). once selected, we can gener",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-07",
+    "category": "MT",
+    "q": "What was the original cost I first mentioned?",
+    "a": "The very first cost you mentioned at the beginning of our conversation was $30.\nLater, you mentioned a different scenario for a \"best-selling SKU\" with an initial cost of $20, which you then updated to $25 (and eventually $28 total including shipping).\nWould you like to proceed with the analysis usi",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-08",
+    "category": "MT",
+    "q": "I have a second product that costs $15 to make.",
+    "a": "Got it, a $15.00 cost for your second product.\nTo give you an accurate margin analysis and see how it compares to the market, I need to know which product in your store this refers to.\nPlease select the product from the list below or type its name:",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-09",
+    "category": "MT",
+    "q": "What price should I set for a 40% margin on this second product?",
+    "a": "To achieve a 40% gross margin on a product that costs $15.00 to make, you should price it at $25.00.\nCalculation:\n$15.00 / (1 - 0.40) = $25.00\nTo see how this $25.00 price compares to your competitors and your current store settings, we need to apply this to a specific SKU in your catalog.\nWhich pro",
+    "status": "PASS"
+  },
+  {
+    "id": "MT-10",
+    "category": "MT",
+    "q": "Which of my two products has better margin potential?",
+    "a": "Based on the numbers provided, Scenario 1 ($28 cost, $56 price) has better margin potential on paper for two reasons:\n\nHigher Efficiency: A 50% margin gives you more \"room\" to cover ads, overhead, and shipping than a 40% margin.\nHigher Absolute Profit: You earn $28 per unit compared to $10 per unit ",
+    "status": "PASS"
+  }
+]

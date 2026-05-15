@@ -1,0 +1,79 @@
+name: _debug-shopify-page
+description: 临时诊断：探查 Shopify 集成页面的按钮和内容
+
+steps:
+  - id: login
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/auth/login"
+      waitUntil: "domcontentloaded"
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], #email"
+      value: "{{YEPAI_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password'], input[name='password'], #password"
+      value: "{{YEPAI_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit']"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, [class*='sidebar']"
+      timeout: 30000
+
+  - id: goto-shopify
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/integrations/shopify"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-settle
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot
+    action: browser.screenshot
+    params:
+      name: "debug-shopify-page"
+
+  - id: dump-buttons
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, [role="button"], a[class*="btn"]'));
+        const result = btns.map(b => ({
+          tag: b.tagName,
+          text: b.textContent?.trim().substring(0, 60),
+          class: b.className?.substring(0, 60),
+          disabled: b.disabled,
+        }));
+        console.log('=== ALL BUTTONS ===');
+        result.forEach((b, i) => console.log(i, JSON.stringify(b)));
+        return result;
+
+  - id: dump-current-url
+    action: browser.getCurrentUrl
+
+  - id: dump-page-headings
+    action: browser.execute
+    params:
+      script: |
+        const headings = Array.from(document.querySelectorAll('h1,h2,h3')).map(h => h.textContent?.trim());
+        console.log('=== HEADINGS ===', headings);
+        return headings;
+
+  - id: keep-open
+    action: wait
+    params:
+      ms: 30000

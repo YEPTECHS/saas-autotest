@@ -3,70 +3,70 @@
     "id": "AP-01",
     "category": "AP",
     "q": "My product photos look dull. How can I improve them?",
-    "a": "High-end product photography is all about lighting, texture, and storytelling. I'll research some professional techniques and generate a \"before and after\" style concept to show you how to make your gear pop.",
+    "a": "Dull photos are often a result of lighting or background choices. I'll provide a guide on how to fix this, and I'm generating a professional inspiration shot for your 'Oxygen' snowboard to show you the difference high-quality lighting and composition can make!",
     "status": "PASS"
   },
   {
     "id": "AP-02",
     "category": "AP",
     "q": "My Instagram engagement is low. What should I change?",
-    "a": "I'm analyzing your current product catalog and researching 2026 Instagram engagement trends to give you a specific strategy to boost your numbers.",
+    "a": "Based on the latest April 2026 Instagram algorithm updates, the \"old\" ways of driving engagement—like engagement pods or generic music-only Reels—are actually hurting reach.\nInstagram has officially unified its metrics, moving to \"Views\" as the primary success signal across all formats, and is heavi",
     "status": "PASS"
   },
   {
     "id": "AP-03",
     "category": "AP",
     "q": "I want more traffic to my store. What's the best channel?",
-    "a": "I'm gathering your store's data to understand your products and audience better...",
-    "status": "FAIL"
+    "a": "I've researched the most effective traffic channels for 2026, specifically for high-ticket outdoor gear like your snowboards.\nIn 2026, the \"best\" channel isn't a single platform—it's a combination of High-Intent Search and Short-Form Video Discovery.\nHere is my prioritized recommendation for your st",
+    "status": "PASS"
   },
   {
     "id": "AP-04",
     "category": "AP",
     "q": "Why is my email open rate so low?",
-    "a": "I'm gathering your store's data to understand your products and audience better...",
-    "status": "FAIL"
+    "a": "I'm analyzing your customer data and researching industry benchmarks for 2026 to pinpoint why your email open rates might be low...",
+    "status": "PASS"
   },
   {
     "id": "AP-05",
     "category": "AP",
     "q": "What's the difference between a campaign and a promotion?",
-    "a": "I'm gathering your store's data to understand your products and audience better...",
-    "status": "FAIL"
+    "a": "In marketing, people often use these terms interchangeably, but for a business owner, understanding the difference is key to planning a strategy that actually makes money rather than just \"giving stuff away.\"\nHere is the breakdown of Campaign vs. Promotion:\n1. The Campaign (The \"Big Picture\")\nA Camp",
+    "status": "PASS"
   },
   {
     "id": "AP-06",
     "category": "AP",
     "q": "Should I use Facebook Ads or Google Ads for my fashion store?",
-    "a": "I'm gathering your store's data to understand your products and audience better...",
+    "a": "I'm researching the 2026 benchmarks for fashion e-commerce to compare the effectiveness of Meta vs. Google Ads for your store...",
     "status": "FAIL"
   },
   {
     "id": "AP-07",
     "category": "AP",
     "q": "How do I measure the ROI of my marketing campaigns?",
-    "a": "I'm gathering your store's data to understand your products and audience better...",
-    "status": "FAIL"
+    "a": "Measuring ROI (Return on Investment) in 2026 has evolved from simply looking at \"clicks\" to understanding the total health of your marketing spend. For a Shopify store with both high-ticket items (snowboards) and lower-priced goods (mugs), you need a tiered approach.\nHere is the 2026 framework for m",
+    "status": "PASS"
   },
   {
     "id": "AP-08",
     "category": "AP",
     "q": "My competitor has better product images. How do I compete?",
-    "a": "I'm developing a visual strategy to help you outshine your competitors. Instead of just trying to match their high-gloss photos, I'll show you how to leverage 'Technical Mastery' and 'Quiet Luxury' to build more trust with premium buyers. I'm also generating a sample 'Technical Macro' shot to show y",
+    "a": "I'm researching the visual trends for high-end snowboard and artisan homeware brands to give you a strategic edge over your competitors...",
     "status": "PASS"
   },
   {
     "id": "AP-09",
     "category": "AP",
     "q": "What tone of voice should I use in my marketing copy?",
-    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "a": "Based on your store's focus on high-end snowboards ($900+) and artisan ceramic mugs, your tone of voice should reflect \"The Authority of Quality.\"\nSince your products are high-ticket and handmade, customers aren't just buying an object; they are buying an experience and a standard of excellence.\nHer",
     "status": "PASS"
   },
   {
     "id": "AP-10",
     "category": "AP",
     "q": "I sell luxury watches. What marketing approach fits best?",
-    "a": "⚔️ How to Outshine Your Competitor's Visuals\nIf your competitor has \"better\" images, it usually means their photos have more atmosphere, sharper detail, or a more consistent lifestyle \"vibe.\" In the luxury market, you don't compete by being \"louder\"—you compete by being more authentic and technicall",
+    "a": "Based on your store's focus on high-end snowboards ($900+) and artisan ceramic mugs, your tone of voice should reflect \"The Authority of Quality.\"\nSince your products are high-ticket and handmade, customers aren't just buying an object; they are buying an experience and a standard of excellence.\nHer",
     "status": "PASS"
   }
 ]

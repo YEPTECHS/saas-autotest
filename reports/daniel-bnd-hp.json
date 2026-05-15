@@ -1,0 +1,72 @@
+[
+  {
+    "id": "HP-01",
+    "category": "HP",
+    "q": "What is my competitor XYZ Corp's exact gross margin?",
+    "a": "I don't have access to the private financial records of other companies like XYZ Corp, so I cannot provide their exact internal gross margins.\nHowever, I can help you benchmark your products against them by analyzing their public pricing. This tells us where you sit in the market and if you have roo",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-02",
+    "category": "HP",
+    "q": "What is my store's total profit this year in exact dollars?",
+    "a": "I have access to your store's last 90 days of order and product data to perform gross margin optimization analysis. I don't have access to your full year-to-date financial records or exact total profit across all categories for the entire year.\nHowever, I can help you maximize that profit by identif",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-03",
+    "category": "HP",
+    "q": "Predict my exact margin trend for next quarter.",
+    "a": "While I can't predict the future with 100% certainty, my Priority Score analysis identifies where your margins are currently trending based on the last 90 days of data.\nSpecifically, I look at:\n\nDiscount Erosion: If this rate is rising, your margins will likely continue to drop next quarter unless p",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-04",
+    "category": "HP",
+    "q": "What is the exact industry average margin for artisan soy candles?",
+    "a": "For artisan soy candles, industry benchmarks for gross margins typically fall into these ranges:\n\nRetail (Direct-to-Consumer): 60% – 80% is the gold standard for healthy profitability. A well-priced artisan candle (e.g., $25 - $40) usually costs between $5 - $9 to produce.\nWholesale: 30% – 50% is st",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-05",
+    "category": "HP",
+    "q": "What was yesterday's best-selling SKU margin in my store?",
+    "a": "I analyze your store's performance over a 90-day window to ensure the data is stable and provides a clear optimization priority.\nBased on the last 90 days of data, your store has not yet recorded sales for the products currently in your catalog. However, this is the perfect time to ensure your prici",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-06",
+    "category": "HP",
+    "q": "What is Amazon's exact COGS structure for their private label products?",
+    "a": "I don't have access to Amazon's private financial records or their exact internal COGS structure for private label products. Like most major retailers, that data is highly confidential.\nHowever, I can help you benchmark your products against Amazon's public prices. This is often more valuable for yo",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-07",
+    "category": "HP",
+    "q": "How many customers bought my highest-margin product last week?",
+    "a": "Based on the 90-day sales data I've analyzed for your store, there have been 0 customers who purchased these products in the last week. In fact, these products have not recorded any orders in the last 90 days.\nThis is actually an ideal time to perform this analysis—optimizing your pricing and margin",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-08",
+    "category": "HP",
+    "q": "What will my exact revenue be next month?",
+    "a": "Predicting exact future revenue is not possible, as it depends on many external factors like market demand, your marketing spend, and seasonality.\nHowever, we can look at your Revenue Potential. Based on your current active catalog, there have been no orders in the last 90 days. This means your \"exp",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-09",
+    "category": "HP",
+    "q": "What is the exact margin for SKU #ABC-12345 in my inventory?",
+    "a": "I couldn't find a product with the SKU #ABC-12345 in your current store catalog.\nTo help you with your margin analysis, please select one of the high-priority products from the list below, or enter a product title you'd like to investigate. Once selected, I'll help you calculate the exact margin bas",
+    "status": "PASS"
+  },
+  {
+    "id": "HP-10",
+    "category": "HP",
+    "q": "Compare my margins to the top 10 Shopify stores in my category.",
+    "a": "I couldn't find a product with the SKU #ABC-12345 in your current store catalog.\nTo help you with your margin analysis, please select one of the high-priority products from the list below, or enter a product title you'd like to investigate. Once selected, I'll help you calculate the exact margin bas",
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "SA-01",
+    "category": "SA",
+    "q": "Analyze my product catalog for SEO gaps.",
+    "a": "Analyzing your catalog... I've identified several products with SEO gaps, including thin descriptions and unoptimized titles. Drafting improvements now.",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-02",
+    "category": "SA",
+    "q": "Write an optimized product title for a bamboo cutting board.",
+    "a": "I couldn't find a \"bamboo cutting board\" in your current catalog, but here are three SEO-optimized title options based on high-performing search trends:\n\nPremium Organic Bamboo Cutting Board with Juice Groove | Large (Focuses on quality and functionality)\nEco-Friendly Bamboo Chopping Board | Durable",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-03",
+    "category": "SA",
+    "q": "Generate meta tags for my running shoes product page.",
+    "a": "I couldn't find any running shoes in your current catalog. Here are three optimized meta tag templates you can use for your product page:\nOption 1: Performance Focused\n\nMeta Title: Lightweight Performance Running Shoes | Breathable & Durable\nMeta Description: Maximize your pace with our high-perform",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-04",
+    "category": "SA",
+    "q": "Suggest long-tail keywords for my organic skincare product line.",
+    "a": "Since I didn't find specific skincare products in your catalog, here are several high-converting long-tail keywords for an organic skincare line:\n\n\"Organic face serum for sensitive skin\" (Targets a specific skin concern)\n\"Vegan anti-aging moisturizer with vitamin C\" (Combines product type, benefit, ",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-05",
+    "category": "SA",
+    "q": "Which of my products have the weakest SEO titles?",
+    "a": "Based on your catalog, these products have the weakest SEO titles due to being generic or placeholder-style names:\n\nprod 16022 — Lacks descriptive keywords.\npau test prod — Appears to be a placeholder title.\npau multi size — Non-descriptive; doesn't explain what the product is.\nThe Collection Snowbo",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-06",
+    "category": "SA",
+    "q": "Draft an SEO-optimized description for wireless noise-cancelling headphones.",
+    "a": "I couldn't find any wireless headphones in your catalog, but here is a high-performing SEO description template you can use:\n\nPremium Wireless Noise-Cancelling Headphones\nImmerse yourself in pure sound. These high-fidelity wireless headphones feature industry-leading active noise-cancelling (ANC) te",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-07",
+    "category": "SA",
+    "q": "How does the approval process work when you propose SEO changes?",
+    "a": "The SEO approval process follows a simple two-step flow:\n\nPropose Round: I analyze your products and draft improvements for titles, descriptions, and meta tags. I then send these to you as a \"Batch Proposal\" card.\nApproval Gate: You review the proposed changes directly in the chat. You can approve e",
+    "status": "PASS"
+  },
+  {
+    "id": "SA-08",
+    "category": "SA",
+    "q": "What makes a good meta description for an e-commerce product page?",
+    "a": "A high-converting e-commerce meta description should:\n\nBe Concise: Aim for 150–160 characters to avoid being cut off in search results.\nInclude Primary Keywords: Naturally incorporate the product name and main search terms.\nHighlight Value: Mention unique selling points like \"Free Shipping,\" \"Eco-fr",
+    "status": "PASS"
+  }
+]

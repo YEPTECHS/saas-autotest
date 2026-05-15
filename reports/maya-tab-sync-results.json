@@ -1,0 +1,83 @@
+{
+  "testType": "same-user-dual-tab-real-time-sync",
+  "agent": "maya",
+  "agentPath": "/ai-team/marketing/chat",
+  "user": "fasigit832@okexbit.com",
+  "question": "When Tab A sends a message, does Tab B automatically receive it?",
+  "finding": "SHARED_STREAM: both tabs show the same live conversation",
+  "passed": 0,
+  "failed": 4,
+  "results": [
+    {
+      "round": 1,
+      "tabA_message": "Write a short tagline for a summer sale campaign.",
+      "tabA_aiResponse": "I'll help you come up with a catchy tagline for your summer sale campaign! Give me just a moment to prepare.",
+      "tabA_bubbleCountBefore": 0,
+      "tabA_bubbleCountAfter": 3,
+      "tabB_bubbleCountBefore": 0,
+      "tabB_bubbleCountAfter": 2,
+      "tabB_newBubbles": [
+        "I'll help you come up with a catchy tagline for your summer sale campaign! Give me just a moment to prepare."
+      ],
+      "tabB_synced": true,
+      "tabB_newBubbleCount": 2,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-16T05:58:14.606Z"
+    },
+    {
+      "round": 2,
+      "tabA_message": "My brand is called SunBloom. What marketing channels should I use?",
+      "tabA_aiResponse": "That's a great name! To give you the best advice on marketing channels, I'm going to take a quick look at your products and what SunBloom is all about. One moment!",
+      "tabA_bubbleCountBefore": 3,
+      "tabA_bubbleCountAfter": 6,
+      "tabB_bubbleCountBefore": 2,
+      "tabB_bubbleCountAfter": 4,
+      "tabB_newBubbles": [
+        "Here are a few short and catchy taglines for your 2026 summer sale, ranging from trending nostalgic vibes to classic high-energy hooks:\n🌟 Trending & ",
+        "That's a great name! To give you the best advice on marketing channels, I'm going to take a quick look at your products and what SunBloom is all about"
+      ],
+      "tabB_synced": true,
+      "tabB_newBubbleCount": 2,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-16T05:58:31.310Z"
+    },
+    {
+      "round": 3,
+      "tabA_message": "Create 3 subject lines for a flash sale email.",
+      "tabA_aiResponse": "Here are 3 punchy subject lines for your SunBloom flash sale, designed to drive opens and urgency:\n\n\n⚡ FLASH SALE: Your SunBloom favorites are 40% OFF (24 hours only!)\nBest for: High urgency and driving immediate clicks.\n\n\n☀️ Catch the rays & the savings! The SunBloom flash sale is LIVE.\nBest for: M",
+      "tabA_bubbleCountBefore": 6,
+      "tabA_bubbleCountAfter": 9,
+      "tabB_bubbleCountBefore": 4,
+      "tabB_bubbleCountAfter": 5,
+      "tabB_newBubbles": [
+        "I'm crafting 3 high-conversion subject lines for your SunBloom flash sale email. Hang tight!",
+        "Here are 3 punchy subject lines for your SunBloom flash sale, designed to drive opens and urgency:\n\n\n⚡ FLASH SALE: Your SunBloom favorites are 40% OFF"
+      ],
+      "tabB_synced": true,
+      "tabB_newBubbleCount": 1,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-16T05:59:08.625Z"
+    },
+    {
+      "round": 4,
+      "tabA_message": "(passive)",
+      "tabA_aiResponse": "",
+      "tabA_bubbleCountBefore": 8,
+      "tabA_bubbleCountAfter": 10,
+      "tabB_bubbleCountBefore": 5,
+      "tabB_bubbleCountAfter": 8,
+      "tabB_newBubbles": [
+        "I'd love to help you with a headline for your product launch! To give you the best options, could you tell me a bit more about the product and what ma"
+      ],
+      "tabB_synced": true,
+      "tabB_newBubbleCount": 2,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-16T05:59:22.937Z"
+    }
+  ],
+  "generatedAt": "2026-04-16T05:59:23.366Z"
+}

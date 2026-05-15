@@ -1,0 +1,206 @@
+{
+  "testType": "api-stress-advanced",
+  "agent": "maya",
+  "baseUrl": "https://bot-test.yepai.io",
+  "users": [
+    "hemopiv218@auslank.com",
+    "baobaobao5959@gmail.com",
+    "wipepix900@gavrom.com"
+  ],
+  "scenarios": 2,
+  "passed": 0,
+  "partial": 0,
+  "failed": 2,
+  "results": [
+    {
+      "id": "ST-ADV-01",
+      "name": "Multi-User Concurrent (3 users × 3 rounds)",
+      "status": "FAIL",
+      "totalRequests": 9,
+      "successCount": 2,
+      "failCount": 7,
+      "successRate": 0.2222222222222222,
+      "latency": {
+        "min": 32115,
+        "avg": 39045,
+        "p50": 32115,
+        "p95": 45975,
+        "p99": 45975,
+        "max": 45975
+      },
+      "durationMs": 144264,
+      "details": {
+        "perUser": {
+          "hemopiv218@auslank.com": {
+            "ok": 0,
+            "total": 3,
+            "avgLat": 0
+          },
+          "baobaobao5959@gmail.com": {
+            "ok": 2,
+            "total": 3,
+            "avgLat": 39045
+          },
+          "wipepix900@gavrom.com": {
+            "ok": 0,
+            "total": 3,
+            "avgLat": 0
+          }
+        },
+        "rounds": 3,
+        "users": 3
+      },
+      "metrics": [
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 209,
+          "latencyMs": 810,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "baobaobao5959@gmail.com",
+          "question": "How do I improve my email open rates?",
+          "statusCode": 200,
+          "latencyMs": 32115,
+          "success": true
+        },
+        {
+          "user": "wipepix900@gavrom.com",
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 209,
+          "latencyMs": 789,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 209,
+          "latencyMs": 658,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "baobaobao5959@gmail.com",
+          "question": "How do retargeting ads work?",
+          "statusCode": 504,
+          "latencyMs": 60127,
+          "success": false
+        },
+        {
+          "user": "wipepix900@gavrom.com",
+          "question": "What hashtags should I use for my winter collection?",
+          "statusCode": 209,
+          "latencyMs": 655,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "Write a product description for a handmade candle",
+          "statusCode": 209,
+          "latencyMs": 465,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "baobaobao5959@gmail.com",
+          "question": "How often should I post on social media?",
+          "statusCode": 200,
+          "latencyMs": 45975,
+          "success": true
+        },
+        {
+          "user": "wipepix900@gavrom.com",
+          "question": "How do I build a referral program?",
+          "statusCode": 209,
+          "latencyMs": 477,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        }
+      ],
+      "timestamp": "2026-04-16T13:05:30.139Z"
+    },
+    {
+      "id": "ST-ADV-02",
+      "name": "Breaking Point Test",
+      "status": "FAIL",
+      "totalRequests": 5,
+      "successCount": 0,
+      "failCount": 5,
+      "successRate": 0,
+      "latency": {
+        "min": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "durationMs": 664,
+      "details": {
+        "breakingPoint": 5,
+        "degradedAt": "not reached",
+        "failThreshold": "20%",
+        "stopThreshold": "50%",
+        "levelResults": [
+          {
+            "level": 5,
+            "ok": 0,
+            "fail": 5,
+            "successRate": 0,
+            "avgLatency": -1,
+            "p95": 0,
+            "status": "FAILING"
+          }
+        ]
+      },
+      "metrics": [
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "What color scheme works best for a luxury fashion brand?",
+          "statusCode": 209,
+          "latencyMs": 655,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "How do I improve my email open rates?",
+          "statusCode": 209,
+          "latencyMs": 654,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "Suggest 3 Instagram caption ideas for a summer sale",
+          "statusCode": 209,
+          "latencyMs": 662,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "What is A/B testing and how do I use it for my ads?",
+          "statusCode": 209,
+          "latencyMs": 661,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        },
+        {
+          "user": "hemopiv218@auslank.com",
+          "question": "How do retargeting ads work?",
+          "statusCode": 209,
+          "latencyMs": 660,
+          "success": false,
+          "error": "lead_required: Lead is required before forwarding the conversation"
+        }
+      ],
+      "timestamp": "2026-04-16T13:05:40.808Z"
+    }
+  ],
+  "generatedAt": "2026-04-16T13:05:40.808Z"
+}

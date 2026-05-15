@@ -301,8 +301,8 @@ Available actions:
 App routes:
   {{YEPAI_BASE_URL}}/auth/login
   {{YEPAI_BASE_URL}}/ai-team/marketing/chat  (Maya)
-  {{YEPAI_BASE_URL}}/ai-team/operations/chat (Oscar)
-  {{YEPAI_BASE_URL}}/ai-team/analytics/chat  (Daniel)
+  {{YEPAI_BASE_URL}}/ai-team/operation/chat  (Oscar)
+  {{YEPAI_BASE_URL}}/ai-team/profit/chat     (Daniel)
   {{YEPAI_BASE_URL}}/ai-team/seo/chat        (Cody)
 
 Return ONLY the YAML content — no markdown fences, no explanation.`;

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "RV-01",
+    "category": "RV",
+    "q": "I sell handmade candles. How do I write a product description?",
+    "a": "I'm researching the best keywords and market trends for handmade candles to ensure your descriptions are both sensory and SEO-optimized. I'll provide a keyword report followed by a professional writing guide for you!",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-02",
+    "category": "RV",
+    "q": "My store's Instagram engagement dropped 30% last month. What should I do?",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections...",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-03",
+    "category": "RV",
+    "q": "I want to target women aged 25-35 who love outdoor sports. Which platform is best?",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections...",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-04",
+    "category": "RV",
+    "q": "What's the best marketing strategy for a flash sale that starts in 2 hours?",
+    "a": "For a flash sale starting in exactly 2 hours, you need a \"High-Velocity Scarcity Blitz.\"\nSince you sell high-ticket items like the $1,025 Oxygen board and have critical low stock on The Videographer board (only 2 left), your strategy must pivot from \"Education\" to \"Immediate Acquisition.\"\nHere is yo",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-05",
+    "category": "RV",
+    "q": "My email unsubscribe rate is 5% — is that normal and what should I do?",
+    "a": "For a flash sale starting in exactly 2 hours, you need a \"High-Velocity Scarcity Blitz.\"\nSince you sell high-ticket items like the $1,025 Oxygen board and have critical low stock on The Videographer board (only 2 left), your strategy must pivot from \"Education\" to \"Immediate Acquisition.\"\nHere is yo",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-06",
+    "category": "RV",
+    "q": "I sell luxury watches at $5,000+ each. Should I use Facebook Ads?",
+    "a": "I'm researching the 2026 advertising landscape for high-ticket luxury goods to give you a definitive answer. I'll also analyze your current customer base to see if we can leverage your existing data for Meta's AI-driven targeting.",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-07",
+    "category": "RV",
+    "q": "What's the difference between marketing to Gen Z vs Millennials?",
+    "a": "I'm researching the 2026 advertising landscape for high-ticket luxury goods to give you a definitive answer. I'll also analyze your current customer base to see if we can leverage your existing data for Meta's AI-driven targeting.",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-08",
+    "category": "RV",
+    "q": "My competitor just went viral on TikTok. How should I respond?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-09",
+    "category": "RV",
+    "q": "I have a $500 monthly marketing budget. How should I allocate it?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-10",
+    "category": "RV",
+    "q": "What type of content performs best for a jewelry brand on Pinterest?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-11",
+    "category": "RV",
+    "q": "I want to grow my email list from 100 to 1,000 subscribers. What's the fastest way?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "FAIL"
+  },
+  {
+    "id": "RV-12",
+    "category": "RV",
+    "q": "My store sells seasonal Christmas products. When should I start marketing?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-13",
+    "category": "RV",
+    "q": "I want to launch a new product next week. What's the minimum viable marketing plan?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-14",
+    "category": "RV",
+    "q": "My product reviews average 3.2 stars. How do I address this in my marketing?",
+    "a": "First rule of 2026 e-commerce: Don’t chase the trend—capture the traffic.\nWhen a competitor goes viral, they do the hard work of making a niche \"cool.\" Your job is to catch the \"spillover\" traffic by positioning yourself as the Premium, Technical Alternative. While they deal with the chaos of sudden",
+    "status": "PASS"
+  },
+  {
+    "id": "RV-15",
+    "category": "RV",
+    "q": "I have 10,000 Instagram followers but only 50 website visits per week. What's wrong?",
+    "a": "I'm analyzing your store data now — gathering products, orders, customers, and collections to diagnose why your 10k followers aren't translating into website traffic...",
+    "status": "PASS"
+  }
+]

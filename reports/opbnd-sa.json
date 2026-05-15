@@ -10,63 +10,63 @@
     "id": "SA-02",
     "category": "SA",
     "q": "Which product has the highest inventory right now?",
-    "a": "The products with the highest inventory are The Multi-location Snowboard and The Multi-managed Snowboard, both having 100 units in stock.",
+    "a": "You have two products tied for the highest inventory, each with 100 units in stock:\n\nThe Multi-location Snowboard\nThe Multi-managed Snowboard",
     "status": "PASS"
   },
   {
     "id": "SA-03",
     "category": "SA",
     "q": "How many orders were placed this week?",
-    "a": "There have been 0 orders placed so far this week. In fact, it appears there are currently no orders recorded in the store.",
+    "a": "There have been 0 orders placed this week. In fact, it appears there are no orders recorded in your store yet.",
     "status": "PASS"
   },
   {
     "id": "SA-04",
     "category": "SA",
     "q": "What is the total revenue from fulfilled orders this month?",
-    "a": "The total revenue from fulfilled orders this month is $0.00, as there are currently no orders recorded in the store for this period.",
+    "a": "There have been 0 fulfilled orders this month, resulting in a total revenue of $0.00. It appears there are no orders recorded in your store yet.",
     "status": "PASS"
   },
   {
     "id": "SA-05",
     "category": "SA",
     "q": "Show me all orders that are currently pending fulfillment",
-    "a": "There are currently no orders in your store, so there are no orders pending fulfillment.",
+    "a": "There are currently no orders pending fulfillment. In fact, there are no orders recorded in your store at this time.",
     "status": "PASS"
   },
   {
     "id": "SA-06",
     "category": "SA",
     "q": "Which products have zero inventory?",
-    "a": "The following products currently have zero inventory:\n\npau no prod\nThe Inventory Not Tracked Snowboard\nThe Out of Stock Snowboard\nGift Card",
+    "a": "The following products currently have zero inventory:\n\npau no prod\nThe Inventory Not Tracked Snowboard\nThe Out of Stock Snowboard\nGift Card (4 variants, all at zero)",
     "status": "PASS"
   },
   {
     "id": "SA-07",
     "category": "SA",
     "q": "What's the average order value this month?",
-    "a": "Since there have been no orders placed so far this month (March 2026), the average order value is currently $0.00.",
+    "a": "The average order value for this month is $0.00, as there have been no orders recorded so far.",
     "status": "PASS"
   },
   {
     "id": "SA-08",
     "category": "SA",
     "q": "List all products added to the store in the last 30 days",
-    "a": "All 22 products in your store were added in the last 30 days (since February 1, 2026):\n\nThe Collection Snowboard: Oxygen (Added: Feb 5)\nThe Collection Snowboard: Liquid (Added: Feb 5)\npppppppp (Added: Mar 2)\nThe Videographer Snowboard (Added: Feb 5)\nprod 16022 (Added: Feb 15)\nThe Collection Snowboar",
+    "a": "All 22 products in your store were added in the last 30 days (since February 1, 2026):\n\npppppppp (Added: Mar 2, 2026)\npau multi size (Added: Feb 16, 2026)\nprod 16022 (Added: Feb 15, 2026)\npau test prod (Added: Feb 15, 2026)\npau no prod (Added: Feb 15, 2026)\nThe Collection Snowboard: Oxygen (Added: F",
     "status": "PASS"
   },
   {
     "id": "SA-09",
     "category": "SA",
     "q": "How many customers have placed more than 3 orders?",
-    "a": "There are currently 0 customers who have placed more than 3 orders. In fact, all 3 customers currently in your store have not placed any orders yet.",
+    "a": "There are currently 0 customers who have placed more than 3 orders. In fact, all customers in your store currently have 0 orders recorded.",
     "status": "PASS"
   },
   {
     "id": "SA-10",
     "category": "SA",
     "q": "What was the best selling product last month?",
-    "a": "I couldn't find any orders in your store, so I'm unable to determine the best-selling product for last month. Once you have some sales data, I'll be able to analyze it for you!",
+    "a": "There were no best-selling products last month (February 2026) because no orders have been recorded in your store yet.",
     "status": "PASS"
   }
 ]

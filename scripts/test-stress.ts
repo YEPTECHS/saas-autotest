@@ -27,14 +27,15 @@ const AGENT_ARG = process.argv.find(a => a.startsWith('--agent='))?.split('=')[1
   || 'maya';
 
 const AGENT_PATHS: Record<string, string> = {
-  maya: '/ai-team/marketing/chat',
-  oscar: '/ai-team/operation/chat',
+  maya:   '/ai-team/marketing/chat',
+  oscar:  '/ai-team/operation/chat',
   daniel: '/ai-team/profit/chat',
+  cody:   '/ai-team/seo/chat',
 };
 
 const agentPath = AGENT_PATHS[AGENT_ARG];
 if (!agentPath) {
-  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel`);
+  console.error(`Unknown agent: ${AGENT_ARG}. Use: maya, oscar, daniel, cody`);
   process.exit(1);
 }
 
@@ -222,8 +223,8 @@ async function loginUser(page: Page, user: TestUser): Promise<void> {
 }
 
 async function navigateToAgent(page: Page): Promise<void> {
-  await page.goto(`${BASE_URL}${agentPath}`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(3000);
+  await page.goto(`${BASE_URL}${agentPath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(5000);
 }
 
 /**
@@ -318,10 +319,10 @@ async function waitSendReady(page: Page, maxSec = 60): Promise<boolean> {
 
 // ── Refresh session (navigate away and back) ────────────────
 async function refreshSession(page: Page): Promise<void> {
-  await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1500);
-  await page.goto(`${BASE_URL}${agentPath}`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(3000);
+  await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(2000);
+  await page.goto(`${BASE_URL}${agentPath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(5000);
 }
 
 // ── Test scenario interfaces ────────────────────────────────

@@ -1,0 +1,1586 @@
+{
+  "testType": "api-stress",
+  "agent": "cody",
+  "baseUrl": "https://bot-test.yepai.io",
+  "apiEndpoint": "https://api-test.yepai.io/test/chatbot/api/widget/conversations/proxy",
+  "isStreaming": false,
+  "user": "baobaobao5959@gmail.com",
+  "maxConcurrency": 20,
+  "scenarios": 6,
+  "passed": 6,
+  "partial": 0,
+  "failed": 0,
+  "results": [
+    {
+      "id": "ST-API-01",
+      "name": "Sequential Baseline (20 requests)",
+      "concurrency": 1,
+      "totalRequests": 20,
+      "successCount": 20,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 173,
+        "avg": 260,
+        "p50": 193,
+        "p75": 252,
+        "p90": 440,
+        "p95": 506,
+        "p99": 786,
+        "max": 786
+      },
+      "ttfb": {
+        "avg": 260,
+        "p95": 506
+      },
+      "throughputRps": 3.84,
+      "durationMs": 5202,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 786,
+          "ttfbMs": 785,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 440,
+          "ttfbMs": 440,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 187,
+          "ttfbMs": 186,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 328,
+          "ttfbMs": 327,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 189,
+          "ttfbMs": 189,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 193,
+          "ttfbMs": 193,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 180,
+          "ttfbMs": 180,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 252,
+          "ttfbMs": 252,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 175,
+          "ttfbMs": 174,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 175,
+          "ttfbMs": 175,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 179,
+          "ttfbMs": 179,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 203,
+          "ttfbMs": 202,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 193,
+          "ttfbMs": 193,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 506,
+          "ttfbMs": 506,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 196,
+          "ttfbMs": 195,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 271,
+          "ttfbMs": 270,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 173,
+          "ttfbMs": 173,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 206,
+          "ttfbMs": 206,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 176,
+          "ttfbMs": 176,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 193,
+          "ttfbMs": 193,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:55:07.122Z"
+    },
+    {
+      "id": "ST-API-02",
+      "name": "Concurrent Burst (5 simultaneous)",
+      "concurrency": 5,
+      "totalRequests": 5,
+      "successCount": 5,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 177,
+        "avg": 448,
+        "p50": 496,
+        "p75": 505,
+        "p90": 590,
+        "p95": 590,
+        "p99": 590,
+        "max": 590
+      },
+      "ttfb": {
+        "avg": 448,
+        "p95": 590
+      },
+      "throughputRps": 8.46,
+      "durationMs": 591,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 177,
+          "ttfbMs": 177,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 590,
+          "ttfbMs": 590,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 474,
+          "ttfbMs": 474,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 496,
+          "ttfbMs": 496,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 505,
+          "ttfbMs": 505,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:55:07.717Z"
+    },
+    {
+      "id": "ST-API-03",
+      "name": "Concurrent Burst (10 simultaneous)",
+      "concurrency": 10,
+      "totalRequests": 10,
+      "successCount": 10,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 210,
+        "avg": 652,
+        "p50": 693,
+        "p75": 741,
+        "p90": 862,
+        "p95": 1117,
+        "p99": 1117,
+        "max": 1117
+      },
+      "ttfb": {
+        "avg": 651,
+        "p95": 1117
+      },
+      "throughputRps": 8.94,
+      "durationMs": 1118,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 717,
+          "ttfbMs": 717,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 405,
+          "ttfbMs": 404,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 210,
+          "ttfbMs": 210,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 700,
+          "ttfbMs": 700,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 409,
+          "ttfbMs": 409,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 741,
+          "ttfbMs": 741,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 662,
+          "ttfbMs": 662,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 693,
+          "ttfbMs": 693,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 862,
+          "ttfbMs": 861,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 1117,
+          "ttfbMs": 1117,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:55:08.835Z"
+    },
+    {
+      "id": "ST-API-04",
+      "name": "Concurrent Burst (20 simultaneous)",
+      "concurrency": 20,
+      "totalRequests": 20,
+      "successCount": 20,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 463,
+        "avg": 773,
+        "p50": 786,
+        "p75": 840,
+        "p90": 873,
+        "p95": 874,
+        "p99": 893,
+        "max": 893
+      },
+      "ttfb": {
+        "avg": 773,
+        "p95": 873
+      },
+      "throughputRps": 22.27,
+      "durationMs": 898,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 683,
+          "ttfbMs": 683,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 764,
+          "ttfbMs": 764,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 694,
+          "ttfbMs": 694,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 694,
+          "ttfbMs": 694,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 463,
+          "ttfbMs": 462,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 611,
+          "ttfbMs": 611,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 812,
+          "ttfbMs": 812,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 786,
+          "ttfbMs": 786,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 761,
+          "ttfbMs": 761,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 762,
+          "ttfbMs": 762,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 874,
+          "ttfbMs": 873,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 860,
+          "ttfbMs": 859,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 873,
+          "ttfbMs": 873,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 840,
+          "ttfbMs": 840,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 816,
+          "ttfbMs": 816,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 779,
+          "ttfbMs": 779,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 858,
+          "ttfbMs": 858,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 808,
+          "ttfbMs": 808,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 832,
+          "ttfbMs": 831,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 893,
+          "ttfbMs": 893,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:55:09.734Z"
+    },
+    {
+      "id": "ST-API-05",
+      "name": "Ramp-Up (1→5→10→20→30)",
+      "concurrency": 30,
+      "totalRequests": 66,
+      "successCount": 66,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 286,
+        "avg": 550,
+        "p50": 520,
+        "p75": 705,
+        "p90": 848,
+        "p95": 882,
+        "p99": 999,
+        "max": 999
+      },
+      "ttfb": {
+        "avg": 550,
+        "p95": 882
+      },
+      "throughputRps": 4.94,
+      "durationMs": 13368,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 366,
+          "ttfbMs": 366,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 287,
+          "ttfbMs": 286,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 296,
+          "ttfbMs": 296,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 296,
+          "ttfbMs": 295,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 286,
+          "ttfbMs": 285,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 323,
+          "ttfbMs": 323,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 425,
+          "ttfbMs": 425,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 398,
+          "ttfbMs": 398,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 307,
+          "ttfbMs": 307,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 388,
+          "ttfbMs": 387,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 307,
+          "ttfbMs": 307,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 669,
+          "ttfbMs": 669,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 507,
+          "ttfbMs": 507,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 705,
+          "ttfbMs": 705,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 588,
+          "ttfbMs": 587,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 667,
+          "ttfbMs": 667,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 380,
+          "ttfbMs": 379,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 287,
+          "ttfbMs": 286,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 396,
+          "ttfbMs": 396,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 342,
+          "ttfbMs": 341,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 371,
+          "ttfbMs": 371,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 422,
+          "ttfbMs": 421,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 396,
+          "ttfbMs": 396,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 342,
+          "ttfbMs": 342,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 314,
+          "ttfbMs": 314,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 314,
+          "ttfbMs": 313,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 762,
+          "ttfbMs": 762,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 999,
+          "ttfbMs": 999,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 657,
+          "ttfbMs": 657,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 953,
+          "ttfbMs": 953,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 705,
+          "ttfbMs": 705,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 674,
+          "ttfbMs": 673,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 648,
+          "ttfbMs": 648,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 730,
+          "ttfbMs": 730,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 761,
+          "ttfbMs": 761,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 761,
+          "ttfbMs": 761,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 453,
+          "ttfbMs": 453,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 589,
+          "ttfbMs": 589,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 383,
+          "ttfbMs": 383,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 419,
+          "ttfbMs": 419,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 520,
+          "ttfbMs": 520,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 423,
+          "ttfbMs": 423,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 439,
+          "ttfbMs": 439,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 358,
+          "ttfbMs": 358,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 556,
+          "ttfbMs": 555,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 563,
+          "ttfbMs": 563,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 541,
+          "ttfbMs": 541,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 629,
+          "ttfbMs": 629,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 468,
+          "ttfbMs": 468,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 379,
+          "ttfbMs": 379,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 531,
+          "ttfbMs": 531,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 452,
+          "ttfbMs": 451,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 500,
+          "ttfbMs": 500,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 603,
+          "ttfbMs": 603,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 599,
+          "ttfbMs": 599,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 556,
+          "ttfbMs": 556,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 761,
+          "ttfbMs": 761,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 882,
+          "ttfbMs": 882,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 796,
+          "ttfbMs": 796,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 926,
+          "ttfbMs": 926,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 871,
+          "ttfbMs": 871,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 774,
+          "ttfbMs": 774,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 732,
+          "ttfbMs": 732,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 836,
+          "ttfbMs": 836,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 848,
+          "ttfbMs": 848,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 865,
+          "ttfbMs": 865,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:55:23.102Z",
+      "levelStats": [
+        {
+          "level": 1,
+          "avgLatency": 366,
+          "successRate": 1
+        },
+        {
+          "level": 5,
+          "avgLatency": 298,
+          "successRate": 1
+        },
+        {
+          "level": 10,
+          "avgLatency": 496,
+          "successRate": 1
+        },
+        {
+          "level": 20,
+          "avgLatency": 561,
+          "successRate": 1
+        },
+        {
+          "level": 30,
+          "avgLatency": 608,
+          "successRate": 1
+        }
+      ],
+      "degradationRatio": "1.66x"
+    },
+    {
+      "id": "ST-API-06",
+      "name": "Sustained Load (50 req / 60s)",
+      "concurrency": 1,
+      "totalRequests": 50,
+      "successCount": 50,
+      "failCount": 0,
+      "successRate": 1,
+      "latency": {
+        "min": 178,
+        "avg": 270,
+        "p50": 243,
+        "p75": 313,
+        "p90": 345,
+        "p95": 421,
+        "p99": 646,
+        "max": 646
+      },
+      "ttfb": {
+        "avg": 270,
+        "p95": 421
+      },
+      "throughputRps": 0.85,
+      "durationMs": 59018,
+      "status": "PASS",
+      "metrics": [
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 243,
+          "ttfbMs": 243,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 197,
+          "ttfbMs": 197,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 216,
+          "ttfbMs": 216,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 199,
+          "ttfbMs": 199,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 296,
+          "ttfbMs": 296,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 335,
+          "ttfbMs": 335,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 282,
+          "ttfbMs": 281,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 219,
+          "ttfbMs": 219,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 304,
+          "ttfbMs": 304,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 264,
+          "ttfbMs": 263,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 205,
+          "ttfbMs": 204,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 203,
+          "ttfbMs": 203,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 223,
+          "ttfbMs": 222,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 295,
+          "ttfbMs": 295,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 393,
+          "ttfbMs": 392,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 248,
+          "ttfbMs": 248,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 314,
+          "ttfbMs": 314,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 272,
+          "ttfbMs": 271,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 646,
+          "ttfbMs": 645,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 380,
+          "ttfbMs": 380,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 324,
+          "ttfbMs": 324,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 238,
+          "ttfbMs": 238,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 421,
+          "ttfbMs": 421,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 313,
+          "ttfbMs": 313,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 218,
+          "ttfbMs": 217,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 218,
+          "ttfbMs": 217,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 236,
+          "ttfbMs": 235,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 457,
+          "ttfbMs": 457,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 345,
+          "ttfbMs": 345,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 274,
+          "ttfbMs": 274,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What are schema markup and how do they help product pages?",
+          "statusCode": 200,
+          "latencyMs": 315,
+          "ttfbMs": 314,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I find the right keywords for my niche products?",
+          "statusCode": 200,
+          "latencyMs": 270,
+          "ttfbMs": 270,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is keyword cannibalization in e-commerce?",
+          "statusCode": 200,
+          "latencyMs": 330,
+          "ttfbMs": 330,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize my product pages for Google Shopping?",
+          "statusCode": 200,
+          "latencyMs": 248,
+          "ttfbMs": 248,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is a canonical tag and why does it matter?",
+          "statusCode": 200,
+          "latencyMs": 185,
+          "ttfbMs": 185,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do duplicate product descriptions hurt SEO?",
+          "statusCode": 200,
+          "latencyMs": 198,
+          "ttfbMs": 198,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is thin content and how does it affect rankings?",
+          "statusCode": 200,
+          "latencyMs": 335,
+          "ttfbMs": 335,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I structure product category pages for SEO?",
+          "statusCode": 200,
+          "latencyMs": 298,
+          "ttfbMs": 298,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is internal linking and how should I use it on product ",
+          "statusCode": 200,
+          "latencyMs": 286,
+          "ttfbMs": 286,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do page load speed and Core Web Vitals affect SEO?",
+          "statusCode": 200,
+          "latencyMs": 205,
+          "ttfbMs": 204,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Analyze my product catalog for SEO gaps.",
+          "statusCode": 200,
+          "latencyMs": 217,
+          "ttfbMs": 217,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Write an optimized title for a bamboo cutting board.",
+          "statusCode": 200,
+          "latencyMs": 223,
+          "ttfbMs": 223,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Generate meta tags for my running shoes product page.",
+          "statusCode": 200,
+          "latencyMs": 211,
+          "ttfbMs": 210,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "Suggest long-tail keywords for organic skincare products.",
+          "statusCode": 200,
+          "latencyMs": 189,
+          "ttfbMs": 189,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What makes a good SEO product description?",
+          "statusCode": 200,
+          "latencyMs": 240,
+          "ttfbMs": 240,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How does keyword density affect product page rankings?",
+          "statusCode": 200,
+          "latencyMs": 199,
+          "ttfbMs": 198,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the ideal length for a product title for SEO?",
+          "statusCode": 200,
+          "latencyMs": 178,
+          "ttfbMs": 178,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do I optimize product URLs for search engines?",
+          "statusCode": 200,
+          "latencyMs": 191,
+          "ttfbMs": 190,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "What is the difference between on-page and off-page SEO?",
+          "statusCode": 200,
+          "latencyMs": 192,
+          "ttfbMs": 192,
+          "responseBytes": 78,
+          "success": true
+        },
+        {
+          "question": "How do image alt tags affect product page SEO?",
+          "statusCode": 200,
+          "latencyMs": 207,
+          "ttfbMs": 207,
+          "responseBytes": 78,
+          "success": true
+        }
+      ],
+      "timestamp": "2026-05-13T00:56:22.121Z"
+    }
+  ],
+  "generatedAt": "2026-05-13T00:56:22.122Z"
+}
