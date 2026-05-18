@@ -47,16 +47,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Restore fingerprints cache
         uses: actions/cache@v4
@@ -68,12 +72,10 @@ jobs:
       - name: Run change watch (fingerprint only)
         id: watch
         run: |
-          npx tsx scripts/change-watch-agent.ts 2>&1 || true
-          # Parse changed agents from output file
+          pnpm exec tsx scripts/change-watch-agent.ts 2>&1 || true
           if [ -f data/agent-fingerprints.json ]; then
             echo "Fingerprints updated"
           fi
-          # check-watch writes changed agents to change-watch-*.json; extract for downstream
           CHANGED=$(node -e "
             const fs = require('fs'), path = require('path');
             const dir = 'reports';
@@ -118,19 +120,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Run accuracy — ${{ matrix.agent }}
-        run: npx tsx scripts/accuracy-test-api.ts --agent ${{ matrix.agent }}
+        run: pnpm exec tsx scripts/accuracy-test-api.ts --agent ${{ matrix.agent }}
         timeout-minutes: 15
 
       - name: Upload accuracy report
@@ -148,13 +154,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Download all accuracy reports
         uses: actions/download-artifact@v4
@@ -164,7 +174,7 @@ jobs:
           merge-multiple: true
 
       - name: Run alert agent
-        run: npx tsx scripts/alert-agent.ts || true
+        run: pnpm exec tsx scripts/alert-agent.ts || true
         timeout-minutes: 5
         env:
           ACCURACY_ALERT_THRESHOLD: ${{ vars.ACCURACY_ALERT_THRESHOLD || '80' }}
@@ -178,13 +188,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Download all accuracy reports
         uses: actions/download-artifact@v4
@@ -194,7 +208,7 @@ jobs:
           merge-multiple: true
 
       - name: Run triage agent
-        run: npx tsx scripts/triage-agent.ts --days 1 --linear --slack
+        run: pnpm exec tsx scripts/triage-agent.ts --days 1 --linear --slack
         timeout-minutes: 10
 
       - name: Upload triage report
@@ -212,16 +226,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Download triage report
         uses: actions/download-artifact@v4
@@ -230,7 +248,7 @@ jobs:
           path: reports/
 
       - name: Run repair agent on failed flows
-        run: npx tsx scripts/repair-agent.ts --all || true
+        run: pnpm exec tsx scripts/repair-agent.ts --all || true
         timeout-minutes: 20
 
   # ── Job 6: HTML report + notify ────────────────────────────────
@@ -242,13 +260,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Download all reports
         uses: actions/download-artifact@v4
@@ -257,7 +279,7 @@ jobs:
           merge-multiple: true
 
       - name: Generate HTML report & send email + Slack
-        run: npx tsx scripts/report-html.ts --email --slack
+        run: pnpm exec tsx scripts/report-html.ts --email --slack
         timeout-minutes: 5
 
       - name: Upload HTML report
