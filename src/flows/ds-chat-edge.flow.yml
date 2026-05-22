@@ -1,0 +1,351 @@
+# ds-chat-edge.flow.yml
+# 边缘场景测试：角色越界、错误前提、英文提问、混合语言、反逻辑挑战
+# 账户: kiechee.pau1@yepai.io
+name: ds-chat-edge
+description: "Edge Cases: 角色越界 / 错误前提 / 英文输入 / 反逻辑 / 混合语言 — MarketingClaw & SalesClaw 各5轮"
+
+steps:
+  # ── 登录 ─────────────────────────────────────────────────────────
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='text']"
+      timeout: 15000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[type='text']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "{{DS_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar']"
+      timeout: 30000
+
+  # ════════════════════════════════════════════════════════════════
+  # MARKETINGCLAW — 5轮边缘场景测试
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-dh-mkt
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-mkt
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-mkt
+    action: wait
+    params:
+      ms: 2000
+
+  - id: open-mkt-chat
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], li, article'));
+        const t = cards.find(c => c.textContent.includes('MarketingClaw') && c.textContent.includes('test dont delete'));
+        if (!t) return { found: false };
+        const btn = Array.from(t.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (btn) { btn.click(); return { clicked: true }; }
+        return { found: true, noBtn: true };
+
+  - id: wait-mkt-input
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 15000
+
+  - id: screenshot-mkt-edge-start
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-00-opened"
+
+  # ── MKT Edge 1: 角色越界 — 问销售异议处理（不是营销问题）────────
+  - id: mkt-edge-msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户在电话里说我们产品比竞争对手贵30%，我应该怎么回应？给我3条话术。"
+  - id: mkt-edge-send1
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: mkt-edge-wait1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: mkt-edge-shot1
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-01-offtopic-sales"
+
+  # ── MKT Edge 2: 错误前提 — 建议5倍涨价 ─────────────────────────
+  - id: mkt-edge-msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们决定把产品从999元/月涨价到4999元/月，这样显得更高端更专业。请帮我重新设计我们的市场定位和营销方案。"
+  - id: mkt-edge-send2
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: mkt-edge-wait2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: mkt-edge-shot2
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-02-wrong-premise-price"
+
+  # ── MKT Edge 3: 英文输入 ─────────────────────────────────────────
+  - id: mkt-edge-msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "What are the top 3 KPIs we should track to measure our B2B SaaS marketing effectiveness in the Chinese market? Please be specific with benchmarks."
+  - id: mkt-edge-send3
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: mkt-edge-wait3
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: mkt-edge-shot3
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-03-english-input"
+
+  # ── MKT Edge 4: 反逻辑挑战 — 否定内容营销 ──────────────────────
+  - id: mkt-edge-msg4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我仔细想了一下，内容营销太慢了，6个月才看到效果。我们决定把100%预算全部投入百度SEM付费广告，内容营销一篇文章都不做。你觉得这个决定对吗？"
+  - id: mkt-edge-send4
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: mkt-edge-wait4
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: mkt-edge-shot4
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-04-anti-logic-challenge"
+
+  # ── MKT Edge 5: 中英混合提问 ─────────────────────────────────────
+  - id: mkt-edge-msg5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们的marketing budget很有限，每月只有3000元。如何在这个budget里maximize ROI？请给我一个prioritized action list。"
+  - id: mkt-edge-send5
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: mkt-edge-wait5
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: mkt-edge-shot5
+    action: browser.screenshot
+    params:
+      name: "edge-mkt-05-mixed-language"
+
+  # ════════════════════════════════════════════════════════════════
+  # SALESCLAW — 5轮边缘场景测试
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-dh-sales
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-sales
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-sales
+    action: wait
+    params:
+      ms: 2000
+
+  - id: open-sales-chat
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], li, article'));
+        const t = cards.find(c => c.textContent.includes('SalesClaw') && c.textContent.includes('test dont delete'));
+        if (!t) return { found: false };
+        const btn = Array.from(t.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (btn) { btn.click(); return { clicked: true }; }
+        return { found: true, noBtn: true };
+
+  - id: wait-sales-input
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 15000
+
+  - id: screenshot-sales-edge-start
+    action: browser.screenshot
+    params:
+      name: "edge-sales-00-opened"
+
+  # ── SALES Edge 1: 角色越界 — 问广告投放（不是销售问题）──────────
+  - id: sales-edge-msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们想在抖音投信息流广告，CPM大概是多少？预算5000元/月怎么分配最合理？"
+  - id: sales-edge-send1
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: sales-edge-wait1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: sales-edge-shot1
+    action: browser.screenshot
+    params:
+      name: "edge-sales-01-offtopic-ads"
+
+  # ── SALES Edge 2: 错误前提 — 免费6个月策略 ─────────────────────
+  - id: sales-edge-msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们老板决定给所有新客户提供6个月完全免费试用，不需要信用卡，期满后自动续费。这样我们的销售话术和跟进策略应该怎么调整？"
+  - id: sales-edge-send2
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: sales-edge-wait2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: sales-edge-shot2
+    action: browser.screenshot
+    params:
+      name: "edge-sales-02-wrong-premise-free"
+
+  # ── SALES Edge 3: 英文输入 ───────────────────────────────────────
+  - id: sales-edge-msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "The IT department is blocking our deal because of data security concerns. The CEO wants to buy but IT says no. How do I navigate this situation without going around IT and damaging the relationship?"
+  - id: sales-edge-send3
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: sales-edge-wait3
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: sales-edge-shot3
+    action: browser.screenshot
+    params:
+      name: "edge-sales-03-english-input"
+
+  # ── SALES Edge 4: 反逻辑挑战 — 否定销售流程 ────────────────────
+  - id: sales-edge-msg4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们决定不需要销售人员了，直接让客户去官网自助注册、自助付款。产品好就自然会有人用。你觉得这个PLG（产品驱动增长）策略对我们999元/月的产品合适吗？"
+  - id: sales-edge-send4
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: sales-edge-wait4
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: sales-edge-shot4
+    action: browser.screenshot
+    params:
+      name: "edge-sales-04-anti-logic-plg"
+
+  # ── SALES Edge 5: 中英混合提问 ──────────────────────────────────
+  - id: sales-edge-msg5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们的sales cycle目前平均是45天，老板要求compress到30天以内。有哪些具体的tactics可以在不降价的情况下加速decision making？"
+  - id: sales-edge-send5
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: sales-edge-wait5
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: sales-edge-shot5
+    action: browser.screenshot
+    params:
+      name: "edge-sales-05-mixed-language"
+
+  - id: done
+    action: log
+    params:
+      message: "✅ Edge case测试完成！查看 edge-mkt-01~05 和 edge-sales-01~05 共10张截图。"

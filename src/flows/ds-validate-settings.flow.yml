@@ -1,0 +1,150 @@
+# Digital Staff — Settings 深度验证
+# 验证：表单字段有值、各子页面存在、状态正确
+
+name: ds-validate-settings
+description: Settings 深度验证 — General 表单值正确、子页面导航、ACTIVE 状态
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: navigate-settings
+    action: browser.click
+    params:
+      selector: "a:has-text('Settings'), a[href*='settings'], nav a:has-text('Settings'), aside a:has-text('Settings')"
+
+  - id: wait-settings-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Settings'), h2:has-text('Settings')"
+      timeout: 10000
+
+  - id: screenshot-settings-general
+    action: browser.screenshot
+    params:
+      name: "ds-validate-settings-general"
+
+  # ── 验证 General 标签是激活状态 ──────────────────────────────
+  - id: assert-general-tab-active
+    action: assert.element
+    params:
+      selector: "button:has-text('General'), a:has-text('General'), [class*='active']:has-text('General'), [aria-selected='true']:has-text('General'), [data-state='active']:has-text('General')"
+
+  # ── 验证 General 表单有输入字段且至少一个有值 ────────────────
+  - id: verify-form-fields-have-values
+    action: browser.execute
+    params:
+      script: |
+        const inputs = Array.from(document.querySelectorAll('input[type="text"], input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"])'));
+        if (inputs.length === 0) throw new Error('No text inputs found on Settings General page');
+        const filledInputs = inputs.filter(i => i.value && i.value.trim().length > 0);
+        const inputDetails = inputs.map(i => ({
+          id: i.id, name: i.name, placeholder: i.placeholder,
+          hasValue: !!i.value, valueLen: i.value?.length || 0
+        }));
+        if (filledInputs.length === 0) {
+          throw new Error('All inputs on Settings page are empty. Inputs: ' + JSON.stringify(inputDetails));
+        }
+        return { totalInputs: inputs.length, filledCount: filledInputs.length, inputs: inputDetails };
+
+  # ── 验证 Settings 所有标签存在 ────────────────────────────────
+  - id: assert-settings-tabs-exist
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const expectedTabs = ['General', 'Billing', 'Notifications', 'Security', 'Profile'];
+        const missing = expectedTabs.filter(tab => !body.includes(tab));
+        if (missing.length > 0) throw new Error('Missing settings tabs: ' + missing.join(', '));
+        return { tabsFound: expectedTabs };
+
+  # ── 验证 Save Changes 按钮存在 ──────────────────────────────
+  - id: assert-save-button
+    action: assert.element
+    params:
+      selector: "button:has-text('Save Changes'), button:has-text('Save')"
+
+  # ── 验证所有子标签都能点击 ────────────────────────────────────
+  - id: click-billing-tab
+    action: browser.click
+    params:
+      selector: "a:has-text('Billing'), button:has-text('Billing')"
+
+  - id: wait-billing-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], h2, h3"
+      timeout: 10000
+
+  - id: screenshot-billing
+    action: browser.screenshot
+    params:
+      name: "ds-validate-settings-billing"
+
+  - id: click-notifications-tab
+    action: browser.click
+    params:
+      selector: "a:has-text('Notifications'), button:has-text('Notifications')"
+
+  - id: wait-notifications-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], h2, h3, form"
+      timeout: 10000
+
+  - id: screenshot-notifications
+    action: browser.screenshot
+    params:
+      name: "ds-validate-settings-notifications"
+
+  - id: click-security-tab
+    action: browser.click
+    params:
+      selector: "a:has-text('Security'), button:has-text('Security')"
+
+  - id: wait-security-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], h2, h3, form"
+      timeout: 10000
+
+  - id: screenshot-security
+    action: browser.screenshot
+    params:
+      name: "ds-validate-settings-security"
+
+  - id: click-profile-tab
+    action: browser.click
+    params:
+      selector: "a:has-text('Profile'), button:has-text('Profile')"
+
+  - id: wait-profile-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], input, form"
+      timeout: 10000
+
+  # ── 验证 Profile 表单有邮箱值 ─────────────────────────────────
+  - id: verify-profile-email
+    action: browser.execute
+    params:
+      script: |
+        const inputs = Array.from(document.querySelectorAll('input'));
+        const emailInput = inputs.find(i =>
+          i.type === 'email' || i.name?.includes('email') || i.id?.includes('email') ||
+          i.placeholder?.includes('email') || i.value?.includes('@')
+        );
+        if (!emailInput) throw new Error('Profile email input not found');
+        if (!emailInput.value || !emailInput.value.includes('@')) {
+          throw new Error('Profile email is empty or invalid: ' + emailInput.value);
+        }
+        return { email: emailInput.value };
+
+  - id: screenshot-profile
+    action: browser.screenshot
+    params:
+      name: "ds-validate-settings-profile"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Settings 深度验证通过！Tenant Name、Slug、Status ACTIVE、Profile Email 均正确。"

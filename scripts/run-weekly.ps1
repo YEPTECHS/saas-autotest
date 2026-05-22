@@ -45,7 +45,14 @@ pnpm flow test-operation-boundary 2>&1 | Tee-Object -FilePath $logFile -Append
 Log "--- Boundary: Daniel ---"
 pnpm flow test-daniel-boundary 2>&1 | Tee-Object -FilePath $logFile -Append
 
-# ── 5. HTML Report + Email ─────────────────────────────────
+# ── 5. Digital Staff Chat Quality Tests ────────────────────
+Log "--- DS Chat: All 4 flows + Slack ---"
+pnpm ds:run:weekly 2>&1 | Tee-Object -FilePath $logFile -Append
+
+Log "--- DS Email Report ---"
+pnpm ds:email:report 2>&1 | Tee-Object -FilePath $logFile -Append
+
+# ── 6. HTML Report + Email ─────────────────────────────────
 Log "--- Generating HTML Report and Sending Email ---"
 pnpm report:html:email 2>&1 | Tee-Object -FilePath $logFile -Append
 

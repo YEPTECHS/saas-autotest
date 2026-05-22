@@ -1,0 +1,869 @@
+# ══════════════════════════════════════════════════════════════════
+# Digital Staff — Comprehensive UI Audit
+# ══════════════════════════════════════════════════════════════════
+# 覆盖 5 大维度:
+#   1. 界面与视觉 (Look & Feel)       — 字体层级、颜色、间距、图标
+#   2. 交互与状态 (Interaction)       — 按钮状态、空状态、加载、表单反馈
+#   3. 导航与流转 (Navigation & Flow) — 侧边栏、Tab、面包屑、返回
+#   4. 兼容性与自适应 (Responsive)   — 375/768/1280 三种视口
+#   5. 易用性与无障碍 (Usability/A11y)— ARIA、键盘、对比度、表单标签
+# ══════════════════════════════════════════════════════════════════
+
+name: ds-audit-ui
+description: "UI Audit: Look&Feel, Interaction, Navigation, Responsive, A11y — all pages"
+
+steps:
+  - include: ds-login.flow.yml
+
+  # ════════════════════════════════════════════════════════════════
+  # ① LOOK & FEEL — Typography & Color per page
+  # ════════════════════════════════════════════════════════════════
+
+  # ── Dashboard ────────────────────────────────────────────────
+  - id: nav-dashboard
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dashboard
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-dashboard
+    action: browser.screenshot
+    params:
+      name: "audit-01-dashboard"
+
+  - id: lf-dashboard-typography
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Dashboard', issues: [] };
+        // Font hierarchy
+        const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4')).map(h => {
+          const s = window.getComputedStyle(h);
+          return { tag: h.tagName, text: h.textContent.trim().slice(0,50), fontSize: parseFloat(s.fontSize), fontWeight: s.fontWeight, color: s.color };
+        });
+        for (let i = 1; i < headings.length; i++) {
+          if (headings[i].tag <= headings[i-1].tag && headings[i].fontSize > headings[i-1].fontSize) {
+            audit.issues.push({ type: 'font_hierarchy', detail: headings[i].tag + ' larger than ' + headings[i-1].tag });
+          }
+        }
+        // Button color consistency
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null && b.textContent.trim().length > 0);
+        const primaryBtns = buttons.filter(b => { const s = window.getComputedStyle(b); return s.backgroundColor !== 'transparent' && s.backgroundColor !== 'rgba(0, 0, 0, 0)'; });
+        const bgColors = [...new Set(primaryBtns.map(b => window.getComputedStyle(b).backgroundColor))];
+        // All visible text elements — check for empty buttons
+        buttons.forEach(b => {
+          const text = b.textContent.trim();
+          if (text.length === 0 && !b.querySelector('svg, img, [aria-label]')) {
+            audit.issues.push({ type: 'button_no_text_no_icon', el: b.className.slice(0,40) });
+          }
+        });
+        // Metrics cards present
+        const body = document.body.innerText;
+        const requiredMetrics = ['Active Digital Humans', 'Conversation', 'Monthly Usage', 'Credit Balance'];
+        requiredMetrics.forEach(m => { if (!body.includes(m)) audit.issues.push({ type: 'missing_metric_card', metric: m }); });
+        return { ...audit, headings, buttonCount: buttons.length, primaryButtonColors: bgColors, body: body.slice(0,300) };
+    output: auditDashboardLF
+
+  # ── DH List ────────────────────────────────────────────────────
+  - id: nav-dh
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-dh-list
+    action: browser.screenshot
+    params:
+      name: "audit-02-dh-list"
+
+  - id: lf-dh-list
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'DH List', issues: [] };
+        const h1 = document.querySelector('h1');
+        if (!h1) { audit.issues.push('Missing H1'); }
+        const h1Style = h1 ? window.getComputedStyle(h1) : null;
+        // All buttons
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => {
+          const s = window.getComputedStyle(b);
+          return { text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled, bg: s.backgroundColor, color: s.color, fontSize: s.fontSize, cursor: s.cursor };
+        }).filter(b => b.text.length > 0);
+        // Check filter tabs present
+        const allTabs = Array.from(document.querySelectorAll('[role="tab"]')).map(t => t.textContent.trim());
+        const tabTexts = Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim());
+        const hasAllTab = allTabs.some(t => t === 'All') || tabTexts.some(t => t === 'All');
+        const hasRunningTab = allTabs.some(t => t === 'Running') || tabTexts.some(t => t === 'Running');
+        const hasIdleTab = allTabs.some(t => t === 'Idle') || tabTexts.some(t => t === 'Idle');
+        const hasCreateBtn = buttons.some(b => b.text.toLowerCase().includes('create'));
+        const hasSearchInput = !!document.querySelector('input[placeholder]');
+        if (!hasCreateBtn) audit.issues.push('Missing Create Digital Human button');
+        if (!hasAllTab || !hasRunningTab || !hasIdleTab) audit.issues.push({ type: 'missing_filter_tabs', found: { hasAllTab, hasRunningTab, hasIdleTab } });
+        if (!hasSearchInput) audit.issues.push('Missing search input');
+        // Card structure
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => c.textContent.trim().length > 10);
+        const cardIssues = [];
+        cards.forEach((card, i) => {
+          const text = card.textContent;
+          if (!text.includes('Running') && !text.includes('Idle') && !text.includes('Stopped')) {
+            cardIssues.push({ card: i, issue: 'no status badge' });
+          }
+          const btns = card.querySelectorAll('button');
+          if (btns.length === 0) cardIssues.push({ card: i, issue: 'no action buttons' });
+        });
+        if (cardIssues.length > 0) audit.issues.push({ type: 'card_structure_issues', cardIssues });
+        return { ...audit, h1: h1 ? { text: h1.textContent.trim(), fontSize: h1Style.fontSize, fontWeight: h1Style.fontWeight } : null, buttons, tabs: { hasAllTab, hasRunningTab, hasIdleTab }, cardCount: cards.length };
+    output: auditDHListLF
+
+  # ── Approved Skills ────────────────────────────────────────────
+  - id: nav-back-before-skills
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-before-skills
+    action: wait
+    params:
+      ms: 2000
+
+  - id: nav-skills
+    action: browser.click
+    params:
+      selector: "a:has-text('Approved Skills'), a[href*='skill'], nav a:has-text('Skills')"
+
+  - id: wait-skills
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-skills
+    action: browser.screenshot
+    params:
+      name: "audit-03-approved-skills"
+
+  - id: lf-skills
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Approved Skills', issues: [] };
+        const h1 = document.querySelector('h1');
+        if (!h1) audit.issues.push('Missing H1');
+        const h1Text = h1 ? h1.textContent.trim() : '';
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]')).map(t => t.textContent.trim()).filter(t => t.length > 0);
+        const expectedTabs = ['All', 'Productivity', 'Development', 'Research'];
+        const missingTabs = expectedTabs.filter(et => !tabs.some(t => t.toLowerCase().includes(et.toLowerCase())));
+        if (missingTabs.length > 0) audit.issues.push({ type: 'missing_category_tabs', missing: missingTabs });
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="skill"]')).filter(c => c.textContent.trim().length > 10);
+        if (cards.length === 0) audit.issues.push('No skill cards visible');
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const installBtns = buttons.filter(b => b.text.toLowerCase().includes('install'));
+        if (cards.length > 0 && installBtns.length === 0) audit.issues.push('No Install buttons on skill cards');
+        const hasSearch = !!document.querySelector('input[placeholder]');
+        if (!hasSearch) audit.issues.push('Missing skill search input');
+        // Check subtitle text
+        const subtitle = document.querySelector('p, [class*="subtitle"], [class*="description"]');
+        const subtitleText = subtitle ? subtitle.textContent.trim() : '';
+        const hasAdminReviewed = document.body.innerText.toLowerCase().includes('admin');
+        if (!hasAdminReviewed) audit.issues.push('Missing "admin-reviewed" subtitle text');
+        return { ...audit, h1: h1Text, tabs, tabCount: tabs.length, cardCount: cards.length, buttons, installButtonCount: installBtns.length, subtitleText: subtitleText.slice(0,100) };
+    output: auditSkillsLF
+
+  # ── Channel Setup ─────────────────────────────────────────────
+  - id: nav-back-before-channels
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-before-channels
+    action: wait
+    params:
+      ms: 2000
+
+  - id: nav-channels
+    action: browser.click
+    params:
+      selector: "a:has-text('Channel Setup'), a[href*='channel'], nav a:has-text('Channel')"
+
+  - id: wait-channels
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-channels
+    action: browser.screenshot
+    params:
+      name: "audit-04-channel-setup"
+
+  - id: lf-channels
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Channel Setup', issues: [] };
+        const h1 = document.querySelector('h1');
+        if (!h1) audit.issues.push('Missing H1');
+        const headings = Array.from(document.querySelectorAll('h1,h2,h3')).map(h => ({ tag: h.tagName, text: h.textContent.trim().slice(0,60) }));
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="channel"]')).filter(c => c.offsetParent !== null && c.textContent.trim().length > 5);
+        return { ...audit, h1: h1 ? h1.textContent.trim() : 'NOT FOUND', headings, buttonCount: buttons.length, buttons, cardCount: cards.length, bodySnippet: document.body.innerText.slice(0,300) };
+    output: auditChannelsLF
+
+  # ── Settings ───────────────────────────────────────────────────
+  - id: nav-settings
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/settings"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-settings
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-settings
+    action: browser.screenshot
+    params:
+      name: "audit-05-settings"
+
+  - id: lf-settings
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Settings', issues: [] };
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]')).map(t => t.textContent.trim()).filter(t => t.length > 0);
+        if (tabs.length === 0) audit.issues.push('No settings tabs found');
+        const inputs = Array.from(document.querySelectorAll('input, textarea')).filter(i => i.offsetParent !== null).map(i => ({
+          type: i.type, placeholder: i.placeholder || '', value: i.value ? '(filled)' : '', label: i.getAttribute('aria-label') || i.name || ''
+        }));
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const saveBtn = buttons.find(b => b.text.toLowerCase().includes('save') || b.text.toLowerCase().includes('update'));
+        if (!saveBtn) audit.issues.push('No Save/Update button in settings');
+        // Check inputs have labels
+        inputs.forEach(i => { if (!i.placeholder && !i.label && !i.value) audit.issues.push({ type: 'input_no_label', input: i }); });
+        return { ...audit, tabs, inputCount: inputs.length, inputs, buttonCount: buttons.length, buttons };
+    output: auditSettingsLF
+
+  # Settings tabs screenshots — Settings uses sidebar links not [role="tab"]
+  - id: click-settings-tab-2
+    action: browser.click
+    params:
+      selector: "button:has-text('Billing'), a:has-text('Billing'), li:has-text('Billing')"
+
+  - id: wait-tab2
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-settings-tab2
+    action: browser.screenshot
+    params:
+      name: "audit-05b-settings-tab2"
+
+  - id: click-settings-tab-3
+    action: browser.click
+    params:
+      selector: "button:has-text('Notifications'), a:has-text('Notifications'), li:has-text('Notifications')"
+
+  - id: wait-tab3
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-settings-tab3
+    action: browser.screenshot
+    params:
+      name: "audit-05c-settings-tab3"
+
+  # ── Subscription ───────────────────────────────────────────────
+  - id: nav-back-before-subscription
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-before-subscription
+    action: wait
+    params:
+      ms: 2000
+
+  - id: nav-subscription
+    action: browser.click
+    params:
+      selector: "a:has-text('Subscription'), a[href*='subscription'], nav a:has-text('Subscription')"
+
+  - id: wait-subscription
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-subscription
+    action: browser.screenshot
+    params:
+      name: "audit-06-subscription"
+
+  - id: lf-subscription
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Subscription', issues: [] };
+        const body = document.body.innerText;
+        const h1 = document.querySelector('h1');
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const hasPlans = body.toLowerCase().includes('plan') || body.toLowerCase().includes('subscription');
+        const hasPrice = /\$\d+|\d+\s*credit/i.test(body);
+        if (!hasPlans) audit.issues.push('No subscription plan content visible');
+        if (!h1) audit.issues.push('Missing H1');
+        return { ...audit, h1: h1 ? h1.textContent.trim() : 'NOT FOUND', buttonCount: buttons.length, buttons, checks: { hasPlans, hasPrice } };
+    output: auditSubscriptionLF
+
+  # ════════════════════════════════════════════════════════════════
+  # ② INTERACTION & STATES — buttons, empty states, form feedback
+  # ════════════════════════════════════════════════════════════════
+
+  # ── Login form: empty submit validation ───────────────────────
+  - id: nav-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-login
+    action: browser.screenshot
+    params:
+      name: "audit-07-login-page"
+
+  - id: interact-login-audit
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Login', issues: [] };
+        const inputs = Array.from(document.querySelectorAll('input')).map(i => ({ type: i.type, placeholder: i.placeholder, autocomplete: i.getAttribute('autocomplete') || 'not set' }));
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const links = Array.from(document.querySelectorAll('a')).map(a => ({ text: a.textContent.trim(), href: a.getAttribute('href') || '' })).filter(a => a.text.length > 0);
+        const hasEmail = inputs.some(i => i.type === 'email' || i.placeholder.toLowerCase().includes('email') || i.placeholder.includes('@'));
+        const hasPw = inputs.some(i => i.type === 'password');
+        const hasSignIn = buttons.some(b => b.text.toLowerCase().includes('sign') || b.text.toLowerCase().includes('log'));
+        const hasForgotPw = links.some(l => l.text.toLowerCase().includes('forgot'));
+        const hasSignUp = links.some(l => l.text.toLowerCase().includes('sign up') || l.text.toLowerCase().includes('create'));
+        if (!hasEmail) audit.issues.push('Missing email input');
+        if (!hasPw) audit.issues.push('Missing password input');
+        if (!hasSignIn) audit.issues.push('Missing Sign In button');
+        if (!hasForgotPw) audit.issues.push('Missing Forgot Password link');
+        if (!hasSignUp) audit.issues.push('Missing Sign Up link');
+        // Check autocomplete attributes
+        const emailInput = inputs.find(i => i.type === 'email' || i.placeholder.includes('@'));
+        const pwInput = inputs.find(i => i.type === 'password');
+        if (emailInput && emailInput.autocomplete === 'not set') audit.issues.push({ type: 'missing_autocomplete', field: 'email' });
+        return { ...audit, inputs, buttons, links, checks: { hasEmail, hasPw, hasSignIn, hasForgotPw, hasSignUp } };
+    output: auditLoginInteract
+
+  # ── Register form: validation & hints ─────────────────────────
+  - id: nav-register
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim().toLowerCase().includes('sign up'));
+        if (link) link.click();
+        return { clicked: !!link };
+
+  - id: wait-register
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-register
+    action: browser.screenshot
+    params:
+      name: "audit-08-register-page"
+
+  - id: interact-register-audit
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Register', issues: [] };
+        const inputs = Array.from(document.querySelectorAll('input')).map(i => ({ type: i.type, placeholder: i.placeholder, autocomplete: i.getAttribute('autocomplete') || 'not set', required: i.required }));
+        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null).map(b => ({ text: b.textContent.trim().replace(/\s+/g,' ').slice(0,40), disabled: b.disabled })).filter(b => b.text.length > 0);
+        const pwHint = Array.from(document.querySelectorAll('p, span, small')).find(el => el.textContent.toLowerCase().includes('uppercase') || el.textContent.toLowerCase().includes('8 character'));
+        const hasName = inputs.some(i => i.placeholder.toLowerCase().includes('name'));
+        const hasEmail = inputs.some(i => i.type === 'email' || i.placeholder.includes('@'));
+        const hasPw = inputs.some(i => i.type === 'password');
+        const hasCreateBtn = buttons.some(b => b.text.toLowerCase().includes('create'));
+        if (!hasName) audit.issues.push('Missing Full Name field');
+        if (!hasEmail) audit.issues.push('Missing email field');
+        if (!hasPw) audit.issues.push('Missing password field');
+        if (!hasCreateBtn) audit.issues.push('Missing Create Account button');
+        if (!pwHint) audit.issues.push('Missing password complexity hint text below field');
+        return { ...audit, inputs, buttons, passwordHint: pwHint ? pwHint.textContent.trim() : null, checks: { hasName, hasEmail, hasPw, hasCreateBtn, hasPwHint: !!pwHint } };
+    output: auditRegisterInteract
+
+  # ── DH empty state check ──────────────────────────────────────
+  - id: nav-dh-empty
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-empty
+    action: wait
+    params:
+      ms: 2000
+
+  - id: interact-dh-empty-state
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'DH List - Empty State', issues: [] };
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => c.textContent.trim().length > 10);
+        const body = document.body.innerText;
+        if (cards.length === 0) {
+          // Check for proper empty state UI
+          const hasEmptyMessage = body.toLowerCase().includes('no digital human') || body.toLowerCase().includes('create your first') || body.toLowerCase().includes('get started');
+          if (!hasEmptyMessage) audit.issues.push('Empty state: no helpful message shown when 0 DHs');
+          const hasCreateBtn = Array.from(document.querySelectorAll('button')).some(b => b.textContent.trim().toLowerCase().includes('create'));
+          if (!hasCreateBtn) audit.issues.push('Empty state: no Create button shown to guide user');
+          return { ...audit, emptyState: true, hasEmptyMessage, hasCreateBtn, bodySnippet: body.slice(0,200) };
+        }
+        return { ...audit, emptyState: false, cardCount: cards.length };
+    output: auditDHEmptyState
+
+  # ════════════════════════════════════════════════════════════════
+  # ③ NAVIGATION & FLOW — sidebar, tabs, breadcrumbs
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-back-dashboard
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-nav-audit
+    action: wait
+    params:
+      ms: 2000
+
+  - id: nav-audit-sidebar
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Navigation - Sidebar', issues: [] };
+        // Collect all nav links
+        const navLinks = Array.from(document.querySelectorAll('nav a, aside a, [class*="sidebar"] a')).map(a => ({
+          text: a.textContent.trim().replace(/\s+/g,' ').slice(0,40),
+          href: a.getAttribute('href') || '',
+          visible: a.offsetParent !== null
+        })).filter(l => l.text.length > 0);
+        // Expected nav items
+        const expectedNavItems = ['Dashboard', 'Digital Humans', 'Conversations', 'Approved Skills', 'Channel Setup', 'Subscription', 'Settings'];
+        const missingNav = expectedNavItems.filter(item => !navLinks.some(l => l.text.toLowerCase().includes(item.toLowerCase())));
+        if (missingNav.length > 0) audit.issues.push({ type: 'missing_nav_items', missing: missingNav });
+        // Check all nav links are visible
+        const hiddenLinks = navLinks.filter(l => !l.visible);
+        if (hiddenLinks.length > 0) audit.issues.push({ type: 'hidden_nav_links', links: hiddenLinks });
+        // Check for # or empty hrefs
+        const emptyHrefs = navLinks.filter(l => l.href === '#' || l.href === '');
+        return { ...audit, navLinks, navCount: navLinks.length, missingNav, expectedNavItems };
+    output: auditNavSidebar
+
+  # Click through all nav links and verify each page loads
+  - id: nav-test-dh-link
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('nav a, aside a')).find(a => a.textContent.trim().toLowerCase().includes('digital human'));
+        if (link) { link.click(); return { clicked: true, text: link.textContent.trim() }; }
+        return { clicked: false };
+
+  - id: wait-dh-nav
+    action: wait
+    params:
+      ms: 1500
+
+  - id: verify-dh-page-loaded
+    action: browser.execute
+    params:
+      script: |
+        const h1 = document.querySelector('h1');
+        const url = window.location.href;
+        return { url, h1: h1 ? h1.textContent.trim() : 'NOT FOUND', pass: url.includes('digital-human') || (h1 && h1.textContent.toLowerCase().includes('digital')) };
+    output: navDHResult
+
+  - id: nav-test-conversations
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('nav a, aside a')).find(a => a.textContent.trim().toLowerCase().includes('conversation'));
+        if (link) { link.click(); return { clicked: true }; }
+        return { clicked: false };
+
+  - id: wait-conv-nav
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-conversations
+    action: browser.screenshot
+    params:
+      name: "audit-09-conversations"
+
+  - id: nav-test-skills
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('nav a, aside a')).find(a => a.textContent.trim().toLowerCase().includes('skill') || a.textContent.trim().toLowerCase().includes('approved'));
+        if (link) { link.click(); return { clicked: true }; }
+        return { clicked: false };
+
+  - id: wait-skills-nav
+    action: wait
+    params:
+      ms: 1500
+
+  - id: nav-test-channel
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('nav a, aside a')).find(a => a.textContent.trim().toLowerCase().includes('channel'));
+        if (link) { link.click(); return { clicked: true }; }
+        return { clicked: false };
+
+  - id: wait-channel-nav
+    action: wait
+    params:
+      ms: 1500
+
+  - id: nav-test-settings
+    action: browser.execute
+    params:
+      script: |
+        const link = Array.from(document.querySelectorAll('nav a, aside a, [class*="sidebar"] a')).find(a => a.textContent.trim().toLowerCase().includes('setting'));
+        if (link) { link.click(); return { clicked: true }; }
+        return { clicked: false };
+
+  - id: wait-settings-nav
+    action: wait
+    params:
+      ms: 1500
+
+  - id: nav-summary
+    action: browser.execute
+    params:
+      script: |
+        return { navTestComplete: true, note: 'All sidebar nav links tested. Check audit-09 screenshot for Conversations page.' };
+    output: navSummary
+
+  # ════════════════════════════════════════════════════════════════
+  # ④ RESPONSIVENESS — test 3 viewports per key page
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-dashboard-responsive
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dashboard-resp
+    action: wait
+    params:
+      ms: 2000
+
+  # Mobile 375px
+  - id: set-mobile-viewport
+    action: browser.setViewport
+    params:
+      width: 375
+      height: 812
+
+  - id: wait-resize-mobile
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-mobile-dashboard
+    action: browser.screenshot
+    params:
+      name: "audit-10-responsive-mobile-375"
+
+  - id: check-mobile-layout
+    action: browser.execute
+    params:
+      script: |
+        const audit = { viewport: '375px', issues: [] };
+        const w = window.innerWidth;
+        const sidebar = document.querySelector('aside, nav, [class*="sidebar"]');
+        const sidebarW = sidebar ? sidebar.getBoundingClientRect().width : 0;
+        const main = document.querySelector('main, [class*="main"], [class*="content"]');
+        const mainW = main ? main.getBoundingClientRect().width : 0;
+        if (mainW > w + 10) audit.issues.push({ type: 'horizontal_overflow', mainWidth: mainW, viewportWidth: w });
+        const smallText = Array.from(document.querySelectorAll('p, span, td, li')).filter(el => {
+          const fs = parseFloat(window.getComputedStyle(el).fontSize);
+          return fs > 0 && fs < 10 && el.offsetParent !== null;
+        });
+        if (smallText.length > 0) audit.issues.push({ type: 'text_too_small_mobile', count: smallText.length });
+        const sidebarCollapsed = sidebarW < 80;
+        if (!sidebarCollapsed) audit.issues.push({ type: 'sidebar_not_collapsed_mobile', sidebarWidth: Math.round(sidebarW) });
+        return { ...audit, innerWidth: w, sidebarWidth: Math.round(sidebarW), mainWidth: Math.round(mainW), sidebarCollapsed };
+    output: responsiveMobile
+
+  # Tablet 768px
+  - id: set-tablet-viewport
+    action: browser.setViewport
+    params:
+      width: 768
+      height: 1024
+
+  - id: wait-resize-tablet
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-tablet-dashboard
+    action: browser.screenshot
+    params:
+      name: "audit-11-responsive-tablet-768"
+
+  - id: check-tablet-layout
+    action: browser.execute
+    params:
+      script: |
+        const audit = { viewport: '768px', issues: [] };
+        const w = window.innerWidth;
+        const main = document.querySelector('main, [class*="main"], [class*="content"]');
+        const mainW = main ? main.getBoundingClientRect().width : 0;
+        if (mainW > w + 10) audit.issues.push({ type: 'horizontal_overflow', mainWidth: mainW, viewportWidth: w });
+        return { ...audit, innerWidth: w, mainWidth: Math.round(mainW) };
+    output: responsiveTablet
+
+  # Desktop 1280px (restore)
+  - id: set-desktop-viewport
+    action: browser.setViewport
+    params:
+      width: 1280
+      height: 800
+
+  - id: wait-resize-desktop
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-desktop-dashboard
+    action: browser.screenshot
+    params:
+      name: "audit-12-responsive-desktop-1280"
+
+  # DH list at mobile
+  - id: nav-dh-responsive
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: set-mobile-dh
+    action: browser.setViewport
+    params:
+      width: 375
+      height: 812
+
+  - id: wait-mobile-dh
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-mobile-dh
+    action: browser.screenshot
+    params:
+      name: "audit-13-responsive-mobile-dh"
+
+  - id: restore-desktop
+    action: browser.setViewport
+    params:
+      width: 1280
+      height: 800
+
+  - id: wait-restore
+    action: wait
+    params:
+      ms: 500
+
+  # ════════════════════════════════════════════════════════════════
+  # ⑤ USABILITY & ACCESSIBILITY — ARIA, contrast, keyboard, labels
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-dashboard-a11y
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-a11y
+    action: wait
+    params:
+      ms: 2000
+
+  - id: a11y-dashboard
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Dashboard A11y', issues: [] };
+        // 1. Images without alt text
+        const imgsNoAlt = Array.from(document.querySelectorAll('img')).filter(img => !img.alt || img.alt.trim() === '');
+        if (imgsNoAlt.length > 0) audit.issues.push({ type: 'images_no_alt', count: imgsNoAlt.length });
+        // 2. Buttons without accessible name
+        const btnsNoLabel = Array.from(document.querySelectorAll('button')).filter(b => {
+          const text = b.textContent.trim();
+          const aria = b.getAttribute('aria-label') || '';
+          const title = b.getAttribute('title') || '';
+          return text.length === 0 && aria.length === 0 && title.length === 0 && b.offsetParent !== null;
+        });
+        if (btnsNoLabel.length > 0) audit.issues.push({ type: 'buttons_no_accessible_name', count: btnsNoLabel.length, classes: btnsNoLabel.slice(0,3).map(b => b.className.slice(0,50)) });
+        // 3. Inputs without labels
+        const inputs = Array.from(document.querySelectorAll('input, textarea, select')).filter(i => i.offsetParent !== null);
+        const inputsNoLabel = inputs.filter(i => {
+          const label = document.querySelector('label[for="' + i.id + '"]');
+          const ariaLabel = i.getAttribute('aria-label') || '';
+          const ariaLabelledby = i.getAttribute('aria-labelledby') || '';
+          const placeholder = i.placeholder || '';
+          return !label && !ariaLabel && !ariaLabelledby && !placeholder;
+        });
+        if (inputsNoLabel.length > 0) audit.issues.push({ type: 'inputs_no_label', count: inputsNoLabel.length });
+        // 4. Links with no text
+        const linksNoText = Array.from(document.querySelectorAll('a')).filter(a => {
+          const text = a.textContent.trim();
+          const aria = a.getAttribute('aria-label') || '';
+          return text.length === 0 && aria.length === 0 && a.offsetParent !== null;
+        });
+        if (linksNoText.length > 0) audit.issues.push({ type: 'links_no_text', count: linksNoText.length });
+        // 5. Interactive elements without cursor:pointer
+        const interactiveNoCursor = Array.from(document.querySelectorAll('button, a[href], [role="button"]')).filter(el => {
+          const cursor = window.getComputedStyle(el).cursor;
+          return cursor !== 'pointer' && el.offsetParent !== null && !el.disabled;
+        });
+        // 6. Skip contrast (no DOM access to actual colors from bg) — just note
+        // 7. Role landmarks
+        const hasMain = !!document.querySelector('main, [role="main"]');
+        const hasNav = !!document.querySelector('nav, [role="navigation"]');
+        if (!hasMain) audit.issues.push({ type: 'missing_landmark', role: 'main' });
+        if (!hasNav) audit.issues.push({ type: 'missing_landmark', role: 'nav/navigation' });
+        // 8. Page title
+        const pageTitle = document.title;
+        if (!pageTitle || pageTitle.trim().length === 0) audit.issues.push({ type: 'missing_page_title' });
+        // 9. Lang attribute
+        const langAttr = document.documentElement.getAttribute('lang') || '';
+        if (!langAttr) audit.issues.push({ type: 'missing_lang_attribute' });
+        return { ...audit, pageTitle, langAttr, imgCount: imgsNoAlt.length + ' with no alt', buttonIssueCount: btnsNoLabel.length, inputIssueCount: inputsNoLabel.length, linkIssueCount: linksNoText.length, interactiveNoCursorCount: interactiveNoCursor.length, landmarks: { hasMain, hasNav } };
+    output: auditA11yDashboard
+
+  - id: a11y-dh-page
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-a11y-dh
+    action: wait
+    params:
+      ms: 2000
+
+  - id: a11y-dh-list
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'DH List A11y', issues: [] };
+        // Buttons no accessible name
+        const btnsNoLabel = Array.from(document.querySelectorAll('button')).filter(b => {
+          const text = b.textContent.trim();
+          const aria = b.getAttribute('aria-label') || '';
+          return text.length === 0 && aria.length === 0 && b.offsetParent !== null;
+        });
+        if (btnsNoLabel.length > 0) audit.issues.push({ type: 'icon_buttons_no_aria_label', count: btnsNoLabel.length, note: 'Likely 3-dot / icon-only buttons need aria-label' });
+        // Tab role present
+        const tablist = document.querySelector('[role="tablist"]');
+        const tabs = document.querySelectorAll('[role="tab"]');
+        if (!tablist) audit.issues.push('Filter tabs missing role="tablist" wrapper');
+        if (tabs.length === 0) audit.issues.push('Filter buttons missing role="tab"');
+        // Search input has label
+        const searchInput = document.querySelector('input[placeholder]');
+        if (searchInput) {
+          const aria = searchInput.getAttribute('aria-label') || '';
+          const label = searchInput.id ? document.querySelector('label[for="' + searchInput.id + '"]') : null;
+          if (!aria && !label) audit.issues.push({ type: 'search_input_no_accessible_label', placeholder: searchInput.placeholder });
+        }
+        return { ...audit, iconButtonsNoLabel: btnsNoLabel.length, hasTablList: !!tablist, tabCount: tabs.length };
+    output: auditA11yDH
+
+  - id: a11y-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-a11y-login
+    action: wait
+    params:
+      ms: 1500
+
+  - id: a11y-login-check
+    action: browser.execute
+    params:
+      script: |
+        const audit = { page: 'Login A11y', issues: [] };
+        // Input labels
+        const inputs = Array.from(document.querySelectorAll('input'));
+        inputs.forEach(input => {
+          const id = input.id;
+          const label = id ? document.querySelector('label[for="' + id + '"]') : null;
+          const ariaLabel = input.getAttribute('aria-label') || '';
+          const placeholder = input.placeholder || '';
+          if (!label && !ariaLabel && !placeholder) audit.issues.push({ type: 'input_no_label', type_attr: input.type });
+        });
+        // Password field type
+        const pwField = document.querySelector('input[type="password"]');
+        if (!pwField) audit.issues.push('No password field with type="password"');
+        // Autocomplete on email
+        const emailField = document.querySelector('input[type="email"], input[placeholder*="@"], input[placeholder*="email"]');
+        if (emailField && (!emailField.getAttribute('autocomplete') || emailField.getAttribute('autocomplete') === 'off')) {
+          audit.issues.push({ type: 'email_autocomplete_missing_or_off', note: 'Should be autocomplete="email"' });
+        }
+        // Form element present
+        const hasForm = !!document.querySelector('form');
+        if (!hasForm) audit.issues.push({ type: 'no_form_element', note: 'Login should be wrapped in <form> for keyboard submit (Enter key)' });
+        // Tab order — check focusable elements
+        const focusable = Array.from(document.querySelectorAll('input, button, a, [tabindex]')).filter(el => el.offsetParent !== null);
+        return { ...audit, inputCount: inputs.length, hasForm, focusableCount: focusable.length };
+    output: auditA11yLogin
+
+  # ════════════════════════════════════════════════════════════════
+  # FINAL SUMMARY
+  # ════════════════════════════════════════════════════════════════
+  - id: final-screenshot-dashboard
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/dashboard"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-final
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "audit-14-final-state"
+
+  - id: log-complete
+    action: log
+    params:
+      message: "UI Audit 完成！覆盖：①Look&Feel ②Interaction&States ③Navigation&Flow ④Responsive(375/768/1280) ⑤A11y — 共14张截图。检查各 audit* 输出的 issues 数组。"

@@ -1,0 +1,385 @@
+# ══════════════════════════════════════════════════════════════════
+# Digital Staff — DH Chat Logic Test
+# 测试 MarketingClaw 📢 test dont delete
+#   和 SalesClaw 💼 test dont delete 的对话逻辑
+# 账户: kiechee.pau1@yepai.io
+# ══════════════════════════════════════════════════════════════════
+
+name: ds-chat-test
+description: "Chat Test: MarketingClaw & SalesClaw (test dont delete) — 多轮对话验证逻辑"
+
+steps:
+  # ════════════════════════════════════════════════════════════════
+  # 登录 kiechee.pau1@yepai.io
+  # ════════════════════════════════════════════════════════════════
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='text']"
+      timeout: 15000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[type='text']"
+      value: "kiechee.pau1@yepai.io"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "Asdf@1234"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in'), button:has-text('Login')"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar']"
+      timeout: 30000
+
+  # ════════════════════════════════════════════════════════════════
+  # ① MARKETINGCLAW 📢 test dont delete
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-dh-list
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Digital Humans'), aside a:has-text('Digital Humans'), a[href*='digital']"
+
+  - id: wait-dh-page
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-dh-list
+    action: browser.screenshot
+    params:
+      name: "chat-01-dh-list"
+
+  # 精准找到 "MarketingClaw...test dont delete" 卡片，点击 Chat 按钮
+  - id: click-marketingclaw-chat
+    action: browser.execute
+    params:
+      script: |
+        const allCards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], [class*="item"], li'));
+        const target = allCards.find(c => c.textContent.includes('MarketingClaw') && c.textContent.includes('test dont delete'));
+        if (!target) {
+          const allTexts = allCards.map(c => c.textContent.trim().slice(0, 60).replace(/\s+/g,' ')).filter(t => t.length > 5);
+          return { found: false, available: allTexts.slice(0, 10) };
+        }
+        const chatBtn = Array.from(target.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (chatBtn) { chatBtn.click(); return { found: true, clicked: 'Chat button' }; }
+        target.click();
+        return { found: true, clicked: 'card fallback' };
+    output: marketingClawClick
+
+  - id: wait-marketing-chat-load
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-marketing-chat-open
+    action: browser.screenshot
+    params:
+      name: "chat-02-marketingclaw-chat-opened"
+
+  # 确认 chat 界面已加载，找到输入框
+  - id: verify-chat-input-marketing
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const inputs = Array.from(document.querySelectorAll('input, textarea')).map(i => ({
+          tag: i.tagName, type: i.type, placeholder: i.placeholder, class: i.className.slice(0,60)
+        }));
+        const sessionEl = document.querySelector('[class*="session"], [id*="session"]');
+        return { url, inputs, sessionInfo: sessionEl ? sessionEl.textContent.trim() : null, bodySnippet: document.body.innerText.slice(0,200).replace(/\s+/g,' ') };
+    output: chatInputInfo
+
+  # ── 第一轮：营销策略 ─────────────────────────────────────────────
+  - id: type-marketing-msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "我们公司刚推出了一款面向中小企业的B2B SaaS产品，请帮我制定一个简短的市场推广计划，包括目标受众、核心卖点和推广渠道。"
+
+  - id: send-marketing-1
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        const input = document.querySelector('input[placeholder*="message" i], textarea');
+        if (input) { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return { clicked: 'Enter key' }; }
+        return { clicked: 'nothing found' };
+
+  - id: wait-marketing-resp1
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-marketing-resp1
+    action: browser.screenshot
+    params:
+      name: "chat-03-marketingclaw-resp1"
+
+  - id: read-marketing-resp1
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        return { text: body.slice(-2500).replace(/\s+/g, ' ') };
+    output: mktResp1
+
+  # ── 第二轮：竞争差异化 ──────────────────────────────────────────
+  - id: type-marketing-msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "我们定价每月999元，主要竞争对手是Salesforce和HubSpot。你觉得如何突出差异化优势，让中小企业选择我们而不是这些大品牌？"
+
+  - id: send-marketing-2
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        const input = document.querySelector('input[placeholder*="message" i], textarea');
+        if (input) { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return { clicked: 'Enter' }; }
+        return { clicked: 'nothing' };
+
+  - id: wait-marketing-resp2
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-marketing-resp2
+    action: browser.screenshot
+    params:
+      name: "chat-04-marketingclaw-resp2"
+
+  - id: read-marketing-resp2
+    action: browser.execute
+    params:
+      script: |
+        return { text: document.body.innerText.slice(-2500).replace(/\s+/g, ' ') };
+    output: mktResp2
+
+  # ── 第三轮：上下文记忆检验 ─────────────────────────────────────────
+  - id: type-marketing-msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "根据你刚才提到的推广渠道，哪个对我们999元定价的产品最有性价比？请帮我排个优先级并说明理由。"
+
+  - id: send-marketing-3
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        return { clicked: 'nothing' };
+
+  - id: wait-marketing-resp3
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-marketing-resp3
+    action: browser.screenshot
+    params:
+      name: "chat-05-marketingclaw-resp3"
+
+  - id: read-full-marketing-chat
+    action: browser.execute
+    params:
+      script: |
+        return { fullChat: document.body.innerText.replace(/\s+/g, ' ').slice(-4000) };
+    output: marketingFullChat
+
+  # ════════════════════════════════════════════════════════════════
+  # ② SALESCLAW 💼 test dont delete
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-back-for-sales
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-list-sales
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-sales-cards
+    action: wait
+    params:
+      ms: 2000
+
+  # 精准点击 SalesClaw test dont delete 的 Chat 按钮
+  - id: click-salesclaw-chat
+    action: browser.execute
+    params:
+      script: |
+        const allCards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], [class*="item"], li'));
+        const target = allCards.find(c => c.textContent.includes('SalesClaw') && c.textContent.includes('test dont delete'));
+        if (!target) {
+          const allTexts = allCards.map(c => c.textContent.trim().slice(0, 60).replace(/\s+/g,' ')).filter(t => t.length > 5);
+          return { found: false, available: allTexts.slice(0, 10) };
+        }
+        const chatBtn = Array.from(target.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (chatBtn) { chatBtn.click(); return { found: true, clicked: 'Chat button' }; }
+        target.click();
+        return { found: true, clicked: 'card fallback' };
+    output: salesClawClick
+
+  - id: wait-sales-chat-load
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-sales-chat-open
+    action: browser.screenshot
+    params:
+      name: "chat-06-salesclaw-chat-opened"
+
+  # ── 第一轮：处理预算异议 ─────────────────────────────────────────
+  - id: type-sales-msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "我有一个潜在客户，是一家50人的科技公司，他们对我们产品很感兴趣但还没下决定，主要顾虑是预算不够。我该怎么推进这个单？"
+
+  - id: send-sales-1
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        return { clicked: 'nothing' };
+
+  - id: wait-sales-resp1
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-sales-resp1
+    action: browser.screenshot
+    params:
+      name: "chat-07-salesclaw-resp1"
+
+  - id: read-sales-resp1
+    action: browser.execute
+    params:
+      script: |
+        return { text: document.body.innerText.slice(-2500).replace(/\s+/g, ' ') };
+    output: salesResp1
+
+  # ── 第二轮：报价谈判 ─────────────────────────────────────────────
+  - id: type-sales-msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "他们说预算只有我们标准价的60%，我们最多能给20%折扣。怎么跟他们谈，既不损害品牌价值，又能推进签约？"
+
+  - id: send-sales-2
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        return { clicked: 'nothing' };
+
+  - id: wait-sales-resp2
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-sales-resp2
+    action: browser.screenshot
+    params:
+      name: "chat-08-salesclaw-resp2"
+
+  - id: read-sales-resp2
+    action: browser.execute
+    params:
+      script: |
+        return { text: document.body.innerText.slice(-2500).replace(/\s+/g, ' ') };
+    output: salesResp2
+
+  # ── 第三轮：推动签约话术 ─────────────────────────────────────────
+  - id: type-sales-msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='message' i], input[placeholder*='Message'], textarea[placeholder*='message' i], input:not([type='email']):not([type='password']):not([type='hidden']):not([type='search'])"
+      value: "如果他们接受了20%折扣，下一步我该怎么推动他们尽快签合同？给我3条具体话术。"
+
+  - id: send-sales-3
+    action: browser.execute
+    params:
+      script: |
+        const sendBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          return t === 'send' || label.includes('send') || b.type === 'submit';
+        });
+        if (sendBtn) { sendBtn.click(); return { clicked: 'button' }; }
+        return { clicked: 'nothing' };
+
+  - id: wait-sales-resp3
+    action: wait
+    params:
+      ms: 45000
+
+  - id: screenshot-sales-resp3
+    action: browser.screenshot
+    params:
+      name: "chat-09-salesclaw-resp3"
+
+  - id: read-full-sales-chat
+    action: browser.execute
+    params:
+      script: |
+        return { fullChat: document.body.innerText.replace(/\s+/g, ' ').slice(-4000) };
+    output: salesFullChat
+
+  - id: done
+    action: log
+    params:
+      message: "✅ Chat 测试完成！查看截图 chat-02 至 chat-09 评估两个 DH 的回复质量。"

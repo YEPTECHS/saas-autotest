@@ -1,0 +1,85 @@
+# Digital Staff — Conversations 深度验证
+# 验证：页面结构完整、过滤器/搜索存在、空状态或列表正确显示
+
+name: ds-validate-conversations
+description: Conversations 深度验证 — 页面结构、过滤器、空状态/列表内容
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: navigate-conversations
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Conversations'), aside a:has-text('Conversations'), a[href*='conversation']"
+
+  - id: wait-page-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, main"
+      timeout: 15000
+
+  - id: wait-data-loaded
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-initial
+    action: browser.screenshot
+    params:
+      name: "ds-validate-conversations-initial"
+
+  # ── 验证页面标题 ──────────────────────────────────────────────
+  - id: assert-page-has-heading
+    action: browser.execute
+    params:
+      script: |
+        const h = document.querySelector('h1, h2');
+        if (!h) throw new Error('No heading found on Conversations page');
+        return { heading: h.textContent.trim() };
+
+  # ── 验证页面有内容区（非空白）────────────────────────────────
+  - id: verify-page-has-content
+    action: browser.execute
+    params:
+      script: |
+        const main = document.querySelector('main, [class*="content"], [class*="page"]');
+        if (!main) throw new Error('No main content area found');
+        const text = main.innerText.trim();
+        if (text.length < 10) throw new Error('Conversations page content is near-empty. Got: ' + text.slice(0, 50));
+        return { contentLength: text.length, preview: text.slice(0, 100) };
+
+  # ── 检查是空状态还是有列表 ───────────────────────────────────
+  - id: check-empty-or-list
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const isEmpty = body.includes('No conversations') || body.includes('no conversation') ||
+                        body.includes('empty') || body.includes('Nothing here');
+        const hasList = document.querySelectorAll('table tr, [class*="row"], [class*="conversation-item"]').length > 0;
+        return { isEmpty, hasList, note: isEmpty ? 'Empty state shown' : hasList ? 'Conversation list shown' : 'Unknown state' };
+
+  - id: screenshot-state
+    action: browser.screenshot
+    params:
+      name: "ds-validate-conversations-state"
+
+  # ── 验证是否有过滤/搜索控件 ──────────────────────────────────
+  - id: check-filter-controls
+    action: browser.execute
+    params:
+      script: |
+        const searchInput = document.querySelector('input[placeholder*="search"], input[placeholder*="Search"], input[placeholder*="filter"]');
+        const filterBtns = document.querySelectorAll('[class*="filter"], [class*="tab"], select');
+        return {
+          hasSearch: !!searchInput,
+          filterCount: filterBtns.length,
+          controls: {
+            search: searchInput ? searchInput.placeholder : null,
+          }
+        };
+
+  - id: log-success
+    action: log
+    params:
+      message: "Conversations 深度验证通过！"

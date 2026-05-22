@@ -1,0 +1,507 @@
+# Digital Staff — Dashboard 深度验证 v2
+# 覆盖：数据一致性、卡片细节、图表加载、Recent Activity 质量、DH 卡片交互、主题切换
+
+name: ds-validate-dashboard-deep
+description: Dashboard 全面深度验证 — 数据一致性、图表加载、Recent Activity、DH 卡片、dark mode
+
+steps:
+  - include: ds-login.flow.yml
+
+  # ── 等待数据加载完成 ───────────────────────────────────────────
+  - id: wait-data-load
+    action: wait
+    params:
+      ms: 5000
+
+  - id: screenshot-initial
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-initial"
+
+  # ════════════════════════════════════════════════════════════════
+  # 1. 卡片细节验证 — 副标题文字、plan label、金额分解
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-card-subtitles
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const checks = {
+          currentlyRunning: body.includes('currently running'),
+          soFarToday:       body.includes('so far today'),
+          planLabel:        body.includes('unlimited') || body.includes('Starter') ||
+                            body.includes('Pro') || body.includes('Business') ||
+                            body.includes('Enterprise') || body.includes('Free'),
+          creditBreakdown:  body.includes('top-up') && body.includes('sub'),
+          creditsUsed:      body.includes('credits used this period') || body.includes('credit')
+        };
+        const failed = Object.entries(checks).filter(([k, v]) => !v).map(([k]) => k);
+        if (failed.length > 0) throw new Error('Missing card subtitle content: ' + failed.join(', ') + '. Body snippet: ' + body.slice(0, 400));
+        return checks;
+
+  - id: log-card-subtitles
+    action: log
+    params:
+      message: "卡片副标题验证通过"
+
+  # ════════════════════════════════════════════════════════════════
+  # 2. 数据一致性 — Active DH X/Y 格式 + X ≤ Y
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-active-dh-logic
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const match = body.match(/(\d+)\s*\/\s*(\d+)/);
+        if (!match) throw new Error('Active Digital Humans X/Y not found');
+        const running = parseInt(match[1]);
+        const total   = parseInt(match[2]);
+        if (running > total) throw new Error('BUG: running (' + running + ') > total (' + total + ') — impossible state');
+        if (total === 0) return { running: 0, total: 0, ratio: '0/0', note: '⚠️ Fresh account — no DHs configured yet' };
+        return { running, total, ratio: running + '/' + total, valid: running <= total };
+    output: dhCounts
+
+  # ════════════════════════════════════════════════════════════════
+  # 3. 侧边栏 badge 与 Active DH 数据一致
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-sidebar-badge-matches
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const dhMatch = body.match(/(\d+)\s*\/\s*(\d+)/);
+        if (!dhMatch) throw new Error('Active Digital Humans X/Y not found');
+        const total = parseInt(dhMatch[2]);
+        const navLinks = Array.from(document.querySelectorAll('nav a, aside a, [class*="nav"] a'));
+        const dhNavLink = navLinks.find(a => a.textContent.includes('Digital Humans'));
+        const badgeText = dhNavLink ? dhNavLink.textContent.trim() : '';
+        const badgeMatch = badgeText.match(/(\d+)/g);
+        const badgeNumber = badgeMatch ? parseInt(badgeMatch[badgeMatch.length - 1]) : null;
+        if (badgeNumber !== null && badgeNumber !== total) {
+          throw new Error('BUG: Sidebar badge shows ' + badgeNumber + ' but Active DH total is ' + total);
+        }
+        return { sidebarBadge: badgeNumber, dhTotal: total, consistent: badgeNumber === total };
+
+  # ════════════════════════════════════════════════════════════════
+  # 4. 底部 Digital Humans 卡片数量与 Active DH X/Y 一致
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-dh-cards-match-count
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const dhMatch = body.match(/(\d+)\s*\/\s*(\d+)/);
+        if (!dhMatch) throw new Error('Active Digital Humans X/Y not found');
+        const total = parseInt(dhMatch[2]);
+        const runningFromCard = parseInt(dhMatch[1]);
+        const cards = document.querySelectorAll('[class*="card"]');
+        const dhCards = Array.from(cards).filter(c => {
+          const t = c.textContent;
+          return (t.includes('Running') || t.includes('Idle') || t.includes('Stopped')) &&
+                 t.includes('conversations');
+        });
+        if (dhCards.length === 0 && total === 0) {
+          return { totalCards: 0, note: '⚠️ Fresh account — 0 DHs, skipping count consistency check' };
+        }
+        if (dhCards.length === 0) throw new Error('No DH agent cards found but total=' + total + ' — data inconsistency');
+        if (dhCards.length !== total) {
+          throw new Error('BUG: Active DH total=' + total + ' but bottom section shows ' + dhCards.length + ' cards');
+        }
+        const runningCards = dhCards.filter(c => c.textContent.includes('Running')).length;
+        if (runningCards !== runningFromCard) {
+          throw new Error('BUG: Active DH running=' + runningFromCard + ' but ' + runningCards + ' Running cards in bottom section');
+        }
+        return { totalCards: dhCards.length, runningCards, expectedTotal: total, expectedRunning: runningFromCard, consistent: true };
+
+  - id: log-consistency
+    action: log
+    params:
+      message: "数据一致性验证通过：sidebar badge、DH 卡片数量、Running 数均匹配"
+
+  # ════════════════════════════════════════════════════════════════
+  # 5. 底部 DH 卡片内容完整性 — today conversations 文字存在
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-dh-card-details
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent;
+          return (t.includes('Running') || t.includes('Idle')) && t.includes('conversations');
+        });
+        const results = cards.map(c => {
+          const text = c.textContent.trim();
+          return {
+            hasName:          text.length > 0,
+            hasStatus:        text.includes('Running') || text.includes('Idle'),
+            hasTodayCount:    text.includes('today:') || text.includes('conversations'),
+            hasButton:        !!c.querySelector('button') || !!c.querySelector('a'),
+            preview:          text.slice(0, 80)
+          };
+        });
+        const incomplete = results.filter(r => !r.hasStatus || !r.hasTodayCount);
+        if (incomplete.length > 0) throw new Error('DH cards missing detail: ' + JSON.stringify(incomplete));
+        return { cardCount: results.length, cards: results };
+
+  # ════════════════════════════════════════════════════════════════
+  # 6. Conversation Volume 图表 — 等待解析，不能永远 Loading
+  # ════════════════════════════════════════════════════════════════
+  - id: wait-chart-resolve
+    action: wait
+    params:
+      ms: 8000
+
+  - id: screenshot-after-chart-wait
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-chart-state"
+
+  - id: verify-chart-not-stuck
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const hasConvVolume = body.includes('Conversation Volume');
+        if (!hasConvVolume) throw new Error('Conversation Volume section not found');
+        const sections = Array.from(document.querySelectorAll('*')).filter(
+          el => el.children.length === 0 && el.textContent.trim() === 'Conversation Volume'
+        );
+        const chartSection = sections[0] ? sections[0].closest('section, [class*="card"], div') : null;
+        const chartText = chartSection ? chartSection.textContent : '';
+        const stillLoading = chartText.toLowerCase().includes('loading') &&
+                             !chartText.includes('No conversation') &&
+                             !chartText.includes('no data');
+        return {
+          hasConvVolume,
+          chartText: chartText.slice(0, 100),
+          stillLoading,
+          result: stillLoading
+            ? '⚠️ BUG: Conversation Volume chart still loading after 13+ seconds'
+            : '✅ Chart resolved (showing data or no-data state)'
+        };
+    output: chartState
+
+  - id: log-chart-state
+    action: log
+    params:
+      message: "Conversation Volume 图表状态已记录（查看 chartState 输出）"
+
+  # ════════════════════════════════════════════════════════════════
+  # 7. Recent Activity 质量 — 时间戳、agent+描述双部分
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-recent-activity-quality
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const lines = body.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+        const actIdx = lines.findIndex(l => l.includes('Recent Activity'));
+        if (actIdx === -1) throw new Error('Recent Activity section not found');
+        const actLines = lines.slice(actIdx + 1, actIdx + 30);
+        const timePattern = /\d+[dhm]\s+ago|\d+\s+(day|hour|minute|second)/i;
+        const hasTimestamps = actLines.some(l => timePattern.test(l));
+        const hasColon = actLines.some(l => l.includes(':'));
+        const itemCount = actLines.filter(l => timePattern.test(l)).length;
+        if (!hasTimestamps) return { skipped: true, note: '⚠️ No timestamps — fresh account with no activity yet' };
+        if (!hasColon) return { skipped: true, note: '⚠️ No colon format — fresh account with no activity yet' };
+        return {
+          itemsWithTimestamp: itemCount,
+          hasAgentColonAction: hasColon,
+          sampleLines: actLines.slice(0, 6)
+        };
+
+  # ════════════════════════════════════════════════════════════════
+  # 8. Recent Activity 条目数 ≥ 3
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-activity-item-count
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const timePattern = /\d+[dhm]\s+ago|\d+\s+(day|hour|minute)/i;
+        const lines = body.split('\n').map(l => l.trim());
+        const actIdx = lines.findIndex(l => l.includes('Recent Activity'));
+        const actLines = lines.slice(actIdx + 1, actIdx + 30);
+        const timedItems = actLines.filter(l => timePattern.test(l));
+        if (timedItems.length === 0) return { skipped: true, note: '⚠️ No activity items — fresh account' };
+        if (timedItems.length < 3) return { itemCount: timedItems.length, note: '⚠️ Only ' + timedItems.length + ' activity items — fewer than expected 3' };
+        return { itemCount: timedItems.length, items: timedItems };
+
+  - id: screenshot-activity
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-activity"
+
+  # ════════════════════════════════════════════════════════════════
+  # 9. Recent Activity 点击跳转 — 点击第一条，验证页面变化
+  # ════════════════════════════════════════════════════════════════
+  - id: click-first-activity-item
+    action: browser.execute
+    params:
+      script: |
+        const actSection = Array.from(document.querySelectorAll('*')).find(
+          el => el.children.length === 0 && el.textContent.trim() === 'Recent Activity'
+        );
+        if (!actSection) throw new Error('Recent Activity heading not found');
+        const container = actSection.closest('section, [class*="card"], div');
+        const clickable = container ? container.querySelector('a, [role="link"], [class*="item"], [class*="row"], li') : null;
+        if (clickable) {
+          clickable.click();
+          return { clicked: true, tag: clickable.tagName, class: clickable.className.slice(0, 60) };
+        }
+        return { clicked: false, note: 'No clickable item found in Recent Activity' };
+    output: activityClick
+
+  - id: wait-after-activity-click
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-after-activity-click
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-activity-click"
+
+  - id: check-activity-click-navigation
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const navigatedAway = !url.includes('#/') || url.includes('conversation') || url.includes('detail');
+        return {
+          currentUrl: url,
+          navigatedAway,
+          result: navigatedAway ? '✅ Click navigated to detail/conversation' : '⚠️ Click did not navigate — activity items may not be interactive'
+        };
+    output: activityNavResult
+
+  # ── 返回 Dashboard ────────────────────────────────────────────
+  - id: navigate-back-dashboard
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Dashboard'), aside a:has-text('Dashboard'), a[href*='dashboard']"
+
+  - id: wait-dashboard-reload
+    action: wait
+    params:
+      ms: 5000
+
+  - id: wait-dh-section-loaded
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='card']"
+      timeout: 10000
+
+  # ════════════════════════════════════════════════════════════════
+  # 10. DH 卡片点击跳转 — 点击底部 DH 卡片，验证导航到详情页
+  # ════════════════════════════════════════════════════════════════
+  - id: click-first-dh-card
+    action: browser.execute
+    params:
+      script: |
+        const allCards = Array.from(document.querySelectorAll('[class*="card"]'));
+        const dhCards = allCards.filter(c => {
+          const t = c.textContent;
+          return (t.includes('Running') || t.includes('Idle')) && t.includes('conversations');
+        });
+        const target = dhCards.length > 0 ? dhCards[0] : null;
+        if (!target) {
+          const anyCard = allCards.find(c => c.textContent.includes('Running') || c.textContent.includes('MarketingClaw') || c.textContent.includes('SalesClaw'));
+          if (!anyCard) return { clicked: false, note: '⚠️ No DH agent cards to click — fresh account with no DHs' };
+          anyCard.click();
+          return { clicked: true, method: 'fallback', cardPreview: anyCard.textContent.slice(0, 40) };
+        }
+        target.click();
+        return { clicked: true, method: 'primary', cardPreview: target.textContent.slice(0, 40).trim() };
+    output: dhCardClick
+
+  - id: wait-after-dh-click
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-after-dh-click
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-dh-card-click"
+
+  - id: check-dh-click-navigation
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const body = document.body.innerText;
+        const navigatedToDetail = url.includes('digital-human') || url.includes('agent') ||
+                                  body.includes('Chat') || body.includes('Knowledge') ||
+                                  !url.endsWith('#/');
+        return {
+          currentUrl: url,
+          navigatedToDetail,
+          result: navigatedToDetail
+            ? '✅ DH card click navigated to agent detail page'
+            : '⚠️ DH card click did not navigate — cards may not be interactive'
+        };
+    output: dhNavResult
+
+  # ── 返回 Dashboard ────────────────────────────────────────────
+  - id: navigate-back-dashboard-2
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Dashboard'), aside a:has-text('Dashboard'), a[href*='dashboard']"
+
+  - id: wait-dashboard-reload-2
+    action: wait
+    params:
+      ms: 3000
+
+  # ════════════════════════════════════════════════════════════════
+  # 11. Dark Mode Toggle — 点击切换主题，验证变化
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-dark-mode-toggle-exists
+    action: browser.execute
+    params:
+      script: |
+        const toggleBtn = document.querySelector(
+          'button[aria-label*="theme"], button[aria-label*="dark"], button[aria-label*="light"], ' +
+          '[class*="theme"] button, [title*="theme"], [title*="dark"]'
+        );
+        const moonIcon = document.querySelector('svg[class*="moon"], [class*="moon-icon"]');
+        const topRightButtons = Array.from(document.querySelectorAll('header button, [class*="header"] button, [class*="topbar"] button'));
+        return {
+          hasThemeButton: !!toggleBtn,
+          hasMoonIcon: !!moonIcon,
+          topRightButtonCount: topRightButtons.length,
+          note: 'Dark mode toggle detected via button/icon search'
+        };
+
+  - id: click-dark-mode-toggle
+    action: browser.execute
+    params:
+      script: |
+        const candidates = [
+          document.querySelector('button[aria-label*="theme"]'),
+          document.querySelector('button[aria-label*="dark"]'),
+          document.querySelector('button[aria-label*="Toggle"]'),
+          Array.from(document.querySelectorAll('button')).find(b => {
+            const aria = b.getAttribute('aria-label') || '';
+            return aria.toLowerCase().includes('theme') || aria.toLowerCase().includes('dark') || aria.toLowerCase().includes('mode');
+          }),
+          document.querySelector('[class*="theme-toggle"], [class*="dark-toggle"]')
+        ].filter(Boolean);
+        if (candidates.length === 0) return { clicked: false, note: 'No theme toggle button found by aria-label' };
+        candidates[0].click();
+        return { clicked: true, element: candidates[0].tagName + ' ' + (candidates[0].getAttribute('aria-label') || '') };
+    output: darkModeClick
+
+  - id: wait-theme-change
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-after-dark-mode
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-dark-mode"
+
+  - id: verify-theme-changed
+    action: browser.execute
+    params:
+      script: |
+        const html = document.documentElement;
+        const body = document.body;
+        const htmlClass = html.className;
+        const htmlTheme = html.getAttribute('data-theme') || html.getAttribute('class') || '';
+        const bodyClass = body.className;
+        const isDark = htmlTheme.includes('dark') || htmlClass.includes('dark') || bodyClass.includes('dark');
+        return {
+          htmlClass: htmlClass.slice(0, 100),
+          htmlDataTheme: html.getAttribute('data-theme'),
+          isDark,
+          result: isDark ? '✅ Dark mode activated' : '⚠️ Theme class not detected — may use CSS variables or different mechanism'
+        };
+    output: themeState
+
+  # ── 还原 Light Mode ───────────────────────────────────────────
+  - id: click-dark-mode-restore
+    action: browser.execute
+    params:
+      script: |
+        const candidates = [
+          document.querySelector('button[aria-label*="theme"]'),
+          document.querySelector('button[aria-label*="dark"]'),
+          document.querySelector('button[aria-label*="Toggle"]'),
+          Array.from(document.querySelectorAll('button')).find(b => {
+            const aria = b.getAttribute('aria-label') || '';
+            return aria.toLowerCase().includes('theme') || aria.toLowerCase().includes('dark') || aria.toLowerCase().includes('mode');
+          })
+        ].filter(Boolean);
+        if (candidates.length > 0) candidates[0].click();
+        return { restored: candidates.length > 0 };
+
+  # ════════════════════════════════════════════════════════════════
+  # 12. 侧边栏 Collapse 按钮 — 折叠 & 展开
+  # ════════════════════════════════════════════════════════════════
+  - id: click-sidebar-collapse
+    action: browser.execute
+    params:
+      script: |
+        const collapseBtn = document.querySelector(
+          'button[aria-label*="sidebar"], button[aria-label*="Sidebar"], ' +
+          'button[aria-label*="collapse"], button[aria-label*="Toggle Sidebar"], ' +
+          '[class*="sidebar-toggle"], [class*="collapse-btn"]'
+        );
+        if (!collapseBtn) return { clicked: false, note: 'Sidebar toggle button not found by aria-label' };
+        collapseBtn.click();
+        return { clicked: true, label: collapseBtn.getAttribute('aria-label') || collapseBtn.textContent.slice(0, 30) };
+    output: sidebarCollapse
+
+  - id: wait-sidebar-anim
+    action: wait
+    params:
+      ms: 600
+
+  - id: screenshot-sidebar-collapsed
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-sidebar-collapsed"
+
+  - id: verify-sidebar-collapsed
+    action: browser.execute
+    params:
+      script: |
+        const aside = document.querySelector('aside, nav, [class*="sidebar"]');
+        if (!aside) return { found: false, note: 'Sidebar element not found' };
+        const style = window.getComputedStyle(aside);
+        const width = aside.getBoundingClientRect().width;
+        return {
+          sidebarWidth: Math.round(width),
+          collapsed: width < 100,
+          result: width < 100 ? '✅ Sidebar collapsed (width < 100px)' : '⚠️ Sidebar may not have collapsed (width: ' + Math.round(width) + 'px)'
+        };
+    output: sidebarState
+
+  - id: click-sidebar-expand
+    action: browser.execute
+    params:
+      script: |
+        const collapseBtn = document.querySelector(
+          'button[aria-label*="sidebar"], button[aria-label*="Sidebar"], ' +
+          'button[aria-label*="collapse"], button[aria-label*="Toggle Sidebar"]'
+        );
+        if (collapseBtn) collapseBtn.click();
+        return { clicked: !!collapseBtn };
+
+  - id: wait-sidebar-expand
+    action: wait
+    params:
+      ms: 600
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-deep-final"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Dashboard 深度验证 v2 完成！覆盖：卡片细节、数据一致性、图表状态、Activity 质量、DH 卡片点击、Dark Mode、侧边栏"

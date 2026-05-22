@@ -288,11 +288,63 @@ jobs:
           path: reports/
           retention-days: 3
 
-  # ── Job 6: Report — waits for all jobs, merges & emails ─────
+  # ── Job 6: Digital Staff — chat quality & memory tests ──────
+  digital-staff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          DS_BASE_URL=${{ secrets.DS_BASE_URL }}
+          DS_LOGIN_EMAIL=${{ secrets.DS_LOGIN_EMAIL }}
+          DS_LOGIN_PASSWORD=${{ secrets.DS_LOGIN_PASSWORD }}
+          SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
+          REPORT_EMAIL_FROM=${{ secrets.REPORT_EMAIL_FROM }}
+          REPORT_EMAIL_PASS=${{ secrets.REPORT_EMAIL_PASS }}
+          REPORT_EMAIL_TO=${{ secrets.REPORT_EMAIL_TO }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          HEADLESS=true
+          EOF
+
+      - name: DS Chat — All 4 flows (marketing + sales + edge + longrun)
+        run: pnpm ds:run:weekly
+        continue-on-error: true
+
+      - name: Triage failures + auto-repair ENV issues
+        run: pnpm ds:triage:repair
+        continue-on-error: true
+
+      - name: Send DS email report
+        run: pnpm ds:email:report
+        continue-on-error: true
+
+      - name: Upload DS reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-digital-staff-${{ github.run_id }}
+          path: |
+            reports/ds-run-*.json
+            screenshots/
+          retention-days: 14
+
+  # ── Job 7: Report — waits for all jobs, merges & emails ─────
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [stress-and-accuracy, boundary-maya, boundary-oscar, boundary-daniel, boundary-cody]
+    needs: [stress-and-accuracy, boundary-maya, boundary-oscar, boundary-daniel, boundary-cody, digital-staff]
     if: always()
 
     steps:

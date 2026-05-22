@@ -1,0 +1,63 @@
+# Digital Staff — 登录验证测试 Flow
+# 测试错误的登录凭据是否显示错误提示
+
+name: ds-test-login-validation
+description: 测试 Digital Staff 登录页面的错误验证
+
+steps:
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], input[type='text']"
+      timeout: 15000
+
+  # 测试 1：空表单提交
+  - id: click-submit-empty
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('登录'), button:has-text('Login')"
+
+  - id: screenshot-empty-validation
+    action: browser.screenshot
+    params:
+      name: "ds-login-empty-validation"
+
+  # 测试 2：错误密码
+  - id: fill-email-wrong
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], input[type='text']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password-wrong
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "wrongpassword123"
+
+  - id: click-submit-wrong
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('登录'), button:has-text('Login')"
+
+  - id: wait-error-message
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='error'], [class*='alert'], [role='alert'], .ant-message, .el-message"
+      timeout: 10000
+
+  - id: screenshot-error
+    action: browser.screenshot
+    params:
+      name: "ds-login-error-message"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 登录验证测试完成！"

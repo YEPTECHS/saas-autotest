@@ -1,0 +1,39 @@
+# Digital Staff — Subscription 页面测试
+
+name: ds-test-subscription
+description: 测试 Workspace > Subscription 页面 — 套餐信息、信用余额
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: click-subscription
+    action: browser.click
+    params:
+      selector: "a:has-text('Subscription'), a[href*='subscription'], nav a:has-text('Subscription')"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='heading'], [class*='title'], main"
+      timeout: 15000
+
+  - id: screenshot-subscription
+    action: browser.screenshot
+    params:
+      name: "ds-subscription-page"
+
+  - id: check-plan-info
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='plan'], [class*='credit'], [class*='billing'], [class*='price'], p, button"
+      timeout: 10000
+
+  - id: screenshot-content
+    action: browser.screenshot
+    params:
+      name: "ds-subscription-content"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Subscription 页面测试完成！"

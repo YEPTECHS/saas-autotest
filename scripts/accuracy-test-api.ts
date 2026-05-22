@@ -600,6 +600,7 @@ interface Session {
   endpoint: string;
   headers: Record<string, string>;
   bodyTemplate: Record<string, unknown>;
+  pollEndpoint?: string; // template: {CONV_ID} replaced at poll time
 }
 
 async function captureSession(agent: string): Promise<Session> {
@@ -620,12 +621,23 @@ async function captureSession(agent: string): Promise<Session> {
     let endpoint = '';
     let headers: Record<string, string> = {};
     let bodyTemplate: Record<string, unknown> = {};
+    let capturedConvId = '';
+    let pollEndpoint = '';
 
     const startListening = () => {
+      // Capture initial POST endpoint
       page.on('request', req => {
-        if (endpoint) return;
         const url = req.url();
-        if (req.method() !== 'POST') return;
+        if (req.method() !== 'POST') {
+          // Capture polling GET that fires after async POST
+          if (endpoint && capturedConvId && !pollEndpoint && req.method() === 'GET') {
+            if (url.includes(capturedConvId)) {
+              pollEndpoint = url.replace(capturedConvId, '{CONV_ID}');
+            }
+          }
+          return;
+        }
+        if (endpoint) return;
         if (EXCLUDED.some(ex => url.toLowerCase().includes(ex))) return;
         const h = req.headers();
         let body: Record<string, unknown> = {};
@@ -639,6 +651,18 @@ async function captureSession(agent: string): Promise<Session> {
         endpoint = url;
         headers = { ...h };
         bodyTemplate = body;
+      });
+
+      // Capture conversation_id from POST response to enable poll-URL detection
+      page.on('response', async res => {
+        if (!endpoint || capturedConvId) return;
+        if (res.url() !== endpoint || res.request().method() !== 'POST') return;
+        try {
+          const json = await res.json() as Record<string, unknown>;
+          if (typeof json['conversation_id'] === 'string') {
+            capturedConvId = json['conversation_id'];
+          }
+        } catch { /* ignore */ }
       });
     };
 
@@ -702,6 +726,14 @@ async function captureSession(agent: string): Promise<Session> {
         await page.waitForTimeout(500);
         waited += 500;
       }
+      // Extra wait to capture poll endpoint for async agents (e.g. Cody)
+      if (endpoint && !pollEndpoint) {
+        let pollWait = 0;
+        while (!pollEndpoint && pollWait < 10000) {
+          await page.waitForTimeout(500);
+          pollWait += 500;
+        }
+      }
 
       const cookieArr = await context.cookies();
       const cookieStr = cookieArr.map(c => `${c.name}=${c.value}`).join('; ');
@@ -711,7 +743,10 @@ async function captureSession(agent: string): Promise<Session> {
       await browser.close();
     }
 
-    if (endpoint) return { endpoint, headers, bodyTemplate };
+    if (endpoint) {
+      if (pollEndpoint) console.log(`    ↳ Poll endpoint captured: ${pollEndpoint.substring(0, 80)}`);
+      return { endpoint, headers, bodyTemplate, pollEndpoint: pollEndpoint || undefined };
+    }
     console.log(`    ↳ No API captured for user ${user.email}, trying next...`);
   }
 
@@ -848,6 +883,36 @@ async function sendQuestion(session: Session, question: string): Promise<{ text:
           }
         }
       }
+      // Async job pattern: {"status":"accepted","conversation_id":"..."} — poll for result
+      if (!text || text === raw) {
+        const jsonParsed = (() => { try { return JSON.parse(raw) as Record<string, unknown>; } catch { return null; } })();
+        if (jsonParsed?.['status'] === 'accepted' && typeof jsonParsed['conversation_id'] === 'string' && session.pollEndpoint) {
+          const convId = jsonParsed['conversation_id'] as string;
+          const pollUrl = session.pollEndpoint.replace('{CONV_ID}', convId);
+          if (DEBUG) console.log(`    [DEBUG] async job detected, polling: ${pollUrl}`);
+          const pollHeaders: Record<string, string> = { ...session.headers, 'content-type': 'application/json' };
+          for (const h of ['content-length', 'host', 'connection', 'transfer-encoding']) delete pollHeaders[h];
+          let polled = 0;
+          while (polled < 30) {
+            await new Promise(r => setTimeout(r, 2000));
+            polled++;
+            try {
+              const pr = await fetch(pollUrl, { method: 'GET', headers: pollHeaders, signal: AbortSignal.timeout(15000) });
+              const praw = await pr.text();
+              const pjson = JSON.parse(praw) as Record<string, unknown>;
+              if (DEBUG) console.log(`    [DEBUG] poll ${polled}: status=${pjson['status']} keys=${Object.keys(pjson).join(',')}`);
+              if (pjson['status'] === 'completed' || pjson['status'] === 'done' || pjson['status'] === 'success') {
+                for (const k of ['content', 'response', 'answer', 'result', 'text', 'output']) {
+                  if (typeof pjson[k] === 'string' && (pjson[k] as string).length > 0) { text = pjson[k] as string; break; }
+                }
+                if (text) break;
+              }
+              if (pjson['status'] === 'failed' || pjson['status'] === 'error') break;
+            } catch { /* continue polling */ }
+          }
+        }
+      }
+
       if (!text) text = raw;
     } catch {
       text = raw;
@@ -952,7 +1017,10 @@ async function runAccuracyTests(agent: string): Promise<void> {
 
   const reportPath = join(process.cwd(), `reports/${agent}-accuracy-results.json`);
   writeFileSync(reportPath, JSON.stringify(report, null, 2));
-  console.log(`\n  Report saved → ${reportPath}`);
+  const dated = new Date().toISOString().slice(0, 10);
+  const archivedPath = join(process.cwd(), `reports/${agent}-accuracy-${dated}.json`);
+  writeFileSync(archivedPath, JSON.stringify(report, null, 2));
+  console.log(`\n  Report saved → ${reportPath} (archived → ${archivedPath})`);
 }
 
 // ── Main ─────────────────────────────────────────────────────

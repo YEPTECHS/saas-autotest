@@ -1,0 +1,1393 @@
+# Digital Staff — Digital Humans 深度验证 (Enhanced)
+# 覆盖：卡片完整性审计、过滤器计数、3-dot菜单（Edit/Delete）、搜索边界、
+#        卡片详情页、Detail Tabs、Chat按钮、
+#        Create完整流程（填字段+Next+Back+所有步骤按钮+实际创建+清理）、
+#        Dashboard 计数一致性
+
+name: ds-validate-dh-deep
+description: Digital Humans 全面深度验证 — 卡片审计、过滤、3-dot菜单、搜索、详情、Chat、Create完整流程、Dashboard一致性
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: navigate-dh
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Digital Humans'), aside a:has-text('Digital Humans'), a[href*='digital']"
+
+  - id: wait-dh-page
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-dh-list
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-01-list"
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 1: 卡片完整性审计
+  # ════════════════════════════════════════════════════════════════
+  - id: audit-dh-cards
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.length > 10 && (t.includes('Running') || t.includes('Idle') || t.includes('Stopped'));
+        });
+        if (cards.length === 0) return { total: 0, note: '⚠️ Fresh account — no DH cards yet. Card/filter/3-dot/search/detail tests will be skipped; Create flow will run.' };
+        const inventory = cards.map((card, i) => {
+          const text = card.textContent;
+          const statusMatch = text.match(/Running|Idle|Stopped/);
+          const buttons = card.querySelectorAll('button, a[role="button"]');
+          return {
+            index: i,
+            status: statusMatch ? statusMatch[0] : 'UNKNOWN',
+            buttonCount: buttons.length,
+            buttonLabels: Array.from(buttons).map(b => b.textContent.trim().slice(0, 20)),
+            preview: text.slice(0, 80).trim().replace(/\s+/g, ' ')
+          };
+        });
+        const noStatus = inventory.filter(c => c.status === 'UNKNOWN');
+        if (noStatus.length > 0) throw new Error('Cards missing status badge: ' + JSON.stringify(noStatus));
+        const noButtons = inventory.filter(c => c.buttonCount === 0);
+        if (noButtons.length > 0) throw new Error('Cards missing action buttons: ' + JSON.stringify(noButtons));
+        return { total: inventory.length, cards: inventory };
+    output: dhInventory
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 2: 过滤器计数一致性验证
+  # ════════════════════════════════════════════════════════════════
+  - id: click-all-tab
+    action: browser.click
+    params:
+      selector: "button:has-text('All'), [role='tab']:has-text('All'), [class*='tab']:has-text('All')"
+
+  - id: wait-all-tab
+    action: wait
+    params:
+      ms: 800
+
+  - id: capture-all-count
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        return { allCount: cards.length };
+    output: allTabCount
+
+  - id: click-running-tab
+    action: browser.click
+    params:
+      selector: "button:has-text('Running'), [role='tab']:has-text('Running'), [class*='tab']:has-text('Running')"
+
+  - id: wait-running-tab
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-running-filter
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-02-running-filter"
+
+  - id: verify-running-filter-accuracy
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        const idleVisible = cards.filter(c => c.textContent.includes('Idle'));
+        if (idleVisible.length > 0) throw new Error('Running filter showing Idle cards (' + idleVisible.length + '). Filter broken.');
+        return { runningCount: cards.length, pass: true };
+    output: runningFilterResult
+
+  - id: click-idle-tab
+    action: browser.click
+    params:
+      selector: "button:has-text('Idle'), [role='tab']:has-text('Idle'), [class*='tab']:has-text('Idle')"
+
+  - id: wait-idle-tab
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-idle-filter
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-03-idle-filter"
+
+  - id: verify-idle-filter-accuracy
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        const runningVisible = cards.filter(c => c.textContent.includes('Running') && !c.textContent.includes('Idle'));
+        if (runningVisible.length > 0) throw new Error('Idle filter showing Running cards (' + runningVisible.length + '). Filter broken.');
+        return { idleCount: cards.length, pass: true };
+    output: idleFilterResult
+
+  - id: click-all-tab-restore
+    action: browser.click
+    params:
+      selector: "button:has-text('All'), [role='tab']:has-text('All'), [class*='tab']:has-text('All')"
+
+  - id: wait-all-restored
+    action: wait
+    params:
+      ms: 800
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 3 (NEW): 卡片 3-dot 菜单完整验证
+  # ════════════════════════════════════════════════════════════════
+  - id: find-and-click-three-dot-menu
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle');
+        });
+        if (cards.length === 0) return { skipped: true, reason: 'No cards found' };
+        const card = cards[0];
+        const dots = Array.from(card.querySelectorAll('button, [role="button"]')).find(b => {
+          const text = b.textContent.trim();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          const cls = (b.className || '').toLowerCase();
+          return text === '...' || text === '⋮' || text === '···' || text === '•••' ||
+                 label.includes('more') || label.includes('option') || label.includes('menu') ||
+                 cls.includes('more') || cls.includes('kebab') || cls.includes('dots') ||
+                 cls.includes('ellipsis') || cls.includes('dropdown');
+        });
+        if (!dots) {
+          const allBtns = Array.from(card.querySelectorAll('button')).map(b => ({
+            text: b.textContent.trim(), label: b.getAttribute('aria-label') || '', cls: b.className.slice(0, 50)
+          }));
+          return { found: false, cardButtons: allBtns };
+        }
+        dots.click();
+        return { found: true, clicked: true, btnText: dots.textContent.trim(), btnLabel: dots.getAttribute('aria-label') || '' };
+    output: threeDotClickResult
+
+  - id: wait-dropdown-open
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-three-dot-dropdown
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-04-dots-dropdown"
+
+  - id: verify-dropdown-has-options
+    action: browser.execute
+    params:
+      script: |
+        const dropdowns = document.querySelectorAll('[role="menu"], [role="listbox"], [class*="dropdown"], [class*="Dropdown"], [class*="popover"], [class*="Popover"], [data-radix-popper-content-wrapper]');
+        if (dropdowns.length === 0) {
+          return { dropdownFound: false, bodySnippet: document.body.innerText.slice(0, 300) };
+        }
+        const menuItems = new Set();
+        dropdowns.forEach(d => {
+          d.querySelectorAll('[role="menuitem"], [role="option"], button, a, li').forEach(i => {
+            const t = i.textContent.trim();
+            if (t.length > 0 && t.length < 50) menuItems.add(t);
+          });
+        });
+        return { dropdownFound: true, menuItems: [...menuItems] };
+    output: dropdownOptions
+
+  # Click Edit from dropdown (if available)
+  - id: click-edit-from-dropdown
+    action: browser.execute
+    params:
+      script: |
+        const editBtn = Array.from(document.querySelectorAll('[role="menuitem"], [role="option"], button, a')).find(el => {
+          const t = el.textContent.trim().toLowerCase();
+          return t === 'edit' || t === 'rename' || t === 'settings' || t === 'configure';
+        });
+        if (!editBtn) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+          return { skipped: true, reason: 'No edit option found', closing: true };
+        }
+        editBtn.click();
+        return { clicked: true, label: editBtn.textContent.trim() };
+    output: editClickResult
+
+  - id: wait-after-edit-click
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-after-edit-click
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-05-dots-edit-result"
+
+  # If Edit opened a modal/form, capture fields then close it
+  - id: capture-edit-modal-if-opened
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[role="dialog"], [class*="modal"], [class*="Modal"], [class*="sheet"], [class*="Sheet"]');
+        if (!modal) return { modalOpened: false };
+        const inputs = Array.from(modal.querySelectorAll('input, textarea, select')).map(i => ({
+          type: i.type || 'text', placeholder: i.placeholder || '', value: i.value || ''
+        }));
+        const buttons = Array.from(modal.querySelectorAll('button')).map(b => b.textContent.trim());
+        return { modalOpened: true, inputs, buttons };
+    output: editModalInfo
+
+  - id: screenshot-edit-modal
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-06-dots-edit-modal"
+
+  # Navigate back to DH list (Edit may open a modal OR a full page — direct nav is safest)
+  - id: navigate-back-after-edit
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-list-after-edit
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-after-edit
+    action: wait
+    params:
+      ms: 1500
+
+  # Reopen 3-dot menu to test Delete option (verify it exists, but DON'T actually delete)
+  - id: reopen-dots-for-delete-check
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle');
+        });
+        if (cards.length === 0) return { skipped: true, reason: 'No cards' };
+        const dots = Array.from(cards[0].querySelectorAll('button, [role="button"]')).find(b => {
+          const text = b.textContent.trim();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          const cls = (b.className || '').toLowerCase();
+          return text === '...' || text === '⋮' || label.includes('more') || label.includes('option') ||
+                 cls.includes('more') || cls.includes('kebab') || cls.includes('dots') || cls.includes('ellipsis');
+        });
+        if (!dots) return { skipped: true, reason: 'No 3-dot button found' };
+        dots.click();
+        return { opened: true };
+    output: dotsReopenResult
+
+  - id: wait-dots-reopen
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-dots-reopen
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-07-dots-reopen"
+
+  - id: check-delete-option-exists
+    action: browser.execute
+    params:
+      script: |
+        const allMenuItems = Array.from(document.querySelectorAll('[role="menuitem"], [role="option"]')).map(i => i.textContent.trim());
+        const allBtnText = Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim());
+        const combined = [...new Set([...allMenuItems, ...allBtnText])].filter(t => t.length > 0 && t.length < 50);
+        const hasDelete = combined.some(t => t.toLowerCase().includes('delete') || t.toLowerCase().includes('remove'));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        return { hasDeleteOption: hasDelete, allMenuItems, closedWithEscape: true };
+    output: deleteOptionCheck
+
+  - id: wait-dropdown-dismissed
+    action: wait
+    params:
+      ms: 500
+
+  - id: navigate-back-after-dots
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: verify-back-on-dh-list-after-dots
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 4: 搜索功能深度验证
+  # ════════════════════════════════════════════════════════════════
+  - id: search-existing-name
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='name']"
+      text: "Marketing"
+      clear: true
+
+  - id: wait-search-existing
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-search-marketing
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-08-search-marketing"
+
+  - id: verify-search-filters-cards
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        const nonMarketing = cards.filter(c => !c.textContent.toLowerCase().includes('marketing'));
+        const hasNoResults = document.body.innerText.toLowerCase().includes('no results') ||
+                             document.body.innerText.toLowerCase().includes('no digital human') ||
+                             document.body.innerText.toLowerCase().includes('not found');
+        return {
+          visibleCards: cards.length,
+          nonMarketingCards: nonMarketing.length,
+          hasNoResultsMessage: hasNoResults,
+          searchWorking: nonMarketing.length === 0 || cards.length === 0 || hasNoResults
+        };
+    output: searchMarketingResult
+
+  - id: search-nonexistent
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='name']"
+      text: "zzz_nonexistent_xyz_999"
+      clear: true
+
+  - id: wait-search-nonexistent
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-search-empty
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-09-search-no-results"
+
+  - id: verify-no-results-state
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        const body = document.body.innerText;
+        const hasEmptyMessage = body.toLowerCase().includes('no results') ||
+                                body.toLowerCase().includes('no digital human') ||
+                                body.toLowerCase().includes('not found') ||
+                                body.toLowerCase().includes('no match');
+        return {
+          visibleCards: cards.length,
+          hasEmptyMessage,
+          emptyStateHandled: cards.length === 0 || hasEmptyMessage
+        };
+    output: noResultsState
+
+  - id: clear-search
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='name']"
+      text: ""
+      clear: true
+
+  - id: wait-search-cleared
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-cards-restored-after-clear
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        if (cards.length === 0) return { restoredCount: 0, note: '⚠️ Fresh account — no cards to restore after search clear' };
+        return { restoredCount: cards.length };
+    output: searchClearedResult
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 5: 卡片详情页导航 + Tab 验证
+  # ════════════════════════════════════════════════════════════════
+  - id: click-first-dh-card
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle');
+        });
+        if (cards.length === 0) return { skipped: true, reason: '⚠️ Fresh account — no DH cards; detail/chat tests skipped, Create flow will run' };
+        const card = cards[0];
+        const clickable = card.querySelector('h2, h3, [class*="name"], [class*="title"]') || card;
+        clickable.click();
+        return { clicked: true, cardPreview: card.textContent.trim().slice(0, 60).replace(/\s+/g, ' ') };
+    output: cardClickResult
+
+  - id: wait-detail-navigation
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-dh-detail
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-10-detail-page"
+
+  - id: verify-detail-page-loaded
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const body = document.body.innerText;
+        const headings = Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent.trim()).filter(t => t.length > 0);
+        return { url, headings, bodyLength: body.length };
+    output: detailNavResult
+
+  - id: capture-detail-tabs
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"], button[class*="tab"], [class*="TabsTrigger"]'))
+          .filter(t => t.textContent.trim().length > 0 && t.textContent.trim().length < 30);
+        return { tabCount: tabs.length, tabs: tabs.map(t => t.textContent.trim()) };
+    output: detailTabs
+
+  - id: screenshot-detail-tabs
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-11-detail-tabs"
+
+  - id: click-second-detail-tab
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"], [class*="TabsTrigger"]'))
+          .filter(t => t.textContent.trim().length > 0);
+        if (tabs.length < 2) return { skipped: true, reason: 'Only ' + tabs.length + ' tab(s)' };
+        const label = tabs[1].textContent.trim();
+        tabs[1].click();
+        return { clicked: true, tabLabel: label };
+    output: secondTabClick
+
+  - id: wait-second-tab
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-second-tab
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-12-detail-second-tab"
+
+  - id: click-third-detail-tab
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"], [class*="TabsTrigger"]'))
+          .filter(t => t.textContent.trim().length > 0);
+        if (tabs.length < 3) return { skipped: true, reason: 'Only ' + tabs.length + ' tab(s)' };
+        const label = tabs[2].textContent.trim();
+        tabs[2].click();
+        return { clicked: true, tabLabel: label };
+    output: thirdTabClick
+
+  - id: wait-third-tab
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-third-tab
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-13-detail-third-tab"
+
+  - id: click-fourth-detail-tab
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"], [class*="TabsTrigger"]'))
+          .filter(t => t.textContent.trim().length > 0);
+        if (tabs.length < 4) return { skipped: true, reason: 'Only ' + tabs.length + ' tab(s)' };
+        const label = tabs[3].textContent.trim();
+        tabs[3].click();
+        return { clicked: true, tabLabel: label };
+    output: fourthTabClick
+
+  - id: wait-fourth-tab
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-fourth-tab
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-14-detail-fourth-tab"
+
+  # ── Channels tab 专项验证 (YEP-417) ────────────────────────────
+  - id: click-channels-tab
+    action: browser.execute
+    params:
+      script: |
+        const tabs = Array.from(document.querySelectorAll('[role="tab"], [class*="TabsTrigger"]'))
+          .filter(t => t.textContent.trim().length > 0);
+        const channelsTab = tabs.find(t => t.textContent.trim().toLowerCase() === 'channels');
+        if (!channelsTab) {
+          // Try by index (5th tab)
+          if (tabs.length >= 5) { tabs[4].click(); return { clicked: true, method: 'index 4', label: tabs[4].textContent.trim() }; }
+          return { skipped: true, reason: 'No Channels tab found', allTabs: tabs.map(t => t.textContent.trim()) };
+        }
+        channelsTab.click();
+        return { clicked: true, method: 'by label', label: 'Channels' };
+    output: channelsTabClick
+
+  - id: wait-channels-tab
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-channels-tab
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-15-channels-tab"
+
+  - id: verify-channels-tab-structure
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const hasBoundChannels = body.includes('Bound Channels') || body.includes('bound channel');
+        const hasAddBtn = Array.from(document.querySelectorAll('button')).some(b =>
+          b.textContent.trim().toLowerCase().includes('add channel')
+        );
+        const hasBindBtn = Array.from(document.querySelectorAll('button')).some(b =>
+          b.textContent.trim().toLowerCase().includes('bind')
+        );
+        return { hasBoundChannels, hasAddBtn, hasBindBtn, bodySnippet: body.slice(0, 200) };
+    output: channelsTabStructure
+
+  # Click + Add Channel button
+  - id: click-add-channel-button
+    action: browser.execute
+    params:
+      script: |
+        const addBtn = Array.from(document.querySelectorAll('button')).find(b =>
+          b.textContent.trim().toLowerCase().includes('add channel')
+        );
+        if (!addBtn) return { skipped: true, reason: 'No + Add Channel button found' };
+        addBtn.click();
+        return { clicked: true, label: addBtn.textContent.trim() };
+    output: addChannelClick
+
+  - id: wait-add-channel-modal
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-add-channel-modal
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-16-add-channel-modal"
+
+  # YEP-417: Check for autofill bug — modal inputs must NOT be pre-filled with login credentials
+  - id: check-add-channel-autofill-bug
+    action: browser.execute
+    params:
+      script: |
+        const modal = document.querySelector('[role="dialog"], [class*="modal"], [class*="Modal"], [class*="sheet"], [class*="Sheet"]');
+        if (!modal) return { modalFound: false, note: 'No modal opened' };
+        const inputs = Array.from(modal.querySelectorAll('input'));
+        const inputDetails = inputs.map(i => ({
+          type: i.type || 'text',
+          value: i.value || '',
+          placeholder: i.placeholder || '',
+          autocomplete: i.getAttribute('autocomplete') || 'not set',
+          name: i.name || '',
+          id: i.id || ''
+        }));
+        const preFilledInputs = inputDetails.filter(i => i.value.length > 0);
+        const hasAutofillBug = preFilledInputs.length > 0;
+        // Specifically check if login email/password pattern was autofilled
+        const hasEmailAutofill = preFilledInputs.some(i =>
+          i.type === 'email' || i.value.includes('@') || i.type === 'password'
+        );
+        return {
+          modalFound: true,
+          inputCount: inputs.length,
+          inputDetails,
+          preFilledCount: preFilledInputs.length,
+          hasAutofillBug,
+          hasEmailAutofill,
+          bugDetected: hasAutofillBug,
+          note: hasAutofillBug ? 'BUG YEP-417: Modal inputs pre-filled — missing autocomplete="off"' : 'OK: inputs are empty'
+        };
+    output: autofillBugCheck
+
+  # Close the Add Channel modal
+  - id: close-add-channel-modal
+    action: browser.execute
+    params:
+      script: |
+        const closeBtn = document.querySelector('[aria-label="Close"], [class*="close"], [class*="Close"]');
+        if (closeBtn) { closeBtn.click(); return { method: 'close icon' }; }
+        const cancelBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'cancel' || t === 'close';
+        });
+        if (cancelBtn) { cancelBtn.click(); return { method: 'cancel button' }; }
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        return { method: 'escape' };
+    output: closeAddChannelResult
+
+  - id: wait-modal-closed
+    action: wait
+    params:
+      ms: 800
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 6: 返回列表 + Chat 按钮验证
+  # ════════════════════════════════════════════════════════════════
+  - id: navigate-back-to-dh-list
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Digital Humans'), aside a:has-text('Digital Humans'), a[href*='digital']"
+
+  - id: wait-list-restored
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards-load
+    action: wait
+    params:
+      ms: 2000
+
+  - id: find-and-click-chat-button
+    action: browser.execute
+    params:
+      script: |
+        const chatButtons = Array.from(document.querySelectorAll('button, a')).filter(el => {
+          const t = el.textContent.trim().toLowerCase();
+          return t === 'chat' || t === 'test' || t === 'talk' || t.includes('chat') || t.includes('preview');
+        });
+        if (chatButtons.length === 0) {
+          return { found: false, allButtons: Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()).slice(0, 10) };
+        }
+        chatButtons[0].click();
+        return { found: true, count: chatButtons.length, label: chatButtons[0].textContent.trim() };
+    output: chatClickResult
+
+  - id: wait-chat-open
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-chat-opened
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-15-chat-opened"
+
+  - id: verify-chat-interface
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const body = document.body.innerText;
+        const hasInput = !!document.querySelector('input[type="text"], textarea, [contenteditable="true"]');
+        const hasSendButton = Array.from(document.querySelectorAll('button')).some(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t.includes('send') || b.getAttribute('aria-label')?.toLowerCase().includes('send');
+        });
+        return { url, hasMessageInput: hasInput, hasSendButton, bodySnippet: body.slice(0, 200).replace(/\s+/g, ' ') };
+    output: chatInterface
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 7: Create Digital Human — 完整流程
+  # (navigate back via direct URL to avoid chat-page history issues)
+  # ════════════════════════════════════════════════════════════════
+  - id: navigate-to-dh-list-for-create
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh-list-for-create
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans'), button:has-text('Create Digital Human'), button:has-text('Create')"
+      timeout: 15000
+
+  - id: wait-create-button-ready
+    action: wait
+    params:
+      ms: 1500
+
+  - id: click-create-dh-button
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Digital Human'), a:has-text('Create Digital Human'), button:has-text('Create'), a:has-text('New Digital Human')"
+
+  - id: wait-create-form-open
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-create-form-step1
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-16-create-step1"
+
+  # Audit the initial form structure
+  - id: audit-create-form-step1
+    action: browser.execute
+    params:
+      script: |
+        const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
+        const labels = Array.from(document.querySelectorAll('label')).map(l => l.textContent.trim()).filter(t => t.length > 0);
+        const buttons = Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()).filter(t => t.length > 0);
+        const isModal = !!document.querySelector('[role="dialog"], [class*="modal"], [class*="Modal"]');
+        const steps = Array.from(document.querySelectorAll('[class*="step"], [class*="Step"], [aria-current="step"], [class*="wizard"]')).map(s => s.textContent.trim().slice(0, 30));
+        return {
+          isModal, labels, buttons, steps,
+          inputCount: inputs.length,
+          inputDetails: inputs.map(i => ({ type: i.type || 'text', placeholder: i.placeholder || '', name: i.name || '' }))
+        };
+    output: createStep1Audit
+
+  # Fill Name field
+  - id: fill-dh-name
+    action: browser.execute
+    params:
+      script: |
+        const nameInput = Array.from(document.querySelectorAll('input')).find(i => {
+          const p = (i.placeholder || '').toLowerCase();
+          const n = (i.name || '').toLowerCase();
+          const id = (i.id || '').toLowerCase();
+          return p.includes('name') || n.includes('name') || id.includes('name') ||
+                 p.includes('title') || n.includes('title');
+        }) || document.querySelector('input[type="text"], input:not([type="password"]):not([type="email"]):not([type="checkbox"]):not([type="radio"])');
+        if (!nameInput) return { skipped: true, reason: 'No name/text input found' };
+        nameInput.focus();
+        nameInput.value = 'Test Automation DH';
+        nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+        return { filled: true, placeholder: nameInput.placeholder || '', value: 'Test Automation DH' };
+    output: fillNameResult
+
+  - id: wait-after-name-fill
+    action: wait
+    params:
+      ms: 500
+
+  # Fill textarea/description if present
+  - id: fill-description-field
+    action: browser.execute
+    params:
+      script: |
+        const ta = document.querySelector('textarea');
+        if (!ta) {
+          // Try description/persona text inputs
+          const descInput = Array.from(document.querySelectorAll('input[type="text"]')).find(i => {
+            const p = (i.placeholder || '').toLowerCase();
+            return p.includes('desc') || p.includes('persona') || p.includes('bio');
+          });
+          if (!descInput) return { skipped: true };
+          descInput.focus();
+          descInput.value = 'Automated test digital human for e2e validation.';
+          descInput.dispatchEvent(new Event('input', { bubbles: true }));
+          descInput.dispatchEvent(new Event('change', { bubbles: true }));
+          return { filled: true, element: 'input' };
+        }
+        ta.focus();
+        ta.value = 'Automated test digital human for e2e validation.';
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+        ta.dispatchEvent(new Event('change', { bubbles: true }));
+        return { filled: true, element: 'textarea' };
+    output: fillDescResult
+
+  # Fill any remaining empty text inputs on this step
+  - id: fill-remaining-step1-inputs
+    action: browser.execute
+    params:
+      script: |
+        const emptyInputs = Array.from(document.querySelectorAll('input[type="text"]')).filter(i => !i.value.trim());
+        const filled = [];
+        emptyInputs.slice(0, 5).forEach(input => {
+          const p = (input.placeholder || '').toLowerCase();
+          let value = 'Test value';
+          if (p.includes('greeting') || p.includes('welcome')) value = 'Hello! How can I help you today?';
+          if (p.includes('persona') || p.includes('character')) value = 'Friendly and professional assistant';
+          input.focus();
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push({ placeholder: input.placeholder || '', value });
+        });
+        return { filledCount: filled.length, fields: filled };
+    output: fillStep1RestResult
+
+  - id: screenshot-create-step1-filled
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-17-create-step1-filled"
+
+  # Try submitting empty to test validation first — then re-fill
+  - id: try-submit-empty-for-validation
+    action: browser.execute
+    params:
+      script: |
+        // Temporarily clear name to trigger validation, then re-fill
+        const nameInput = Array.from(document.querySelectorAll('input')).find(i => i.value === 'Test Automation DH');
+        if (nameInput) { nameInput.value = ''; nameInput.dispatchEvent(new Event('input', { bubbles: true })); }
+        const submitBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t.includes('create') || t === 'save' || t === 'submit';
+        });
+        if (!submitBtn) return { skipped: true, reason: 'No submit/next button' };
+        submitBtn.click();
+        return { clicked: true, btnLabel: submitBtn.textContent.trim() };
+    output: validationTestResult
+
+  - id: wait-validation
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-validation-errors
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-18-create-validation"
+
+  - id: check-validation-feedback
+    action: browser.execute
+    params:
+      script: |
+        const errorEls = document.querySelectorAll('[class*="error"], [class*="Error"], [aria-invalid="true"], [class*="invalid"]');
+        const errorMessages = Array.from(errorEls).map(e => e.textContent.trim()).filter(t => t.length > 0);
+        const body = document.body.innerText;
+        const hasToast = !!document.querySelector('[data-sonner-toast], .toaster li');
+        return {
+          errorCount: errorEls.length,
+          errorMessages: errorMessages.slice(0, 5),
+          hasToast,
+          hasValidation: errorEls.length > 0 || hasToast || body.toLowerCase().includes('required')
+        };
+    output: validationFeedback
+
+  # Re-fill the name after empty-submit test
+  - id: refill-dh-name
+    action: browser.execute
+    params:
+      script: |
+        const nameInput = Array.from(document.querySelectorAll('input')).find(i => {
+          const p = (i.placeholder || '').toLowerCase();
+          const n = (i.name || '').toLowerCase();
+          return p.includes('name') || n.includes('name') || !i.value.trim();
+        }) || document.querySelector('input[type="text"]');
+        if (!nameInput) return { skipped: true };
+        nameInput.focus();
+        nameInput.value = 'Test Automation DH';
+        nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+        return { refilled: true };
+    output: refillNameResult
+
+  - id: wait-after-refill
+    action: wait
+    params:
+      ms: 500
+
+  # Click Next (Step 1 → Step 2)
+  - id: click-next-step1
+    action: browser.execute
+    params:
+      script: |
+        const nextBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t === 'continue' || t === 'next step' || t === 'next →';
+        });
+        if (!nextBtn) return { skipped: true, reason: 'No Next button — may be single-step form' };
+        nextBtn.click();
+        return { clicked: true, label: nextBtn.textContent.trim() };
+    output: nextStep1Result
+
+  - id: wait-step2
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-create-step2
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-19-create-step2"
+
+  - id: audit-step2-fields
+    action: browser.execute
+    params:
+      script: |
+        const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
+        const buttons = Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()).filter(t => t.length > 0);
+        const url = window.location.href;
+        return {
+          url, buttons,
+          inputCount: inputs.length,
+          inputDetails: inputs.map(i => ({ type: i.type || '', placeholder: i.placeholder || '', value: (i.value || '').slice(0, 30) }))
+        };
+    output: step2Audit
+
+  # Fill Step 2 fields if any
+  - id: fill-step2-fields
+    action: browser.execute
+    params:
+      script: |
+        const emptyInputs = Array.from(document.querySelectorAll('input[type="text"], textarea')).filter(i => !i.value.trim());
+        const filled = [];
+        emptyInputs.slice(0, 5).forEach(input => {
+          const p = (input.placeholder || '').toLowerCase();
+          let value = 'Test value';
+          if (p.includes('greeting') || p.includes('welcome')) value = 'Hello! How can I help you today?';
+          if (p.includes('persona') || p.includes('character')) value = 'Friendly and professional assistant';
+          if (p.includes('instruction') || p.includes('system')) value = 'You are a helpful assistant.';
+          input.focus();
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push({ placeholder: input.placeholder || '', value });
+        });
+        return { filledCount: filled.length, fields: filled };
+    output: fillStep2Result
+
+  - id: screenshot-step2-filled
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-20-create-step2-filled"
+
+  # Test Back button on Step 2
+  - id: click-back-from-step2
+    action: browser.execute
+    params:
+      script: |
+        const backBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'back' || t === 'previous' || t === '← back' || t === 'go back';
+        });
+        if (!backBtn) return { skipped: true, reason: 'No Back button on step 2' };
+        backBtn.click();
+        return { clicked: true, label: backBtn.textContent.trim() };
+    output: backFromStep2Result
+
+  - id: wait-back-to-step1
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-back-to-step1
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-21-create-back-step1"
+
+  - id: verify-name-preserved-after-back
+    action: browser.execute
+    params:
+      script: |
+        const inputs = Array.from(document.querySelectorAll('input[type="text"]'));
+        const nameInput = inputs.find(i => i.value.includes('Test Automation'));
+        return { namePreserved: !!nameInput, currentValues: inputs.map(i => i.value).filter(v => v.length > 0) };
+    output: namePreservedCheck
+
+  # Click Next again back to Step 2
+  - id: click-next-step1-again
+    action: browser.execute
+    params:
+      script: |
+        // Ensure name is filled before clicking Next
+        const emptyNameInput = Array.from(document.querySelectorAll('input[type="text"]')).find(i => !i.value.trim());
+        if (emptyNameInput) {
+          emptyNameInput.value = 'Test Automation DH';
+          emptyNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+          emptyNameInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const nextBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t === 'continue' || t === 'next step';
+        });
+        if (!nextBtn) return { skipped: true, reason: 'No Next button' };
+        nextBtn.click();
+        return { clicked: true, label: nextBtn.textContent.trim() };
+    output: nextStep1AgainResult
+
+  - id: wait-step2-again
+    action: wait
+    params:
+      ms: 1500
+
+  # Click Next Step 2 → Step 3
+  - id: click-next-step2
+    action: browser.execute
+    params:
+      script: |
+        const nextBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t === 'continue' || t === 'next step';
+        });
+        if (!nextBtn) return { skipped: true, reason: 'No Next on step 2' };
+        nextBtn.click();
+        return { clicked: true, label: nextBtn.textContent.trim() };
+    output: nextStep2Result
+
+  - id: wait-step3
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-create-step3
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-22-create-step3"
+
+  - id: fill-step3-fields
+    action: browser.execute
+    params:
+      script: |
+        const emptyInputs = Array.from(document.querySelectorAll('input[type="text"], textarea')).filter(i => !i.value.trim());
+        const filled = [];
+        emptyInputs.slice(0, 5).forEach(input => {
+          const p = (input.placeholder || '').toLowerCase();
+          let value = 'Test value';
+          if (p.includes('greeting') || p.includes('welcome')) value = 'Hello! How can I help you today?';
+          if (p.includes('instruction') || p.includes('system') || p.includes('prompt')) value = 'You are a helpful assistant.';
+          input.focus();
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push({ placeholder: input.placeholder || '', value });
+        });
+        return { filledCount: filled.length };
+    output: fillStep3Result
+
+  # Click Next Step 3 → Step 4 (if exists)
+  - id: click-next-step3
+    action: browser.execute
+    params:
+      script: |
+        const nextBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t === 'continue' || t === 'next step';
+        });
+        if (!nextBtn) return { skipped: true, reason: 'No Next on step 3' };
+        nextBtn.click();
+        return { clicked: true, label: nextBtn.textContent.trim() };
+    output: nextStep3Result
+
+  - id: wait-step4
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-create-step4-or-final
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-23-create-step4"
+
+  # Fill any remaining fields on step 4
+  - id: fill-step4-fields
+    action: browser.execute
+    params:
+      script: |
+        const emptyInputs = Array.from(document.querySelectorAll('input[type="text"], textarea')).filter(i => !i.value.trim());
+        const filled = [];
+        emptyInputs.slice(0, 5).forEach(input => {
+          const p = (input.placeholder || '').toLowerCase();
+          let value = 'Test value';
+          input.focus();
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push({ placeholder: input.placeholder || '', value });
+        });
+        return { filledCount: filled.length };
+    output: fillStep4Result
+
+  # Continue clicking Next until we reach the final Create/Save button
+  - id: click-next-step4
+    action: browser.execute
+    params:
+      script: |
+        const nextBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'next' || t === 'continue' || t === 'next step';
+        });
+        if (!nextBtn) return { skipped: true, reason: 'No more Next — likely on final step' };
+        nextBtn.click();
+        return { clicked: true, label: nextBtn.textContent.trim() };
+    output: nextStep4Result
+
+  - id: wait-final-step
+    action: wait
+    params:
+      ms: 1500
+
+  - id: screenshot-create-final-step
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-24-create-final-step"
+
+  - id: audit-final-step-buttons
+    action: browser.execute
+    params:
+      script: |
+        const buttons = Array.from(document.querySelectorAll('button')).map(b => ({
+          text: b.textContent.trim(),
+          disabled: b.disabled,
+          cls: b.className.slice(0, 50)
+        }));
+        const url = window.location.href;
+        return { url, buttons };
+    output: finalStepButtons
+
+  # Click the final Create/Save/Submit/Finish button
+  - id: click-final-create
+    action: browser.execute
+    params:
+      script: |
+        const createBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t.includes('create') || t === 'save' || t === 'submit' || t === 'finish' || t === 'done' || t === 'launch';
+        });
+        if (!createBtn) {
+          return { skipped: true, reason: 'No create/save button found', allBtns: Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()) };
+        }
+        createBtn.click();
+        return { clicked: true, label: createBtn.textContent.trim() };
+    output: finalCreateResult
+
+  - id: wait-create-processing
+    action: wait
+    params:
+      ms: 4000
+
+  - id: screenshot-after-create
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-25-after-create-submit"
+
+  - id: verify-create-outcome
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const hasSuccess = body.toLowerCase().includes('success') || body.toLowerCase().includes('created') ||
+                           body.includes('Test Automation DH');
+        const hasError = body.toLowerCase().includes('error') || body.toLowerCase().includes('failed');
+        const errorEls = document.querySelectorAll('[class*="error"], [aria-invalid="true"]');
+        return {
+          url, hasSuccess, hasError,
+          errorCount: errorEls.length,
+          outcome: hasSuccess ? 'success' : (hasError ? 'error' : 'unknown'),
+          bodySnippet: body.slice(0, 400).replace(/\s+/g, ' ')
+        };
+    output: createOutcome
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 7b: 清理 — 删除测试创建的 DH
+  # ════════════════════════════════════════════════════════════════
+  - id: navigate-back-to-list-for-cleanup
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-list-for-cleanup
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-list-data-cleanup
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-list-after-create
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-26-list-after-create"
+
+  - id: find-test-dh-and-open-dots
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c =>
+          c.textContent.includes('Test Automation DH')
+        );
+        if (cards.length === 0) return { found: false, note: 'Test DH not found in list (may not have been created)' };
+        const card = cards[0];
+        const dots = Array.from(card.querySelectorAll('button, [role="button"]')).find(b => {
+          const text = b.textContent.trim();
+          const label = (b.getAttribute('aria-label') || '').toLowerCase();
+          const cls = (b.className || '').toLowerCase();
+          return text === '...' || text === '⋮' || label.includes('more') || label.includes('option') ||
+                 cls.includes('more') || cls.includes('kebab') || cls.includes('dots') || cls.includes('ellipsis');
+        });
+        if (!dots) return { found: true, dotsFound: false };
+        dots.click();
+        return { found: true, dotsFound: true, clicked: true };
+    output: cleanupDotsResult
+
+  - id: wait-cleanup-dropdown
+    action: wait
+    params:
+      ms: 800
+
+  - id: click-delete-test-dh
+    action: browser.execute
+    params:
+      script: |
+        const deleteBtn = Array.from(document.querySelectorAll('[role="menuitem"], [role="option"], button, a')).find(el => {
+          const t = el.textContent.trim().toLowerCase();
+          return t === 'delete' || t === 'remove' || t === 'delete digital human';
+        });
+        if (!deleteBtn) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+          return { skipped: true, reason: 'No delete option in dropdown' };
+        }
+        deleteBtn.click();
+        return { clicked: true, label: deleteBtn.textContent.trim() };
+    output: deleteClickResult
+
+  - id: wait-delete-confirm-dialog
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-delete-confirm
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-27-delete-confirm"
+
+  - id: confirm-delete-if-dialog
+    action: browser.execute
+    params:
+      script: |
+        const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => {
+          const t = b.textContent.trim().toLowerCase();
+          return t === 'delete' || t === 'confirm' || t === 'yes' || t.includes('yes, delete') || t.includes('confirm delete');
+        });
+        if (!confirmBtn) return { skipped: true, reason: 'No confirm dialog appeared' };
+        confirmBtn.click();
+        return { confirmed: true, label: confirmBtn.textContent.trim() };
+    output: deleteConfirmResult
+
+  - id: wait-after-delete
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-after-delete
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-28-after-delete"
+
+  - id: verify-test-dh-deleted
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c =>
+          c.textContent.includes('Test Automation DH')
+        );
+        const body = document.body.innerText;
+        const hasSuccessToast = body.toLowerCase().includes('deleted') || body.toLowerCase().includes('removed') ||
+                                !!document.querySelector('[data-sonner-toast]');
+        return {
+          testDhStillVisible: cards.length > 0,
+          deleted: cards.length === 0,
+          hasSuccessToast
+        };
+    output: deleteVerifyResult
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 8: Dashboard 计数一致性验证
+  # ════════════════════════════════════════════════════════════════
+  - id: capture-dh-total-on-list
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"]')).filter(c => {
+          const t = c.textContent.trim();
+          return t.includes('Running') || t.includes('Idle') || t.includes('Stopped');
+        });
+        const running = cards.filter(c => c.textContent.includes('Running')).length;
+        return { totalOnListPage: cards.length, runningOnListPage: running };
+    output: dhListCount
+
+  - id: navigate-to-dashboard
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Dashboard'), aside a:has-text('Dashboard'), a[href*='dashboard']"
+
+  - id: wait-dashboard-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='card']"
+      timeout: 15000
+
+  - id: wait-dashboard-data
+    action: wait
+    params:
+      ms: 4000
+
+  - id: screenshot-dashboard-comparison
+    action: browser.screenshot
+    params:
+      name: "ds-dh-deep-29-dashboard-comparison"
+
+  - id: verify-dh-count-matches-dashboard
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const dhMatch = body.match(/(\d+)\s*\/\s*(\d+)\s*(currently running|active digital human|Digital Human)/i);
+        if (!dhMatch) {
+          return { warning: 'Could not find X/Y digital human counter on Dashboard', bodySnippet: body.slice(0, 400) };
+        }
+        return { dashboardRunning: parseInt(dhMatch[1]), dashboardTotal: parseInt(dhMatch[2]), rawMatch: dhMatch[0] };
+    output: dashboardDhCount
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Humans 全面深度验证完成！8组测试：卡片审计、过滤计数、3-dot菜单(Edit+Delete)、搜索边界、详情页(4tabs)、Chat、Create完整流程(填字段+Next/Back+创建+清理)、Dashboard一致性。"

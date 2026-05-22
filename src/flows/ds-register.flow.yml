@@ -1,0 +1,72 @@
+# Digital Staff — 注册 Positive Test (正向测试)
+# 使用有效数据成功注册新账号
+
+name: ds-register
+description: Digital Staff 注册新账号（正向测试 — 有效数据）
+
+steps:
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-register-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: screenshot-register-page
+    action: browser.screenshot
+    params:
+      name: "ds-register-page"
+
+  - id: fill-fullname
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "Test User DS"
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "{{DS_TEST_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "{{DS_TEST_PASSWORD}}"
+
+  - id: screenshot-filled-form
+    action: browser.screenshot
+    params:
+      name: "ds-register-form-filled"
+
+  - id: click-create-account
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-success
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='dashboard'], [class*='sidebar'], [class*='success'], [role='alert']"
+      timeout: 30000
+
+  - id: screenshot-after-register
+    action: browser.screenshot
+    params:
+      name: "ds-register-success"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 注册测试完成！"

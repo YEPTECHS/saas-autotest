@@ -1,0 +1,39 @@
+# Digital Staff — Digital Humans 页面测试
+
+name: ds-test-digital-humans
+description: 测试 Digital Humans 列表页 — 加载、状态标签、卡片显示
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: click-digital-humans-nav
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Digital Humans'), aside a:has-text('Digital Humans'), a[href*='digital']"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='heading'], [class*='title']"
+      timeout: 15000
+
+  - id: screenshot-digital-humans
+    action: browser.screenshot
+    params:
+      name: "ds-digital-humans-page"
+
+  - id: check-page-has-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], [class*='grid'], [class*='list'], [class*='card'], p, button"
+      timeout: 10000
+
+  - id: screenshot-content
+    action: browser.screenshot
+    params:
+      name: "ds-digital-humans-content"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Humans 页面测试完成！"

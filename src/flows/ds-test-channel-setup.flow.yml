@@ -1,0 +1,39 @@
+# Digital Staff — Channel Setup 页面测试
+
+name: ds-test-channel-setup
+description: 测试 Workspace > Channel Setup 页面 — 渠道配置列表
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: click-channel-setup
+    action: browser.click
+    params:
+      selector: "a:has-text('Channel Setup'), a[href*='channel'], nav a:has-text('Channel')"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='heading'], [class*='title'], main"
+      timeout: 15000
+
+  - id: screenshot-channel-setup
+    action: browser.screenshot
+    params:
+      name: "ds-channel-setup-page"
+
+  - id: check-channels-list
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], [class*='channel'], [class*='card'], p, button, img"
+      timeout: 10000
+
+  - id: screenshot-content
+    action: browser.screenshot
+    params:
+      name: "ds-channel-setup-content"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Channel Setup 页面测试完成！"

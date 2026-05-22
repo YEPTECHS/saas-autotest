@@ -1,0 +1,39 @@
+# Digital Staff — Conversations 页面测试
+
+name: ds-test-conversations
+description: 测试 Conversations 页面 — 对话列表加载、过滤器
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: click-conversations-nav
+    action: browser.click
+    params:
+      selector: "nav a:has-text('Conversations'), aside a:has-text('Conversations'), a[href*='conversation']"
+
+  - id: wait-page-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2, [class*='heading'], [class*='title']"
+      timeout: 15000
+
+  - id: screenshot-conversations
+    action: browser.screenshot
+    params:
+      name: "ds-conversations-page"
+
+  - id: check-page-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='content'], [class*='list'], [class*='table'], p, button"
+      timeout: 10000
+
+  - id: screenshot-content
+    action: browser.screenshot
+    params:
+      name: "ds-conversations-content"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Conversations 页面测试完成！"

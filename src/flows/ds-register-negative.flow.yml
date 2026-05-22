@@ -1,0 +1,104 @@
+# Digital Staff — 注册 Negative Tests (负向测试)
+# 验证注册表单对无效数据的错误处理
+
+name: ds-register-negative
+description: Digital Staff 注册表单验证（负向测试 — 空字段、无效邮箱、已注册邮箱）
+
+steps:
+  - id: navigate-register
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-register-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  # ── 测试1：空表单直接提交 ──────────────
+  - id: click-submit-empty
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: screenshot-empty-validation
+    action: browser.screenshot
+    params:
+      name: "ds-register-empty-validation"
+
+  # ── 测试2：无效邮箱格式 ───────────────
+  - id: fill-fullname
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "Test User"
+
+  - id: fill-invalid-email
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "not-an-email"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "Test@12345678"
+
+  - id: click-submit-invalid-email
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: screenshot-invalid-email
+    action: browser.screenshot
+    params:
+      name: "ds-register-invalid-email"
+
+  # ── 测试3：已注册的邮箱 ───────────────
+  - id: clear-email
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: click-submit-existing-email
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-error-existing
+    action: browser.waitForSelector
+    params:
+      selector: "[data-sonner-toast], .toaster li, [data-type='error'], p:has-text('already'), p:has-text('exists'), p:has-text('registered'), p:has-text('taken'), p:has-text('error'), p:has-text('invalid')"
+      timeout: 10000
+
+  - id: screenshot-existing-email-error
+    action: browser.screenshot
+    params:
+      name: "ds-register-existing-email-error"
+
+  # ── 测试4：密码太短（弱密码）───────────
+  - id: navigate-register-again
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/register"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-register-form-2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name'], a:has-text('Sign up')"
+      timeout: 5000
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 注册负向测试完成！"

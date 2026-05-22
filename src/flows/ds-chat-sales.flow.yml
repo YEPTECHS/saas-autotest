@@ -1,0 +1,414 @@
+# SalesClaw 💼 test dont delete — 15 轮对话逻辑测试
+# 关键：waitForSelector 等 input 恢复 "Type a message..." 再发下一条
+name: ds-chat-sales
+description: "SalesClaw 15轮对话 — 销售技巧、异议处理、谈判、签约全覆盖"
+
+steps:
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='text']"
+      timeout: 15000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[type='text']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "{{DS_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar']"
+      timeout: 30000
+
+  - id: nav-dh
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards
+    action: wait
+    params:
+      ms: 2000
+
+  - id: open-sales-chat
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], li, article'));
+        const t = cards.find(c => c.textContent.includes('SalesClaw') && c.textContent.includes('test dont delete'));
+        if (!t) return { found: false };
+        const btn = Array.from(t.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (btn) { btn.click(); return { clicked: true }; }
+        return { found: true, noBtn: true };
+
+  - id: wait-chat-input-ready
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 15000
+
+  - id: screenshot-start
+    action: browser.screenshot
+    params:
+      name: "sales-00-chat-opened"
+
+  # ── Round 1: 了解销售角色 ────────────────────────────────────────
+  - id: msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我是一个B2B SaaS销售，产品定价999元/月，目标客户是50-200人的中小企业。你能帮我制定一套完整的销售流程吗？"
+  - id: send1
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot1
+    action: browser.screenshot
+    params:
+      name: "sales-01-resp"
+
+  # ── Round 2: 线索资格认定 ────────────────────────────────────────
+  - id: msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "如何快速判断一个线索值不值得跟进？给我BANT框架在中国B2B场景下的具体应用方法。"
+  - id: send2
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot2
+    action: browser.screenshot
+    params:
+      name: "sales-02-resp"
+
+  # ── Round 3: 首次通话开场白 ──────────────────────────────────────
+  - id: msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "第一次打电话给潜在客户，开场白怎么说？前30秒怎么抓住他们注意力而不是被挂断？"
+  - id: send3
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp3
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot3
+    action: browser.screenshot
+    params:
+      name: "sales-03-resp"
+
+  # ── Round 4: 发现阶段提问 ────────────────────────────────────────
+  - id: msg4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "发现阶段我应该问哪些问题来了解客户的真实痛点？给我10个高质量的问题，适合中小企业老板。"
+  - id: send4
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp4
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot4
+    action: browser.screenshot
+    params:
+      name: "sales-04-resp"
+
+  # ── Round 5: 产品演示 ────────────────────────────────────────────
+  - id: msg5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "产品演示时间只有30分钟，你建议按什么结构来展示？哪些功能要重点演，哪些可以略过？"
+  - id: send5
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp5
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot5
+    action: browser.screenshot
+    params:
+      name: "sales-05-resp"
+
+  # ── Round 6: 价格异议 ────────────────────────────────────────────
+  - id: msg6
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户说'你们比竞争对手贵'，我怎么回应？给我3种不同风格的话术，从温和到强势。"
+  - id: send6
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp6
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot6
+    action: browser.screenshot
+    params:
+      name: "sales-06-resp"
+
+  # ── Round 7: 预算不足 ────────────────────────────────────────────
+  - id: msg7
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户说预算紧张，要等下个季度。这是真的还是借口？如果是真的，我该怎么保持跟进而不骚扰他们？"
+  - id: send7
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp7
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot7
+    action: browser.screenshot
+    params:
+      name: "sales-07-resp"
+
+  # ── Round 8: 多决策人 ────────────────────────────────────────────
+  - id: msg8
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "这个客户有3个决策人：CEO、IT总监、财务总监，关注点各不同。我怎么同时搞定这三个人？"
+  - id: send8
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp8
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot8
+    action: browser.screenshot
+    params:
+      name: "sales-08-resp"
+
+  # ── Round 9: 提案结构 ────────────────────────────────────────────
+  - id: msg9
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "帮我设计一份销售提案大纲，让客户看完之后觉得值得签约，而不只是在卖产品。"
+  - id: send9
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp9
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot9
+    action: browser.screenshot
+    params:
+      name: "sales-09-resp"
+
+  # ── Round 10: ROI计算 ────────────────────────────────────────────
+  - id: msg10
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "如何帮客户快速算出用了我们产品的ROI？给我一个简单框架，可以在对话中直接算给他们看。"
+  - id: send10
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp10
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot10
+    action: browser.screenshot
+    params:
+      name: "sales-10-resp"
+
+  # ── Round 11: 制造紧迫感 ─────────────────────────────────────────
+  - id: msg11
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户一直'考虑考虑'，不紧不慢。怎么制造合理紧迫感推动他们决定，又不显得催促或不专业？"
+  - id: send11
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp11
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot11
+    action: browser.screenshot
+    params:
+      name: "sales-11-resp"
+
+  # ── Round 12: 合同谈判 ───────────────────────────────────────────
+  - id: msg12
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户要求合同里加'不满意可以随时退款'，但我们只承诺30天退款。怎么谈这个条款？"
+  - id: send12
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp12
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot12
+    action: browser.screenshot
+    params:
+      name: "sales-12-resp"
+
+  # ── Round 13: 丢单分析 ───────────────────────────────────────────
+  - id: msg13
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "客户最终选了竞争对手，我怎么优雅地跟进？如何从这次失败中获取有价值的信息？"
+  - id: send13
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp13
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot13
+    action: browser.screenshot
+    params:
+      name: "sales-13-resp"
+
+  # ── Round 14: 交接给CS ───────────────────────────────────────────
+  - id: msg14
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "签约后，销售怎么做好向客户成功团队的交接？哪些关键信息要传递？如何确保客户不流失？"
+  - id: send14
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp14
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot14
+    action: browser.screenshot
+    params:
+      name: "sales-14-resp"
+
+  # ── Round 15: 季度销售计划 ──────────────────────────────────────
+  - id: msg15
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "基于我们整个对话，帮我制定一个季度销售计划，目标是签10个新客户，每月999元。拆解成每周具体行动。"
+  - id: send15
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait-resp15
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 300000
+  - id: shot15
+    action: browser.screenshot
+    params:
+      name: "sales-15-resp"
+
+  - id: done
+    action: log
+    params:
+      message: "✅ SalesClaw 15轮对话完成！查看截图 sales-01 至 sales-15。"

@@ -136,7 +136,10 @@ export class FlowExecutor {
     });
 
     this.registerAction('browser.screenshot', async (ctx, params) => {
-      const path = params.path ? this.interpolate(params.path as string, ctx) : undefined;
+      const name = params.name ? this.interpolate(params.name as string, ctx) : undefined;
+      const path = params.path
+        ? this.interpolate(params.path as string, ctx)
+        : name ? `screenshots/${name}.png` : undefined;
       const buffer = await ctx.browser.screenshot(path);
       return { path, size: buffer.length };
     });
@@ -250,6 +253,24 @@ export class FlowExecutor {
     });
 
     // Press key in iframe element
+    this.registerAction('browser.goBack', async (ctx, params) => {
+      const page = ctx.browser.getPage();
+      await page.goBack({ timeout: (params.timeout as number) || 10000 });
+      return { navigated: 'back' };
+    });
+
+    this.registerAction('browser.press', async (ctx, params) => {
+      const key = this.interpolate(params.key as string, ctx);
+      const page = ctx.browser.getPage();
+      if (params.selector) {
+        const selector = this.interpolate(params.selector as string, ctx);
+        await page.locator(selector).press(key);
+      } else {
+        await page.keyboard.press(key);
+      }
+      return { pressed: key };
+    });
+
     this.registerAction('browser.pressIframe', async (ctx, params) => {
       const iframeSelector = this.interpolate(params.iframeSelector as string, ctx);
       const elementSelector = this.interpolate(params.elementSelector as string, ctx);

@@ -251,11 +251,53 @@ jobs:
         run: pnpm exec tsx scripts/repair-agent.ts --all || true
         timeout-minutes: 20
 
-  # ── Job 6: HTML report + notify ────────────────────────────────
+  # ── Job 6: Digital Staff E2E flows ────────────────────────────
+  digital-staff:
+    name: Digital Staff E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run all Digital Staff flows
+        run: pnpm exec tsx scripts/ds-flow-runner.ts --slack || true
+        timeout-minutes: 15
+        env:
+          DS_BASE_URL:       ${{ secrets.DS_BASE_URL }}
+          DS_LOGIN_EMAIL:    ${{ secrets.DS_LOGIN_EMAIL }}
+          DS_LOGIN_PASSWORD: ${{ secrets.DS_LOGIN_PASSWORD }}
+
+      - name: Run DS triage agent
+        run: pnpm exec tsx scripts/ds-triage-agent.ts --slack || true
+        timeout-minutes: 5
+
+      - name: Upload DS reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ds-reports
+          path: reports/ds-run-*.json
+          if-no-files-found: ignore
+
+  # ── Job 7: HTML report + notify ────────────────────────────────
   report:
     name: HTML Report & Notify
     runs-on: ubuntu-latest
-    needs: [accuracy, triage, auto-repair]
+    needs: [accuracy, triage, auto-repair, digital-staff]
     if: always() && needs.accuracy.result != 'skipped'
     steps:
       - uses: actions/checkout@v4

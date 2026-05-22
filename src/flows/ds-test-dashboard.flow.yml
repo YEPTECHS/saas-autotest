@@ -1,0 +1,29 @@
+# Digital Staff — Dashboard 测试 Flow
+
+name: ds-test-dashboard
+description: 测试 Dashboard — 关键指标卡片、图表区域加载
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: wait-dashboard-heading
+    action: browser.waitForSelector
+    params:
+      selector: "h1, h2"
+      timeout: 15000
+
+  - id: check-stat-cards
+    action: browser.waitForSelector
+    params:
+      selector: "[class*='card'], [class*='stat'], [class*='metric'], [class*='overview'], main"
+      timeout: 10000
+
+  - id: screenshot-dashboard
+    action: browser.screenshot
+    params:
+      name: "ds-dashboard-full"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Dashboard 测试完成！"

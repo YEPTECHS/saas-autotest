@@ -1,0 +1,39 @@
+# Digital Staff — 登出测试 Flow
+
+name: ds-test-logout
+description: 测试登出功能 — 正向：成功登出并返回登录页
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: click-user-menu
+    action: browser.click
+    params:
+      selector: "aside > div:last-child button, [class*='user-menu'], [class*='userMenu'], [class*='avatar']"
+
+  - id: screenshot-user-menu
+    action: browser.screenshot
+    params:
+      name: "ds-logout-menu"
+
+  - id: click-logout
+    action: browser.click
+    params:
+      selector: "[role='menuitem']:has-text('Logout'), [role='menu'] div:last-child, [data-base-ui-menu-item]:has-text('Logout')"
+      force: true
+
+  - id: wait-login-page
+    action: browser.waitForUrl
+    params:
+      pattern: "login"
+      timeout: 15000
+
+  - id: screenshot-after-logout
+    action: browser.screenshot
+    params:
+      name: "ds-logout-success"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 登出测试完成！"

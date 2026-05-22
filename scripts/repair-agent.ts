@@ -164,9 +164,11 @@ Be surgical: change only what is necessary to fix the failure.`;
               break;
             }
             console.log(`   [repair] running test (attempt ${runCount}/${MAX_RUNS})...`);
+            // DS flows (ds-*) can take up to 30 min; other flows use 10 min
+            const runTimeout = (inp.flowName as string).startsWith('ds-') ? 30 * 60 * 1000 : 10 * 60 * 1000;
             const res = spawnSync('pnpm', ['flow', inp.flowName as string], {
               cwd: process.cwd(), encoding: 'utf-8',
-              timeout: 10 * 60 * 1000, env: { ...process.env },
+              timeout: runTimeout, env: { ...process.env },
             });
             const out = ((res.stdout || '') + (res.stderr || '')).substring(0, 3000);
             content = `Exit: ${res.status} | Success: ${res.status === 0}\n\n${out}`;

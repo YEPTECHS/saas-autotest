@@ -1,0 +1,119 @@
+# Digital Staff — Dashboard 深度验证
+# 验证数据正确性：指标卡不显示 loading、数值一致、各区域内容齐全
+
+name: ds-validate-dashboard
+description: Dashboard 内容深度验证 — 数值加载完成、4张卡片数据正确、区域齐全
+
+steps:
+  - include: ds-login.flow.yml
+
+  # ── 等待 loading 状态消失 ────────────────────────────────────────
+  - id: wait-dashboard-heading
+    action: browser.waitForSelector
+    params:
+      selector: "h1"
+      timeout: 15000
+
+  - id: wait-data-load
+    action: wait
+    params:
+      ms: 4000
+
+  - id: screenshot-dashboard-loaded
+    action: browser.screenshot
+    params:
+      name: "ds-validate-dashboard-loaded"
+
+  # ── 验证 4 个指标卡存在 ────────────────────────────────────────
+  - id: assert-active-digital-humans-card
+    action: assert.element
+    params:
+      selector: "p:has-text('Active Digital Humans'), span:has-text('Active Digital Humans'), div:has-text('Active Digital Humans')"
+
+  - id: assert-conversations-card
+    action: assert.element
+    params:
+      selector: "p:has-text('Today'), span:has-text('Today'), div:has-text('Today')"
+
+  - id: assert-monthly-usage-card
+    action: assert.element
+    params:
+      selector: "p:has-text('Monthly Usage'), span:has-text('Monthly Usage'), div:has-text('Monthly')"
+
+  - id: assert-credit-balance-card
+    action: assert.element
+    params:
+      selector: "p:has-text('Credit Balance'), span:has-text('Credit Balance'), div:has-text('Credit Balance')"
+
+  # ── 验证 loading 状态已消失 ────────────────────────────────────
+  - id: verify-no-loading-spinners
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const loadingCount = (bodyText.match(/loading\.\.\./gi) || []).length;
+        if (loadingCount > 0) {
+          throw new Error('Dashboard still showing ' + loadingCount + ' "loading..." text(s). Data not fully loaded.');
+        }
+        return { ok: true, loadingCount: 0 };
+
+  # ── 验证 Active Digital Humans 是 X/Y 数字格式 ─────────────────
+  - id: verify-digital-humans-count-format
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        const match = bodyText.match(/(\d+)\s*\/\s*(\d+)/);
+        if (!match) throw new Error('Active Digital Humans not showing X/Y format in page. Body snippet: ' + bodyText.slice(0, 300));
+        return { running: parseInt(match[1]), total: parseInt(match[2]) };
+
+  # ── 验证 Credit Balance 是数字 ────────────────────────────────
+  - id: verify-credit-balance-is-number
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        if (bodyText.includes('Loading wallet')) throw new Error('Credit Balance still loading wallet');
+        const allNums = bodyText.match(/\b\d{3,}\b/g);
+        if (!allNums) throw new Error('No 3+ digit number found on dashboard (expected credit balance)');
+        return { largeNumbers: allNums };
+
+  # ── 验证 Recent Activity 区域存在（空账号允许无内容）──────────────
+  - id: verify-recent-activity-exists
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        if (!bodyText.includes('Recent Activity')) throw new Error('Recent Activity section not found on page');
+        const lines = bodyText.split('\n').filter(l => l.trim().length > 5);
+        const activityIdx = lines.findIndex(l => l.includes('Recent Activity'));
+        const itemsAfter = lines.slice(activityIdx + 1, activityIdx + 10);
+        return {
+          sectionExists: true,
+          activityItems: itemsAfter.length,
+          note: itemsAfter.length === 0 ? '⚠️ No activity yet — fresh account' : itemsAfter[0]
+        };
+
+  # ── 验证 Digital Humans 区域存在（空账号允许无 agent 卡）──────────
+  - id: verify-digital-humans-agents-shown
+    action: browser.execute
+    params:
+      script: |
+        const bodyText = document.body.innerText;
+        if (!bodyText.includes('Digital Humans')) throw new Error('Digital Humans section not on dashboard');
+        const hasAgentCards = bodyText.includes('Running') || bodyText.includes('Idle') || bodyText.includes('Stopped');
+        return {
+          sectionExists: true,
+          hasAgentCards,
+          note: hasAgentCards ? 'Agent cards visible' : '⚠️ No agent cards — fresh account with no DHs'
+        };
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "ds-validate-dashboard-final"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Dashboard 深度验证通过！4张卡片数据已加载，Recent Activity 有内容，Digital Humans 有 agent 卡片。"

@@ -1,0 +1,35 @@
+# Digital Staff — 主页测试 Flow
+# 验证登录后主页/仪表盘正确加载
+
+name: ds-test-home
+description: 测试 Digital Staff 主页/仪表盘加载
+
+steps:
+  - include: workspace-digital-staff/flows/ds-login.flow.yml
+
+  - id: wait-main-content
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='dashboard'], [class*='home'], [class*='content'], [class*='layout']"
+      timeout: 15000
+
+  - id: screenshot-home
+    action: browser.screenshot
+    params:
+      name: "ds-home-page"
+
+  - id: check-navigation
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar'], [class*='menu'], [class*='nav']"
+      timeout: 10000
+
+  - id: screenshot-nav
+    action: browser.screenshot
+    params:
+      name: "ds-navigation"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 主页测试完成！"

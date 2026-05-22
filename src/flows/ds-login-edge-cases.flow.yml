@@ -1,0 +1,313 @@
+# Digital Staff — 登录边界 & 安全测试
+# 验证：邮箱格式边界、特殊字符密码、超长输入、SQL注入不崩溃
+
+name: ds-login-edge-cases
+description: 登录边界测试 — 邮箱带空格、特殊符号密码、超长输入、注入字符安全处理
+
+steps:
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='text']"
+      timeout: 10000
+
+  # ── 测试1：邮箱含空格 ─────────────────────────────────────────
+  - id: fill-email-with-space
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "user name@example.com"
+
+  - id: fill-password-1
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "Password123!"
+
+  - id: click-submit-1
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-1
+    action: wait
+    params:
+      ms: 1500
+
+  - id: capture-space-email-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const stillOnLogin = url.includes('login') ||
+                             !!document.querySelector("button:has-text('Sign in'), button[type='submit']");
+        const emailInput = document.querySelector("input[type='email'], input[name='email']");
+        const actualValue = emailInput ? emailInput.value : '';
+        return {
+          test: 'email_with_space',
+          inputValue: 'user name@example.com',
+          actualValue,
+          stillOnLogin,
+          bodySnippet: body.slice(0, 200)
+        };
+    output: spaceEmailResult
+
+  - id: screenshot-space-email
+    action: browser.screenshot
+    params:
+      name: "ds-login-email-with-space"
+
+  # ── 测试2：特殊符号密码（正确邮箱、密码含各类符号） ──────────
+  - id: fill-email-2
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password-symbols
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+
+  - id: click-submit-symbols
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-symbols
+    action: browser.waitForSelector
+    params:
+      selector: "[data-sonner-toast], .toaster li, [class*='error'], p:has-text('Invalid'), p:has-text('incorrect'), p:has-text('error')"
+      timeout: 10000
+
+  - id: capture-symbols-pw-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const stillOnLogin = url.includes('login') ||
+                             !!document.querySelector("button:has-text('Sign in'), button[type='submit']");
+        return {
+          test: 'password_all_symbols',
+          password: '!@#$%^&*()_+-=[]{}|;\':\",.<>?',
+          stillOnLogin,
+          note: 'Wrong password with all special chars — should get invalid credentials error, not crash',
+          bodySnippet: body.slice(0, 200)
+        };
+    output: symbolsPwResult
+
+  - id: screenshot-symbols-password
+    action: browser.screenshot
+    params:
+      name: "ds-login-symbols-password"
+
+  # ── 测试3：超长密码（300位）─────────────────────────────────
+  - id: fill-email-3
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password-very-long
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "Aa1@xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+  - id: click-submit-long-pw
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-long-pw
+    action: wait
+    params:
+      ms: 2000
+
+  - id: capture-long-pw-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const stillOnLogin = url.includes('login') ||
+                             !!document.querySelector("button:has-text('Sign in'), button[type='submit']");
+        const pwInput = document.querySelector("input[type='password']");
+        const actualLen = pwInput ? pwInput.value.length : -1;
+        return {
+          test: 'password_300_chars',
+          attemptedLength: 300,
+          actualInputLength: actualLen,
+          truncated: actualLen < 300,
+          stillOnLogin,
+          note: actualLen < 300 ? 'Input field truncates to ' + actualLen + ' chars' : 'No max length on input',
+          bodySnippet: body.slice(0, 200)
+        };
+    output: longPwResult
+
+  - id: screenshot-long-password
+    action: browser.screenshot
+    params:
+      name: "ds-login-long-password"
+
+  # ── 测试4：SQL 注入尝试（邮箱字段） ──────────────────────────
+  - id: fill-email-sql-inject
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "' OR 1=1-- @test.com"
+
+  - id: fill-password-sql
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "password"
+
+  - id: click-submit-sql
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-sql
+    action: wait
+    params:
+      ms: 2000
+
+  - id: capture-sql-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const loggedIn = !url.includes('login') && !url.includes('#/login');
+        const crashed = body.toLowerCase().includes('sql') ||
+                        body.toLowerCase().includes('syntax error') ||
+                        body.toLowerCase().includes('database') ||
+                        body.toLowerCase().includes('exception');
+        if (loggedIn) throw new Error('SECURITY BUG: SQL injection bypassed login! URL: ' + url);
+        if (crashed) throw new Error('SECURITY BUG: SQL injection caused server error/leak: ' + body.slice(0, 300));
+        return {
+          test: 'sql_injection_email',
+          payload: "' OR 1=1-- @test.com",
+          loggedIn,
+          crashed,
+          securityOk: true,
+          bodySnippet: body.slice(0, 200)
+        };
+    output: sqlResult
+
+  - id: screenshot-sql-injection
+    action: browser.screenshot
+    params:
+      name: "ds-login-sql-injection"
+
+  # ── 测试5：XSS 注入尝试（密码字段） ─────────────────────────
+  - id: fill-email-xss
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password-xss
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "<script>alert('xss')</script>"
+
+  - id: click-submit-xss
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-xss
+    action: wait
+    params:
+      ms: 2000
+
+  - id: capture-xss-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const loggedIn = !url.includes('login') && !url.includes('#/login');
+        const scriptExecuted = !!document.querySelector('[data-xss-test]');
+        if (loggedIn) throw new Error('SECURITY BUG: XSS payload bypassed login! URL: ' + url);
+        return {
+          test: 'xss_password_field',
+          payload: "<script>alert('xss')</script>",
+          loggedIn,
+          scriptExecuted,
+          securityOk: true,
+          bodySnippet: body.slice(0, 200)
+        };
+    output: xssResult
+
+  - id: screenshot-xss
+    action: browser.screenshot
+    params:
+      name: "ds-login-xss-attempt"
+
+  # ── 测试6：Unicode 字符密码 ───────────────────────────────────
+  - id: fill-email-unicode
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password-unicode
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "密码Password123！中文"
+
+  - id: click-submit-unicode
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-feedback-unicode
+    action: wait
+    params:
+      ms: 2000
+
+  - id: capture-unicode-result
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const stillOnLogin = url.includes('login') ||
+                             !!document.querySelector("button:has-text('Sign in'), button[type='submit']");
+        const crashed = body.toLowerCase().includes('500') ||
+                        body.toLowerCase().includes('server error') ||
+                        body.toLowerCase().includes('exception');
+        if (crashed) throw new Error('Unicode password caused server error: ' + body.slice(0, 200));
+        return {
+          test: 'unicode_password',
+          password: '密码Password123！中文',
+          stillOnLogin,
+          crashed,
+          securityOk: !crashed,
+          bodySnippet: body.slice(0, 200)
+        };
+    output: unicodeResult
+
+  - id: screenshot-unicode
+    action: browser.screenshot
+    params:
+      name: "ds-login-unicode-password"
+
+  - id: log-success
+    action: log
+    params:
+      message: "登录边界测试完成！6个场景：空格邮箱、符号密码、超长密码、SQL注入、XSS注入、Unicode密码"

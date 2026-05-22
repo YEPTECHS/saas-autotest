@@ -36,6 +36,9 @@ token.json
 # Screenshots
 *.png
 
+# DS run reports (generated artifacts)
+reports/ds-run-*.json
+
 # Data files (contain OAuth URLs)
 data/*.json
 !data/.gitkeep

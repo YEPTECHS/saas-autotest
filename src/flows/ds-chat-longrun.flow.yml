@@ -1,0 +1,531 @@
+# ds-chat-longrun.flow.yml
+# 超长轮次测试：MarketingClaw 20轮 — 测试上下文记忆是否退化
+# 后5轮明确引用前面说过的内容，检验跨轮记忆
+# 账户: kiechee.pau1@yepai.io
+name: ds-chat-longrun
+description: "Long Run: MarketingClaw 20轮 — 轮16-20专门测试对早期对话的记忆"
+
+steps:
+  # ── 登录 ─────────────────────────────────────────────────────────
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[type='text']"
+      timeout: 15000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[type='text']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "{{DS_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in')"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar']"
+      timeout: 30000
+
+  - id: nav-dh
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/digital-humans"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-dh
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Digital Humans')"
+      timeout: 15000
+
+  - id: wait-cards
+    action: wait
+    params:
+      ms: 2000
+
+  - id: open-chat
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], li, article'));
+        const t = cards.find(c => c.textContent.includes('MarketingClaw') && c.textContent.includes('test dont delete'));
+        if (!t) return { found: false };
+        const btn = Array.from(t.querySelectorAll('button')).find(b => b.textContent.trim() === 'Chat');
+        if (btn) { btn.click(); return { clicked: true }; }
+        return { found: true, noBtn: true };
+
+  - id: wait-input
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 15000
+
+  - id: shot-start
+    action: browser.screenshot
+    params:
+      name: "lr-00-opened"
+
+  # ── 轮1: 建立基础信息（后续轮次会引用）────────────────────────────
+  - id: msg1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们是一家做HR SaaS的公司，产品帮企业自动化考勤和薪资计算，定价499元/月，目标客户是20-100人的制造业和零售业中小企业。请帮我梳理我们最核心的3个营销问题。"
+  - id: send1
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot1
+    action: browser.screenshot
+    params:
+      name: "lr-01-resp"
+
+  # ── 轮2: 目标客户画像 ─────────────────────────────────────────────
+  - id: msg2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "制造业和零售业的HR或老板，他们在选HR软件时最担心什么？请描述3个典型客户画像，包括他们的痛点和决策逻辑。"
+  - id: send2
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot2
+    action: browser.screenshot
+    params:
+      name: "lr-02-resp"
+
+  # ── 轮3: 内容营销主题 ─────────────────────────────────────────────
+  - id: msg3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "基于这3个客户画像，帮我想10个能引起共鸣的内容营销标题，适合发在微信公众号。"
+  - id: send3
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait3
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot3
+    action: browser.screenshot
+    params:
+      name: "lr-03-resp"
+
+  # ── 轮4: 线索获取渠道 ─────────────────────────────────────────────
+  - id: msg4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "制造业和零售业的中小企业主，他们平时在哪里获取信息？哪些渠道能精准触达他们？给我一个冷启动获客优先级排序。"
+  - id: send4
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait4
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot4
+    action: browser.screenshot
+    params:
+      name: "lr-04-resp"
+
+  # ── 轮5: 竞争对手分析 ────────────────────────────────────────────
+  - id: msg5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们主要竞争对手是钉钉、企业微信和薪人薪事。我们499元/月的定位，怎么在营销上和这三个对手形成差异化？"
+  - id: send5
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait5
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot5
+    action: browser.screenshot
+    params:
+      name: "lr-05-resp"
+
+  # ── 轮6: 邮件营销 ────────────────────────────────────────────────
+  - id: msg6
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们打算用邮件做冷启动outreach，对象是制造业HR负责人。帮我写一封开发信的框架，打开率怎么提高？"
+  - id: send6
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait6
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot6
+    action: browser.screenshot
+    params:
+      name: "lr-06-resp"
+
+  # ── 轮7: 活动营销 ────────────────────────────────────────────────
+  - id: msg7
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们想举办一个线上直播活动吸引潜在客户。主题应该是什么？怎么设计才能让制造业HR愿意报名参加？"
+  - id: send7
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait7
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot7
+    action: browser.screenshot
+    params:
+      name: "lr-07-resp"
+
+  # ── 轮8: 客户案例 ────────────────────────────────────────────────
+  - id: msg8
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们有3个成功客户案例：一家50人服装厂节省了2名HR、一家餐饮连锁店减少了30%工资核算错误、一家零售商缩短了考勤统计时间90%。怎么把这些案例最大化地用于营销？"
+  - id: send8
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait8
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot8
+    action: browser.screenshot
+    params:
+      name: "lr-08-resp"
+
+  # ── 轮9: 定价策略 ────────────────────────────────────────────────
+  - id: msg9
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "499元/月这个定价，你觉得对于20-100人制造业企业来说，决策门槛是高还是低？如果我们要提升付费转化，定价策略上还可以做什么？"
+  - id: send9
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait9
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot9
+    action: browser.screenshot
+    params:
+      name: "lr-09-resp"
+
+  # ── 轮10: SEO策略 ────────────────────────────────────────────────
+  - id: msg10
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们想做百度SEO长期布局。制造业HR会搜什么关键词？帮我列出20个高转化潜力的关键词，并说明搜索意图。"
+  - id: send10
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait10
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot10
+    action: browser.screenshot
+    params:
+      name: "lr-10-resp"
+
+  # ── 轮11: 合作伙伴渠道 ───────────────────────────────────────────
+  - id: msg11
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们在想和哪些类型的公司做渠道合作能快速触达制造业客户？比如ERP代理商、工厂管理咨询公司等。你有什么建议？"
+  - id: send11
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait11
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot11
+    action: browser.screenshot
+    params:
+      name: "lr-11-resp"
+
+  # ── 轮12: 品牌故事 ───────────────────────────────────────────────
+  - id: msg12
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "帮我写一段50字的品牌slogan和一段200字的品牌故事，要让制造业小老板看了有共鸣，感觉这个产品是为他们量身打造的。"
+  - id: send12
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait12
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot12
+    action: browser.screenshot
+    params:
+      name: "lr-12-resp"
+
+  # ── 轮13: 数据驱动营销 ──────────────────────────────────────────
+  - id: msg13
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们现在每个月能拿到哪些数据来优化营销？如何用数据判断哪个渠道值得加大投入，哪个应该砍掉？"
+  - id: send13
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait13
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot13
+    action: browser.screenshot
+    params:
+      name: "lr-13-resp"
+
+  # ── 轮14: 季节性营销 ─────────────────────────────────────────────
+  - id: msg14
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "制造业有年底结算、春节后复工等节点。哪些时间节点是我们营销的黄金窗口？每个节点应该推什么内容？"
+  - id: send14
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait14
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot14
+    action: browser.screenshot
+    params:
+      name: "lr-14-resp"
+
+  # ── 轮15: 用户留存营销 ──────────────────────────────────────────
+  - id: msg15
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "除了获客，我们怎么通过营销手段降低已有客户的流失率？有哪些低成本但有效的客户留存营销活动？"
+  - id: send15
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait15
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot15
+    action: browser.screenshot
+    params:
+      name: "lr-15-resp"
+
+  # ════════════════════════════════════════════════════════════════
+  # 轮16-20: 记忆测试 — 明确引用前面轮次的内容
+  # ════════════════════════════════════════════════════════════════
+
+  # ── 轮16: 引用第2轮（客户画像）────────────────────────────────────
+  - id: msg16
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "你之前给我描述了3个客户画像。现在针对其中最难转化的那个画像，帮我设计一个专属的落地页文案结构，让他看完之后主动注册试用。"
+  - id: send16
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait16
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot16
+    action: browser.screenshot
+    params:
+      name: "lr-16-memory-test-persona"
+
+  # ── 轮17: 引用第5轮（竞争对手）────────────────────────────────────
+  - id: msg17
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "你之前分析了我们和钉钉、企业微信、薪人薪事的差异化。如果我要做一张对比表格放在官网，应该选哪3个维度来展示我们的优势最有说服力？"
+  - id: send17
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait17
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot17
+    action: browser.screenshot
+    params:
+      name: "lr-17-memory-test-competitors"
+
+  # ── 轮18: 引用第8轮（客户案例）────────────────────────────────────
+  - id: msg18
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们之前讨论了3个客户案例（服装厂、餐饮连锁、零售商）。哪个案例最适合作为我们公众号的头条爆款文章？帮我写一个标题和文章大纲。"
+  - id: send18
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait18
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot18
+    action: browser.screenshot
+    params:
+      name: "lr-18-memory-test-casestudy"
+
+  # ── 轮19: 引用第14轮（季节性营销）─────────────────────────────────
+  - id: msg19
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "你之前提到了制造业营销的黄金时间节点。现在帮我把这些节点整合进一个完整的Q1内容日历，每周一篇公众号文章，标题和核心卖点是什么。"
+  - id: send19
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait19
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot19
+    action: browser.screenshot
+    params:
+      name: "lr-19-memory-test-seasonal"
+
+  # ── 轮20: 综合记忆测试 — 要求总结整个对话 ─────────────────────────
+  - id: msg20
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message'], input[placeholder*='Message']"
+      value: "我们今天聊了很多。请帮我总结：基于我们产品（HR SaaS，499元/月，制造业零售业中小企业）的所有对话，给我一个优先级最高的5条行动建议，每条都要有具体的第一步动作。"
+  - id: send20
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().toLowerCase() === 'send' || (b.getAttribute('aria-label')||'').toLowerCase().includes('send') || b.type === 'submit');
+        if (btn) btn.click(); return { sent: !!btn };
+  - id: wait20
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder*='Type a message'], input[placeholder*='message']"
+      timeout: 180000
+  - id: shot20
+    action: browser.screenshot
+    params:
+      name: "lr-20-memory-synthesis"
+
+  - id: done
+    action: log
+    params:
+      message: "✅ 超长轮次测试完成！lr-01~20，其中lr-16~20是记忆测试截图，重点关注。"

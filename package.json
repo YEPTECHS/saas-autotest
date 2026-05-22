@@ -95,7 +95,15 @@
     "watch:agents": "tsx scripts/change-watch-agent.ts",
     "watch:agents:slack": "tsx scripts/change-watch-agent.ts --run-tests --slack",
     "watch:agents:baseline": "tsx scripts/change-watch-agent.ts --set-baseline",
-    "slack:bot": "tsx scripts/slack-bot.ts"
+    "slack:bot": "tsx scripts/slack-bot.ts",
+    "ds:run": "tsx scripts/ds-flow-runner.ts",
+    "ds:run:slack": "tsx scripts/ds-flow-runner.ts --slack",
+    "ds:run:weekly": "tsx scripts/ds-flow-runner.ts --slack --flows=ds-chat-marketing,ds-chat-sales,ds-chat-edge,ds-chat-longrun",
+    "ds:email:report": "tsx scripts/ds-email-report.ts",
+    "ds:triage": "tsx scripts/ds-triage-agent.ts",
+    "ds:triage:slack": "tsx scripts/ds-triage-agent.ts --slack",
+    "ds:triage:repair": "tsx scripts/ds-triage-agent.ts --repair --slack",
+    "ds:all": "tsx scripts/ds-flow-runner.ts --slack && tsx scripts/ds-triage-agent.ts --repair --slack"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",

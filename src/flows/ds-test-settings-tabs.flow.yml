@@ -1,0 +1,78 @@
+# Digital Staff — Settings 子页面测试
+
+name: ds-test-settings-tabs
+description: 测试 Settings 的各子页面：General、Billing、Notifications、Security、Developer、Profile
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: navigate-settings
+    action: browser.click
+    params:
+      selector: "a:has-text('Settings'), aside a:has-text('Settings')"
+
+  - id: wait-settings
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Settings'), h2:has-text('Settings')"
+      timeout: 10000
+
+  - id: screenshot-settings-general
+    action: browser.screenshot
+    params:
+      name: "ds-settings-general"
+
+  # ── Billing ─────────────────────────────
+  - id: click-billing
+    action: browser.click
+    params:
+      selector: "a:has-text('Billing'), button:has-text('Billing'), [href*='billing']"
+
+  - id: wait-billing
+    action: browser.waitForSelector
+    params:
+      selector: "main, [class*='billing'], [class*='plan'], h2, p"
+      timeout: 10000
+
+  - id: screenshot-billing
+    action: browser.screenshot
+    params:
+      name: "ds-settings-billing"
+
+  # ── Notifications ────────────────────────
+  - id: click-notifications
+    action: browser.click
+    params:
+      selector: "a:has-text('Notifications'), button:has-text('Notifications'), [href*='notification']"
+
+  - id: screenshot-notifications
+    action: browser.screenshot
+    params:
+      name: "ds-settings-notifications"
+
+  # ── Security ─────────────────────────────
+  - id: click-security
+    action: browser.click
+    params:
+      selector: "a:has-text('Security'), button:has-text('Security'), [href*='security']"
+
+  - id: screenshot-security
+    action: browser.screenshot
+    params:
+      name: "ds-settings-security"
+
+  # ── Profile ──────────────────────────────
+  - id: click-profile
+    action: browser.click
+    params:
+      selector: "a:has-text('Profile'), button:has-text('Profile'), [href*='profile']"
+
+  - id: screenshot-profile
+    action: browser.screenshot
+    params:
+      name: "ds-settings-profile"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Settings 子页面测试完成！"

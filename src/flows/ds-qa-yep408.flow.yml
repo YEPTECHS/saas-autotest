@@ -1,0 +1,493 @@
+# QA Verification: YEP-408 — Password complexity enforcement
+# Requirements: at least 8 characters, uppercase, lowercase, number, symbol
+# Bug: weak passwords were accepted at registration
+# Fix verification: each weak password must be REJECTED with a clear error message
+# Valid password must still be ACCEPTED
+#
+# Uses fresh emails (v5 suffix) to avoid "email already registered" false negatives.
+# STRICT mode: navigating away from register page = test FAILS (bug not fixed).
+# Uses form.fillSingle to properly trigger React state updates (not raw JS .value).
+
+name: ds-qa-yep408
+description: "QA: YEP-408 — verify password complexity is now enforced at registration"
+
+steps:
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 1: No uppercase — asdf@12345 — must be REJECTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case1
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case1
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case1
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 NoUpper"
+
+  - id: fill-email-case1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-noupper@yopmail.com"
+
+  - id: fill-pw-case1
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "asdf@12345"
+
+  - id: submit-case1
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case1
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-case1
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-01-no-uppercase"
+
+  - id: verify-case1-rejected
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const body = document.body.innerText;
+        const hasError = body.toLowerCase().includes('uppercase') || body.toLowerCase().includes('capital') ||
+                         body.toLowerCase().includes('password') || body.toLowerCase().includes('weak') ||
+                         body.toLowerCase().includes('complexity') || body.toLowerCase().includes('requirement') ||
+                         document.querySelectorAll('[data-sonner-toast], .toaster li, [class*="error"], [class*="Error"]').length > 0;
+        if (!stillOnRegister) {
+          throw new Error('YEP-408 NOT FIXED: password "asdf@12345" (no uppercase) was ACCEPTED — user navigated away from register page to: ' + url);
+        }
+        return {
+          case: 'no_uppercase (asdf@12345)',
+          result: '✅ PASS: rejected as expected',
+          hasErrorMessage: hasError,
+          errorMessageNote: hasError ? 'Error message shown' : '⚠️ Rejected but no visible error message — UX issue',
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case1Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 2: No number — Asdf@abcde — must be REJECTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case2
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case2
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case2
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 NoNumber"
+
+  - id: fill-email-case2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-nonum@yopmail.com"
+
+  - id: fill-pw-case2
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "Asdf@abcde"
+
+  - id: submit-case2
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case2
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-case2
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-02-no-number"
+
+  - id: verify-case2-rejected
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const body = document.body.innerText;
+        const hasError = body.toLowerCase().includes('number') || body.toLowerCase().includes('digit') ||
+                         body.toLowerCase().includes('password') || body.toLowerCase().includes('weak') ||
+                         document.querySelectorAll('[data-sonner-toast], .toaster li, [class*="error"]').length > 0;
+        if (!stillOnRegister) {
+          throw new Error('YEP-408 NOT FIXED: password "Asdf@abcde" (no number) was ACCEPTED — navigated to: ' + url);
+        }
+        return {
+          case: 'no_number (Asdf@abcde)',
+          result: '✅ PASS: rejected as expected',
+          hasErrorMessage: hasError,
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case2Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 3: No special symbol — Asdf123456 — must be REJECTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case3
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case3
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case3
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 NoSymbol"
+
+  - id: fill-email-case3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-nosym@yopmail.com"
+
+  - id: fill-pw-case3
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "Asdf123456"
+
+  - id: submit-case3
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case3
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-case3
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-03-no-symbol"
+
+  - id: verify-case3-rejected
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const body = document.body.innerText;
+        const hasError = body.toLowerCase().includes('special') || body.toLowerCase().includes('symbol') ||
+                         body.toLowerCase().includes('character') || body.toLowerCase().includes('password') ||
+                         body.toLowerCase().includes('weak') ||
+                         document.querySelectorAll('[data-sonner-toast], .toaster li, [class*="error"]').length > 0;
+        if (!stillOnRegister) {
+          throw new Error('YEP-408 NOT FIXED: password "Asdf123456" (no special symbol) was ACCEPTED — navigated to: ' + url);
+        }
+        return {
+          case: 'no_symbol (Asdf123456)',
+          result: '✅ PASS: rejected as expected',
+          hasErrorMessage: hasError,
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case3Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 4: Digits only — 12345678901234 — must be REJECTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case4
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case4
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case4
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 NumOnly"
+
+  - id: fill-email-case4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-numonly@yopmail.com"
+
+  - id: fill-pw-case4
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "12345678901234"
+
+  - id: submit-case4
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case4
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-case4
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-04-digits-only"
+
+  - id: verify-case4-rejected
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const body = document.body.innerText;
+        if (!stillOnRegister) {
+          throw new Error('YEP-408 NOT FIXED: password "12345678901234" (digits only) was ACCEPTED — navigated to: ' + url);
+        }
+        return {
+          case: 'digits_only (12345678901234)',
+          result: '✅ PASS: rejected as expected',
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case4Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 5: Too short — Af@1234 (7 chars, has all types but < 8) — must be REJECTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case5
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case5
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case5
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 TooShort"
+
+  - id: fill-email-case5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-tooshort@yopmail.com"
+
+  - id: fill-pw-case5
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "Af@1234"
+
+  - id: submit-case5
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case5
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-case5
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-05-too-short"
+
+  - id: verify-case5-rejected
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const body = document.body.innerText;
+        const hasError = body.toLowerCase().includes('8') || body.toLowerCase().includes('short') ||
+                         body.toLowerCase().includes('length') || body.toLowerCase().includes('password') ||
+                         body.toLowerCase().includes('weak') ||
+                         document.querySelectorAll('[data-sonner-toast], .toaster li, [class*="error"]').length > 0;
+        if (!stillOnRegister) {
+          throw new Error('YEP-408 NOT FIXED: password "Af@1234" (7 chars, too short) was ACCEPTED — navigated to: ' + url);
+        }
+        return {
+          case: 'too_short (Af@1234 — 7 chars)',
+          result: '✅ PASS: rejected as expected',
+          hasErrorMessage: hasError,
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case5Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Case 6 (sanity check): Valid password — Asdf@1234 — must be ACCEPTED
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-case6
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: click-signup-case6
+    action: browser.click
+    params:
+      selector: "a:has-text('Sign up')"
+
+  - id: wait-form-case6
+    action: browser.waitForSelector
+    params:
+      selector: "input[placeholder='Full name']"
+      timeout: 10000
+
+  - id: fill-name-case6
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Full name']"
+      value: "QA408 ValidPW"
+
+  - id: fill-email-case6
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='name@company.com'], input[type='email']"
+      value: "ds-qa408-v6-valid@yopmail.com"
+
+  - id: fill-pw-case6
+    action: form.fillSingle
+    params:
+      selector: "input[placeholder='Password'], input[type='password']"
+      value: "Asdf@1234"
+
+  - id: submit-case6
+    action: browser.click
+    params:
+      selector: "button:has-text('Create Account')"
+
+  - id: wait-case6
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-case6
+    action: browser.screenshot
+    params:
+      name: "ds-qa408-06-valid-password"
+
+  - id: verify-case6-accepted
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const body = document.body.innerText;
+        const stillOnRegister = !!document.querySelector("input[type='password']");
+        const hasEmailTakenError = body.toLowerCase().includes('already registered') || body.toLowerCase().includes('already exists');
+        // Either navigated away (success) OR email already taken (still passed complexity check)
+        const complexityAccepted = !stillOnRegister || hasEmailTakenError;
+        if (stillOnRegister && !hasEmailTakenError) {
+          const hasGenericPwError = body.toLowerCase().includes('password') || body.toLowerCase().includes('weak') ||
+                                    body.toLowerCase().includes('requirement') || body.toLowerCase().includes('complexity');
+          if (hasGenericPwError) {
+            throw new Error('REGRESSION: valid password "Asdf@1234" was REJECTED — complexity rules too strict or broken. Body: ' + body.slice(0, 300));
+          }
+          throw new Error('UNEXPECTED: valid password "Asdf@1234" did not navigate away and no known error found. Body: ' + body.slice(0, 300));
+        }
+        return {
+          case: 'valid_password (Asdf@1234)',
+          result: complexityAccepted ? '✅ PASS: valid password accepted (or email taken = complexity OK)' : '⚠️ Still on register page without clear error',
+          navigatedAway: !stillOnRegister,
+          emailAlreadyTaken: hasEmailTakenError,
+          url,
+          bodySnippet: body.slice(0, 300)
+        };
+    output: case6Result
+
+  # ════════════════════════════════════════════════════════════════
+  # Summary
+  # ════════════════════════════════════════════════════════════════
+  - id: qa-summary
+    action: browser.execute
+    params:
+      script: |
+        return {
+          ticket: 'YEP-408',
+          status: 'QA verification complete',
+          requirements: 'At least 8 characters, uppercase, lowercase, number, symbol',
+          cases: [
+            'Case 1: no uppercase (asdf@12345) — must be rejected',
+            'Case 2: no number (Asdf@abcde) — must be rejected',
+            'Case 3: no symbol (Asdf123456) — must be rejected',
+            'Case 4: digits only (12345678901234) — must be rejected',
+            'Case 5: too short (Af@1234 — 7 chars) — must be rejected',
+            'Case 6: valid password (Asdf@1234) — must be accepted'
+          ],
+          note: 'If any Case 1-5 throw errors, YEP-408 fix is NOT complete. If Case 6 throws, there is a regression.'
+        };
+    output: qaSummary
+
+  - id: log-complete
+    action: log
+    params:
+      message: "YEP-408 QA 验证完成！5个弱密码案例全部通过验证（已修复），有效密码也被正确接受。要求：至少8位，含大写、小写、数字、符号。"

@@ -78,6 +78,12 @@ program
       SHOPIFY_PARTNER_PASSWORD: process.env.SHOPIFY_PARTNER_PASSWORD || '',
       SHOPIFY_ORG_ID: process.env.SHOPIFY_ORG_ID || '155064156',
       YEPAI_CLIENT_ID: process.env.YEPAI_CLIENT_ID || '6f59e94645ee98a1ba5a77d17fc24d77',
+      // Digital Staff Platform
+      DS_BASE_URL: process.env.DS_BASE_URL || 'https://digitalstaff-test.yepai.io',
+      DS_LOGIN_EMAIL: process.env.DS_LOGIN_EMAIL || '',
+      DS_LOGIN_PASSWORD: process.env.DS_LOGIN_PASSWORD || '',
+      DS_TEST_EMAIL: `ds-test-${randomSuffix}@yopmail.com`,
+      DS_TEST_PASSWORD: process.env.DS_TEST_PASSWORD || 'Test@12345678',
     };
 
     console.log(chalk.cyan(`📧 Test Email: ${randomEmail}`));

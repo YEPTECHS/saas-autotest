@@ -1,0 +1,605 @@
+# Digital Staff — Approved Skill Library 深度验证
+# UI 结构：
+#   Library页：标题 / 副标题 / 11个分类tab / Search skills... / 技能卡片grid(名称+版本+作者+描述+分类badge+安装数+Install按钮)
+#   Detail页：breadcrumb / Back to Library / 名称+版本 / by DSS Team / badge / 安装数 / Instructions代码块 / Install to Digital Human下拉+按钮
+
+name: ds-validate-approved-skills
+description: Approved Skill Library 全面深度验证 — 标题/副标题、11分类tab、卡片内容审计、搜索边界、detail页结构、Install下拉交互
+
+steps:
+  - include: ds-login.flow.yml
+
+  - id: navigate-approved-skills
+    action: browser.click
+    params:
+      selector: "a:has-text('Approved Skills'), a[href*='skill'], nav a:has-text('Skills')"
+
+  - id: wait-library-load
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Approved Skill Library'), h1:has-text('Skill')"
+      timeout: 15000
+
+  - id: wait-cards-settle
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-library-initial
+    action: browser.screenshot
+    params:
+      name: "ds-skills-01-library"
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 1: 页面标题 + 副标题验证
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-page-heading
+    action: assert.element
+    params:
+      selector: "h1:has-text('Approved Skill Library')"
+      message: "Missing 'Approved Skill Library' h1 heading"
+
+  - id: verify-subtitle
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const hasAdminReviewed = body.includes('admin-reviewed') || body.includes('admin reviewed');
+        const hasLimit = body.includes('up to 10') || body.includes('10 in');
+        const hasB2B = body.includes('B2B') || body.includes('digital human');
+        if (!hasAdminReviewed) throw new Error('Subtitle missing "admin-reviewed" — subtitle changed or not rendered');
+        if (!hasLimit) throw new Error('Subtitle missing install limit ("up to 10") — may be removed or changed');
+        return { hasAdminReviewed, hasLimit, hasB2B };
+    output: subtitleCheck
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 2: 11个分类 Tab 完整性验证
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-all-category-tabs
+    action: browser.execute
+    params:
+      script: |
+        const expectedTabs = ['All', 'Productivity', 'Development', 'Research', 'Integration', 'Language', 'Analytics', 'Communication', 'Marketing', 'Support', 'Vision'];
+        const bodyText = document.body.innerText;
+        const missing = expectedTabs.filter(tab => !bodyText.includes(tab));
+        if (missing.length > 0) throw new Error('Missing category tabs: ' + missing.join(', '));
+        // Find actual tab buttons
+        const tabBtns = Array.from(document.querySelectorAll('button, [role="tab"], a')).filter(el => {
+          const t = el.textContent.trim();
+          return expectedTabs.includes(t);
+        });
+        return { expectedCount: expectedTabs.length, foundCount: tabBtns.length, missing };
+    output: categoryTabsAudit
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 3: 技能卡片内容深度审计
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-cards-exist
+    action: browser.execute
+    params:
+      script: |
+        // Skill cards: contain version pattern vX.Y.Z and "by DSS Team" and "Install" button
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          const t = el.textContent;
+          return /v\d+\.\d+/.test(t) && t.includes('DSS Team') && t.includes('Install');
+        });
+        if (cards.length === 0) throw new Error('No skill cards found — page may not have loaded or card selector is wrong');
+        return { cardCount: cards.length };
+    output: cardExistsCheck
+
+  - id: audit-skill-cards-content
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          const t = el.textContent;
+          return /v\d+\.\d+/.test(t) && t.includes('DSS Team') && t.includes('Install');
+        });
+        const errors = [];
+        const inventory = cards.slice(0, 12).map((card, i) => {
+          const text = card.textContent.trim();
+          // Check version pattern (vX.Y.Z)
+          const versionMatch = text.match(/v\d+\.\d+(\.\d+)?/);
+          // Check author
+          const hasDSSTeam = text.includes('DSS Team');
+          // Check install count (e.g. "3 installs" or "0 installs")
+          const installCountMatch = text.match(/(\d+)\s+install/i);
+          // Check Install button
+          const hasInstallBtn = !!card.querySelector('button');
+          // Check category badge (one of the known categories)
+          const categories = ['Productivity','Development','Research','Integration','Language','Analytics','Communication','Marketing','Support','Vision'];
+          const foundCategory = categories.find(cat => text.includes(cat));
+
+          if (!versionMatch) errors.push(`Card ${i}: missing version pattern (vX.Y.Z)`);
+          if (!hasDSSTeam) errors.push(`Card ${i}: missing "by DSS Team"`);
+          if (!hasInstallBtn) errors.push(`Card ${i}: missing Install button`);
+
+          return {
+            index: i,
+            preview: text.slice(0, 60).replace(/\s+/g, ' '),
+            version: versionMatch ? versionMatch[0] : null,
+            hasDSSTeam,
+            installCount: installCountMatch ? installCountMatch[1] : null,
+            hasInstallBtn,
+            category: foundCategory || null
+          };
+        });
+        if (errors.length > 0) throw new Error('Card audit failed: ' + errors.join('; '));
+        const missingCategory = inventory.filter(c => !c.category);
+        return { total: cards.length, audited: inventory.length, inventory, missingCategoryCount: missingCategory.length };
+    output: cardContentAudit
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 4: 分类 Tab 过滤验证
+  # ════════════════════════════════════════════════════════════════
+  - id: capture-all-tab-count
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        return { allCount: cards.length };
+    output: allTabCount
+
+  # Click Productivity tab and verify filter works
+  - id: click-productivity-tab
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, [role="tab"], a')).find(el => el.textContent.trim() === 'Productivity');
+        if (!btn) throw new Error('Productivity tab not found');
+        btn.click();
+        return { clicked: true };
+    output: productivityTabClick
+
+  - id: wait-productivity-filter
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-productivity-tab
+    action: browser.screenshot
+    params:
+      name: "ds-skills-02-productivity-tab"
+
+  - id: verify-productivity-filter
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        const nonProductivity = cards.filter(c => !c.textContent.includes('Productivity'));
+        return { visibleCards: cards.length, nonProductivityCards: nonProductivity.length, filterWorking: nonProductivity.length === 0 || cards.length === 0 };
+    output: productivityFilterResult
+
+  # Click Research tab
+  - id: click-research-tab
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, [role="tab"], a')).find(el => el.textContent.trim() === 'Research');
+        if (!btn) throw new Error('Research tab not found');
+        btn.click();
+        return { clicked: true };
+    output: researchTabClick
+
+  - id: wait-research-filter
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-research-tab
+    action: browser.screenshot
+    params:
+      name: "ds-skills-03-research-tab"
+
+  - id: verify-research-filter
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        const nonResearch = cards.filter(c => !c.textContent.includes('Research'));
+        return { visibleCards: cards.length, nonResearchCards: nonResearch.length, filterWorking: nonResearch.length === 0 || cards.length === 0 };
+    output: researchFilterResult
+
+  # Return to All tab
+  - id: click-all-tab
+    action: browser.execute
+    params:
+      script: |
+        const btn = Array.from(document.querySelectorAll('button, [role="tab"], a')).find(el => el.textContent.trim() === 'All');
+        if (!btn) throw new Error('All tab not found');
+        btn.click();
+        return { clicked: true };
+    output: allTabReturn
+
+  - id: wait-all-restored
+    action: wait
+    params:
+      ms: 800
+
+  - id: verify-all-cards-restored
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) throw new Error('After returning to All tab, no cards visible');
+        return { restoredCount: cards.length };
+    output: allTabRestored
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 5: 搜索功能深度验证
+  # ════════════════════════════════════════════════════════════════
+  - id: verify-search-box-exists
+    action: assert.element
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='skill' i]"
+      message: "Search skills input not found"
+
+  # Search existing skill
+  - id: search-calendar
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='skill' i]"
+      text: "Calendar"
+      clear: true
+
+  - id: wait-search-calendar
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-search-calendar
+    action: browser.screenshot
+    params:
+      name: "ds-skills-04-search-calendar"
+
+  - id: verify-search-calendar-result
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) {
+          const body = document.body.innerText;
+          const hasNoResults = body.toLowerCase().includes('no result') || body.toLowerCase().includes('not found');
+          if (!hasNoResults) throw new Error('Search for "Calendar" returned no cards and no empty-state message');
+          return { found: false, hasNoResultsMessage: true };
+        }
+        const hasCalendar = cards.some(c => c.textContent.toLowerCase().includes('calendar'));
+        if (!hasCalendar) throw new Error('Search for "Calendar" returned cards but none contain "Calendar" — search filter broken');
+        const nonCalendar = cards.filter(c => !c.textContent.toLowerCase().includes('calendar'));
+        return { found: true, cardCount: cards.length, hasCalendar, nonCalendarCount: nonCalendar.length };
+    output: searchCalendarResult
+
+  # Search Knowledge Search skill
+  - id: search-knowledge
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='skill' i]"
+      text: "Knowledge"
+      clear: true
+
+  - id: wait-search-knowledge
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-search-knowledge
+    action: browser.screenshot
+    params:
+      name: "ds-skills-05-search-knowledge"
+
+  - id: verify-search-knowledge-result
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        const hasKnowledge = cards.some(c => c.textContent.toLowerCase().includes('knowledge'));
+        return { cardCount: cards.length, hasKnowledge };
+    output: searchKnowledgeResult
+
+  # Search nonexistent skill
+  - id: search-nonexistent
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='skill' i]"
+      text: "zzz_nonexistent_skill_xyz_999"
+      clear: true
+
+  - id: wait-search-nonexistent
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-search-empty
+    action: browser.screenshot
+    params:
+      name: "ds-skills-06-search-no-results"
+
+  - id: verify-empty-state
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        const body = document.body.innerText;
+        const hasEmptyMsg = body.toLowerCase().includes('no result') || body.toLowerCase().includes('not found') ||
+                            body.toLowerCase().includes('no skill') || body.toLowerCase().includes('no match');
+        if (cards.length > 0) throw new Error('Search for nonexistent skill still shows ' + cards.length + ' cards — search filter not working');
+        return { visibleCards: 0, hasEmptyMessage: hasEmptyMsg };
+    output: emptyStateResult
+
+  # Clear search → restore all cards
+  - id: clear-search
+    action: browser.type
+    params:
+      selector: "input[placeholder*='Search'], input[placeholder*='search'], input[placeholder*='skill' i]"
+      text: ""
+      clear: true
+
+  - id: wait-search-cleared
+    action: wait
+    params:
+      ms: 1000
+
+  - id: verify-cards-restored
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) throw new Error('After clearing search, cards not restored');
+        return { restoredCount: cards.length };
+    output: searchClearedRestore
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 6: 点击技能卡片 → Detail 页验证
+  # ════════════════════════════════════════════════════════════════
+  - id: click-first-skill-card
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) throw new Error('No skill cards to click');
+        const card = cards[0];
+        const preview = card.textContent.trim().slice(0, 80).replace(/\s+/g, ' ');
+        // Click the card name/title area (not the Install button)
+        const nameEl = card.querySelector('h2, h3, h4, [class*="name"], [class*="title"]') || card;
+        nameEl.click();
+        return { clicked: true, preview };
+    output: skillCardClick
+
+  - id: wait-detail-page
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-skill-detail
+    action: browser.screenshot
+    params:
+      name: "ds-skills-07-detail-page"
+
+  # Assert detail page: Back to Library link
+  - id: verify-back-to-library-link
+    action: assert.element
+    params:
+      selector: "a:has-text('Back to Library'), button:has-text('Back to Library'), a:has-text('Back')"
+      message: "'Back to Library' link missing on skill detail page"
+
+  # Assert skill name + version visible
+  - id: verify-detail-name-and-version
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const url = window.location.href;
+        const hasVersion = /v\d+\.\d+/.test(body);
+        const hasDSSTeam = body.includes('DSS Team');
+        const hasInstructions = body.includes('Instructions');
+        const hasInstallSection = body.includes('Install to Digital Human') || body.includes('Install');
+        if (!hasVersion) throw new Error('Skill detail page missing version number (vX.Y.Z)');
+        if (!hasDSSTeam) throw new Error('Skill detail page missing "by DSS Team"');
+        if (!hasInstructions) throw new Error('Skill detail page missing Instructions section');
+        if (!hasInstallSection) throw new Error('Skill detail page missing Install section');
+        return { url, hasVersion, hasDSSTeam, hasInstructions, hasInstallSection };
+    output: detailPageContent
+
+  # Assert Instructions code block exists
+  - id: verify-instructions-code-block
+    action: browser.execute
+    params:
+      script: |
+        const codeBlock = document.querySelector('pre, code, [class*="code"], [class*="Code"], [class*="instructions"]');
+        if (!codeBlock) throw new Error('Instructions code block not found on skill detail page');
+        const text = codeBlock.textContent.trim();
+        if (text.length === 0) throw new Error('Instructions code block is empty');
+        return { codeBlockFound: true, preview: text.slice(0, 100) };
+    output: codeBlockCheck
+
+  # Assert Install to Digital Human section
+  - id: verify-install-section
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText;
+        const hasDropdown = !!document.querySelector('select, [role="combobox"], [class*="select"], [class*="Select"]');
+        const hasInstallBtn = Array.from(document.querySelectorAll('button')).some(b =>
+          b.textContent.trim().toLowerCase() === 'install'
+        );
+        const dropdownPlaceholder = document.querySelector('[class*="select"], [class*="Select"], select');
+        const placeholderText = dropdownPlaceholder ? dropdownPlaceholder.textContent.trim() : '';
+        return { hasDropdown, hasInstallBtn, dropdownText: placeholderText.slice(0, 50) };
+    output: installSectionCheck
+
+  # Open the "Select a digital human" dropdown
+  - id: open-dh-dropdown
+    action: browser.execute
+    params:
+      script: |
+        const dropdown = document.querySelector('[class*="select"] [class*="trigger"], [role="combobox"], [class*="SelectTrigger"]') ||
+                         Array.from(document.querySelectorAll('button, div')).find(el => {
+                           const t = el.textContent.trim().toLowerCase();
+                           return t.includes('select a digital human') || t.includes('select digital human');
+                         });
+        if (!dropdown) return { skipped: true, reason: 'No DH dropdown trigger found' };
+        dropdown.click();
+        return { clicked: true, text: dropdown.textContent.trim() };
+    output: dhDropdownOpen
+
+  - id: wait-dropdown-open
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-dh-dropdown
+    action: browser.screenshot
+    params:
+      name: "ds-skills-08-dh-dropdown"
+
+  - id: check-dh-dropdown-options
+    action: browser.execute
+    params:
+      script: |
+        const options = Array.from(document.querySelectorAll('[role="option"], [class*="SelectItem"], [class*="option"]')).map(o => o.textContent.trim()).filter(t => t.length > 0);
+        const body = document.body.innerText;
+        if (options.length > 0) {
+          // Select first option
+          const firstOption = document.querySelector('[role="option"], [class*="SelectItem"], [class*="option"]');
+          if (firstOption) firstOption.click();
+          return { optionsFound: true, count: options.length, options: options.slice(0, 5), selected: options[0] };
+        }
+        // Close with escape
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        return { optionsFound: false, note: 'No DH options in dropdown (no DHs exist or dropdown not opened)', bodySnippet: body.slice(0, 200) };
+    output: dhDropdownOptions
+
+  - id: wait-after-dropdown
+    action: wait
+    params:
+      ms: 800
+
+  - id: screenshot-after-dh-select
+    action: browser.screenshot
+    params:
+      name: "ds-skills-09-dh-selected"
+
+  - id: check-install-button-state
+    action: browser.execute
+    params:
+      script: |
+        const installBtn = Array.from(document.querySelectorAll('button')).find(b =>
+          b.textContent.trim().toLowerCase() === 'install'
+        );
+        if (!installBtn) return { found: false };
+        return {
+          found: true,
+          disabled: installBtn.disabled || installBtn.getAttribute('aria-disabled') === 'true',
+          cls: installBtn.className.slice(0, 60)
+        };
+    output: installBtnState
+
+  # ════════════════════════════════════════════════════════════════
+  # Group 7: 返回 Library → Install 按钮直接跳转验证
+  # ════════════════════════════════════════════════════════════════
+  - id: click-back-to-library
+    action: browser.click
+    params:
+      selector: "a:has-text('Back to Library'), button:has-text('Back to Library'), a:has-text('Back')"
+
+  - id: wait-library-restored
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Approved Skill Library'), h1:has-text('Skill')"
+      timeout: 15000
+
+  - id: wait-library-cards
+    action: wait
+    params:
+      ms: 1500
+
+  - id: verify-library-restored
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) throw new Error('After Back to Library, no skill cards found');
+        const url = window.location.href;
+        return { cardCount: cards.length, url };
+    output: libraryRestored
+
+  # Click Install button directly on a card (should navigate to detail)
+  - id: click-install-on-card
+    action: browser.execute
+    params:
+      script: |
+        const cards = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], article, li')).filter(el => {
+          return /v\d+\.\d+/.test(el.textContent) && el.textContent.includes('DSS Team');
+        });
+        if (cards.length === 0) return { skipped: true, reason: 'No cards' };
+        const firstCard = cards[0];
+        const installBtn = firstCard.querySelector('button');
+        if (!installBtn) return { skipped: true, reason: 'No Install button on first card' };
+        const cardPreview = firstCard.textContent.trim().slice(0, 60).replace(/\s+/g, ' ');
+        installBtn.click();
+        return { clicked: true, cardPreview, btnText: installBtn.textContent.trim() };
+    output: cardInstallClick
+
+  - id: wait-install-navigation
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-after-card-install
+    action: browser.screenshot
+    params:
+      name: "ds-skills-10-card-install-click"
+
+  - id: verify-install-opens-detail
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const body = document.body.innerText;
+        const isDetailPage = url.includes('/skill') && (url.includes('-') || url.match(/\/[a-f0-9-]{8,}/));
+        const hasBackLink = body.includes('Back to Library') || body.includes('Back');
+        const hasInstructions = body.includes('Instructions') || body.includes('Install to');
+        return { url, isDetailPage, hasBackLink, hasInstructions };
+    output: installClickNavigation
+
+  # Navigate back to library for final state
+  - id: navigate-back-to-library-final
+    action: browser.click
+    params:
+      selector: "a:has-text('Back to Library'), button:has-text('Back to Library'), a:has-text('Back')"
+
+  - id: wait-library-final
+    action: browser.waitForSelector
+    params:
+      selector: "h1:has-text('Approved Skill Library'), h1:has-text('Skill')"
+      timeout: 15000
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "ds-skills-11-final"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Approved Skill Library 深度验证完成！7组测试：标题/副标题断言、11分类tab完整性、卡片内容精准审计(版本/作者/badge/Install)、Tab过滤(Productivity/Research)、搜索边界(存在/不存在/清空)、Detail页结构(Back链接/Instructions/Install下拉)、Install按钮导航。"

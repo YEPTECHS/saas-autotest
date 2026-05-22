@@ -1,0 +1,51 @@
+# Digital Staff — Login Flow
+# 登录 Digital Staff 平台，供其他 flow 复用
+
+name: ds-login
+description: 登录 Digital Staff 平台 (digitalstaff-test.yepai.io)
+
+steps:
+  - id: navigate-login
+    action: browser.navigate
+    params:
+      url: "{{DS_BASE_URL}}/#/login"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-login-form
+    action: browser.waitForSelector
+    params:
+      selector: "input[type='email'], input[name='email'], input[type='text']"
+      timeout: 15000
+
+  - id: fill-email
+    action: form.fillSingle
+    params:
+      selector: "input[type='email'], input[name='email'], input[type='text']"
+      value: "{{DS_LOGIN_EMAIL}}"
+
+  - id: fill-password
+    action: form.fillSingle
+    params:
+      selector: "input[type='password']"
+      value: "{{DS_LOGIN_PASSWORD}}"
+
+  - id: click-login
+    action: browser.click
+    params:
+      selector: "button[type='submit'], button:has-text('Sign in'), button:has-text('Login')"
+
+  - id: wait-dashboard
+    action: browser.waitForSelector
+    params:
+      selector: "nav, aside, [class*='sidebar']"
+      timeout: 30000
+
+  - id: screenshot-after-login
+    action: browser.screenshot
+    params:
+      name: "ds-login-success"
+
+  - id: log-success
+    action: log
+    params:
+      message: "Digital Staff 登录成功！"
