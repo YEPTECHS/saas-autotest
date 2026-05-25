@@ -92,6 +92,8 @@
     "alert": "tsx scripts/alert-agent.ts",
     "triage": "tsx scripts/triage-agent.ts",
     "triage:slack": "tsx scripts/triage-agent.ts --slack",
+    "triage:gen": "tsx scripts/triage-agent.ts --gen-tests",
+    "triage:gen:slack": "tsx scripts/triage-agent.ts --gen-tests --slack",
     "watch:agents": "tsx scripts/change-watch-agent.ts",
     "watch:agents:slack": "tsx scripts/change-watch-agent.ts --run-tests --slack",
     "watch:agents:baseline": "tsx scripts/change-watch-agent.ts --set-baseline",
