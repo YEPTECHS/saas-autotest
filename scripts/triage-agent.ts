@@ -640,6 +640,39 @@ ${rules},
   if (totalAdded > 0) {
     writeFileSync(accuracyFilePath, fileContent, 'utf-8');
     console.log(`\n  📝 accuracy-test-api.ts updated — ${totalAdded} new test case(s) added.`);
+
+    // Track auto-generated test IDs in data/auto-generated-test-ids.json
+    const autoGenIdsPath = join(process.cwd(), 'data/auto-generated-test-ids.json');
+    let autoGenIds: Record<string, string[]> = {};
+    try {
+      if (existsSync(autoGenIdsPath)) {
+        autoGenIds = JSON.parse(readFileSync(autoGenIdsPath, 'utf-8'));
+      }
+    } catch { autoGenIds = {}; }
+
+    // Re-scan fileContent for newly injected IDs per agent
+    for (const [agent] of byAgent) {
+      // Extract IDs added for this agent by scanning the updated fileContent
+      const newIdRe = new RegExp(`'(${agent.toUpperCase()}-[A-Z]+-\\d+)'`, 'g');
+      const allIds = new Set<string>();
+      let idMatch: RegExpExecArray | null;
+      while ((idMatch = newIdRe.exec(fileContent)) !== null) allIds.add(idMatch[1]);
+      const existing = autoGenIds[agent] ? new Set(autoGenIds[agent]) : new Set<string>();
+      const newIds = [...allIds].filter(id => !existing.has(id));
+      if (newIds.length > 0) {
+        autoGenIds[agent] = [...(autoGenIds[agent] || []), ...newIds];
+      }
+    }
+
+    try {
+      const dataDir = join(process.cwd(), 'data');
+      if (!existsSync(dataDir)) { const { mkdirSync: mds } = await import('fs'); mds(dataDir, { recursive: true }); }
+      writeFileSync(autoGenIdsPath, JSON.stringify(autoGenIds, null, 2), 'utf-8');
+      console.log(`  📋 auto-generated-test-ids.json updated`);
+    } catch (err: unknown) {
+      console.log(`  ⚠️  Could not write auto-generated-test-ids.json: ${(err as Error).message}`);
+    }
+
     await sendTestGenEmail(totalAdded, byAgent);
   } else {
     console.log('\n  No new test cases added.');

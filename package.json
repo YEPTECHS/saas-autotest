@@ -105,7 +105,9 @@
     "ds:triage": "tsx scripts/ds-triage-agent.ts",
     "ds:triage:slack": "tsx scripts/ds-triage-agent.ts --slack",
     "ds:triage:repair": "tsx scripts/ds-triage-agent.ts --repair --slack",
-    "ds:all": "tsx scripts/ds-flow-runner.ts --slack && tsx scripts/ds-triage-agent.ts --repair --slack"
+    "ds:all": "tsx scripts/ds-flow-runner.ts --slack && tsx scripts/ds-triage-agent.ts --repair --slack",
+    "health:check": "tsx scripts/health-check.ts",
+    "ds:quality": "tsx scripts/ds-quality-eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
