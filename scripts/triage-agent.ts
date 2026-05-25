@@ -434,6 +434,38 @@ async function postTriageToSlack(report: TriageReport) {
   console.log('  [Slack] Triage report posted');
 }
 
+// ── Test case validator ────────────────────────────────────────
+
+function validateTestCase(tc: Record<string, unknown>): string | null {
+  const required = ['id', 'category', 'categoryName', 'question', 'expectedBehavior', 'rules', 'passCriteria'];
+  for (const f of required) {
+    if (!tc[f]) return `Missing field: ${f}`;
+  }
+  if (!['answer', 'refuse', 'redirect'].includes(tc['expectedBehavior'] as string)) {
+    return `Invalid expectedBehavior: "${tc['expectedBehavior']}"`;
+  }
+  if (!Array.isArray(tc['rules']) || tc['rules'].length === 0) {
+    return 'rules must be a non-empty array';
+  }
+  for (const rule of tc['rules'] as Array<Record<string, unknown>>) {
+    if (!rule['type']) return 'Rule missing type';
+    const t = rule['type'] as string;
+    if (['contains_any', 'contains_none'].includes(t)) {
+      const kw = rule['keywords'];
+      if (!Array.isArray(kw) || (kw as unknown[]).length === 0) {
+        return `Rule "${t}" requires non-empty keywords array`;
+      }
+    }
+    if (t === 'redirect' && !rule['redirectTarget']) {
+      return 'Redirect rule requires redirectTarget';
+    }
+  }
+  if (typeof tc['question'] !== 'string' || (tc['question'] as string).trim().length < 5) {
+    return 'Question too short or not a string';
+  }
+  return null;
+}
+
 // ── Auto test-case generation ──────────────────────────────────
 
 async function autoGenerateTests(bugFailures: TriagedFailure[]): Promise<void> {
@@ -562,6 +594,11 @@ Rules:
           console.log(`  ⚠️  Skip duplicate: ${tc['id']}`);
           return false;
         }
+        const err = validateTestCase(tc);
+        if (err) {
+          console.log(`  ⚠️  Skip invalid case ${tc['id']}: ${err}`);
+          return false;
+        }
         return true;
       });
       if (newCases.length === 0) continue;
@@ -683,6 +720,21 @@ async function sendTestGenEmail(
   console.log(`  Found ${failures.length} failure(s). Sending to Claude for triage...\n`);
   const triaged = await runTriageAgent(failures);
   await printAndSave(triaged, reportsScanned);
+
+  // Write FLAKY agent list so retry job can pick it up
+  const flakyAgents = [...new Set(
+    triaged
+      .filter(f => f.classification === 'FLAKY' && f.testType === 'accuracy' && f.agent)
+      .map(f => f.agent.toLowerCase())
+  )];
+  if (flakyAgents.length > 0) {
+    if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true });
+    writeFileSync(
+      join(REPORTS_DIR, 'flaky-retry-agents.json'),
+      JSON.stringify({ agents: flakyAgents, generatedAt: new Date().toISOString() }),
+    );
+    console.log(`\n  📋 FLAKY agents queued for retry: ${flakyAgents.join(', ')}`);
+  }
 
   if (AUTO_GEN_TESTS) {
     console.log('\n🧬 Auto-generating regression test cases for BUG failures...');

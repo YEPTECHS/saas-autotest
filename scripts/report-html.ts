@@ -161,6 +161,51 @@ function extractSummary(agent: string, files: ReportFile[]): AgentSummary {
   return { agent, totalTests, passed: totalPassed, failed: totalTests - totalPassed, rate, sections };
 }
 
+// ── Accuracy trend ────────────────────────────────────────────
+
+function loadAccuracyTrend(agent: string, days = 7): { date: string; rate: number }[] {
+  const results: { date: string; rate: number }[] = [];
+  for (let d = days - 1; d >= 0; d--) {
+    const date = new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const filePath = join(REPORTS_DIR, `${agent}-accuracy-${date}.json`);
+    try {
+      if (existsSync(filePath)) {
+        const data = JSON.parse(readFileSync(filePath, 'utf-8'));
+        results.push({ date, rate: data.successRate ?? 0 });
+      }
+    } catch { /* skip */ }
+  }
+  return results;
+}
+
+function renderTrendChart(trend: { date: string; rate: number }[]): string {
+  if (trend.length < 2) return '';
+  const W = 320, H = 56, PAD = 10;
+  const points = trend.map((p, i) => {
+    const x = PAD + (i / (trend.length - 1)) * (W - 2 * PAD);
+    const y = PAD + (1 - p.rate / 100) * (H - 2 * PAD);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const last = trend[trend.length - 1].rate;
+  const color = last >= 80 ? '#4fb89b' : last >= 60 ? '#eb9b2d' : '#cf493f';
+  const dots = trend.map((p, i) => {
+    const x = PAD + (i / (trend.length - 1)) * (W - 2 * PAD);
+    const y = PAD + (1 - p.rate / 100) * (H - 2 * PAD);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"><title>${p.date}: ${p.rate.toFixed(1)}%</title></circle>`;
+  }).join('');
+  return `<div style="margin:4px 0 14px">
+  <span style="font-size:11px;color:#9ca3af">7-day accuracy trend</span>
+  <svg width="${W}" height="${H}" style="display:block;margin-top:2px;overflow:visible">
+    <line x1="${PAD}" y1="${H / 2}" x2="${W - PAD}" y2="${H / 2}" stroke="#e5e7eb" stroke-width="1"/>
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af">
+    <span>${trend[0].date}</span><span>${trend[trend.length - 1].date}</span>
+  </div>
+</div>`;
+}
+
 // ── CSS ───────────────────────────────────────────────────────
 
 const CSS = `
@@ -252,8 +297,11 @@ const AGENT_ICONS: Record<string, string> = {
 function renderAgentSection(s: AgentSummary): string {
   const sectionHtml = s.sections.map(sec => renderSection(sec)).join('');
   const icon = AGENT_ICONS[s.agent] || '🤖';
+  const trend = loadAccuracyTrend(s.agent);
+  const trendHtml = renderTrendChart(trend);
   return `
 <h2>${icon} ${s.agent.toUpperCase()}</h2>
+${trendHtml}
 ${sectionHtml}`;
 }
 

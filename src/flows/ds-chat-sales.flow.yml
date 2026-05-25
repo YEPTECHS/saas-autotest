@@ -254,6 +254,12 @@ steps:
     params:
       name: "sales-08-resp"
 
+  # ── Rate-limit buffer before Round 9 ─────────────────────────────
+  - id: pre-round9-wait
+    action: wait
+    params:
+      ms: 8000
+
   # ── Round 9: 提案结构 ────────────────────────────────────────────
   - id: msg9
     action: form.fillSingle

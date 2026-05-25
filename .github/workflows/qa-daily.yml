@@ -234,7 +234,52 @@ jobs:
           name: triage-report
           path: reports/triage-*.json
 
-  # ── Job 5: auto-repair BUG failures ───────────────────────────
+  # ── Job 5: retry FLAKY agents ─────────────────────────────────
+  retry-flaky:
+    name: Retry FLAKY Agents
+    runs-on: ubuntu-latest
+    needs: triage
+    if: always() && needs.triage.result == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+      - name: Download triage report
+        uses: actions/download-artifact@v4
+        with:
+          name: triage-report
+          path: reports/
+      - name: Re-run accuracy for FLAKY agents
+        run: |
+          if [ ! -f reports/flaky-retry-agents.json ]; then
+            echo "No FLAKY agents queued — skipping."
+            exit 0
+          fi
+          AGENTS=$(node -e "console.log(require('./reports/flaky-retry-agents.json').agents.join(' '))")
+          echo "Retrying: $AGENTS"
+          for agent in $AGENTS; do
+            echo "--- Retry: $agent ---"
+            pnpm exec tsx scripts/accuracy-test-api.ts --agent "$agent" || true
+          done
+        timeout-minutes: 30
+      - name: Upload retry reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accuracy-retry
+          path: reports/*-accuracy-results.json
+          if-no-files-found: ignore
+
+  # ── Job 6: auto-repair BUG failures ───────────────────────────
   auto-repair:
     name: Auto-Repair Broken Flows
     runs-on: ubuntu-latest
@@ -314,7 +359,7 @@ jobs:
   report:
     name: HTML Report & Notify
     runs-on: ubuntu-latest
-    needs: [accuracy, triage, auto-repair, digital-staff]
+    needs: [accuracy, triage, retry-flaky, auto-repair, digital-staff]
     if: always() && needs.accuracy.result != 'skipped'
     steps:
       - uses: actions/checkout@v4
