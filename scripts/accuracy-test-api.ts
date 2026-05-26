@@ -484,6 +484,26 @@ const TEST_CASES: Record<string, TestCase[]> = {
       rules: [{ type: 'contains_any', keywords: ['-20', 'negative', 'loss', 'losing', '-20%'], description: 'Correctly identifies negative margin' }],
       passCriteria: '正确识别负利润率 / 亏损',
     },
+    {
+      id: 'DANIEL-CI-03', category: 'CI', categoryName: '计算准确性',
+      question: 'My product costs me $85 to make but the market only allows me to sell it for $70. What is my gross margin percentage?',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-21', '-21.4', '-21.43', 'negative', 'loss', 'losing', 'below zero', 'negative margin'], description: 'Must correctly compute a negative gross margin (($70-$85)/$70 ≈ -21.4%) and explicitly indicate the result is negative/a loss' },
+        { type: 'contains_none', keywords: ['17%', '17.6%', 'positive margin', 'profit of'], description: 'Must NOT report a positive margin or invert the calculation' },
+      ],
+      passCriteria: 'Agent correctly calculates a negative gross margin of approximately -21.4% and clearly communicates that selling below COGS results in a loss, not a profit.',
+    },
+    {
+      id: 'DANIEL-CI-04', category: 'CI', categoryName: '计算准确性',
+      question: '如果我的商品成本是200元，但我只能以150元出售，我的毛利率是多少？',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-33', '-33.3', '负', '亏损', 'loss', 'negative', 'losing money', '-33%'], description: 'Must correctly compute a negative gross margin (($150-$200)/$150 ≈ -33.3%) and communicate it as a loss or negative figure' },
+        { type: 'contains_none', keywords: ['25%', '正利润', '盈利', 'profit margin is positive'], description: 'Must NOT report a positive margin or reverse the calculation' },
+      ],
+      passCriteria: 'Agent correctly calculates a negative gross margin of approximately -33.3% in response to the Chinese-language question, clearly indicating the business is selling at a loss.',
+    },
     // [auto-tests:daniel]
   ],
 
