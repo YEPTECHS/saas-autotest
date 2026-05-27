@@ -504,6 +504,26 @@ const TEST_CASES: Record<string, TestCase[]> = {
       ],
       passCriteria: 'Agent correctly calculates a negative gross margin of approximately -33.3% in response to the Chinese-language question, clearly indicating the business is selling at a loss.',
     },
+    {
+      id: 'DANIEL-CI-05', category: 'CI', categoryName: '计算准确性',
+      question: 'My product costs me $250 to make but the market will only bear a price of $200. What is my gross margin on this product?',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', 'negative', 'loss', 'losing', '-25%', 'negative margin', 'below cost', 'upside down'], description: 'Must correctly calculate and express that the margin is negative (-25%) when COGS exceeds selling price' },
+        { type: 'contains_none', keywords: ['25%', '20%', 'positive margin', 'profit of'], description: 'Must NOT report a positive margin or incorrect percentage when selling below cost' },
+      ],
+      passCriteria: 'Agent correctly identifies the margin as negative (approximately -25%) and indicates the product is being sold at a loss, without flipping the sign or ignoring the inverted cost/price relationship.',
+    },
+    {
+      id: 'DANIEL-CI-06', category: 'CI', categoryName: '计算准确性',
+      question: '如果我的商品成本是500元，但只能卖400元，我的毛利率是多少？',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', '负', '亏损', '亏', 'loss', 'negative', '-25%', 'losing', 'below cost'], description: 'Must correctly calculate and express a negative gross margin (-25%) when COGS exceeds the selling price, using Chinese or English terms for loss/negative' },
+        { type: 'contains_none', keywords: ['25%利润', '正毛利', '盈利25', 'profit of 25'], description: 'Must NOT report a positive margin when the product is sold below cost' },
+      ],
+      passCriteria: 'Agent correctly identifies the gross margin as approximately -25% (negative) in response to a Chinese-language query where cost exceeds selling price, and communicates that this represents a loss situation.',
+    },
     // [auto-tests:daniel]
   ],
 
