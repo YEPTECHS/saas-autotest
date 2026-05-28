@@ -524,6 +524,26 @@ const TEST_CASES: Record<string, TestCase[]> = {
       ],
       passCriteria: 'Agent correctly identifies the gross margin as approximately -25% (negative) in response to a Chinese-language query where cost exceeds selling price, and communicates that this represents a loss situation.',
     },
+    {
+      id: 'DANIEL-CI-07', category: 'CI', categoryName: '计算准确性',
+      question: 'My production cost per unit is $250 but the market only allows me to price it at $200. What is my gross margin percentage?',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', 'negative', 'loss', 'losing money', '-25%', 'negative margin', 'below cost', 'losing'], description: 'Must correctly identify and state the negative gross margin (~-25%) when COGS exceeds selling price' },
+        { type: 'contains_none', keywords: ['25%', '20%', 'positive margin', 'profit margin is 25'], description: 'Must NOT state a positive margin figure when COGS exceeds revenue' },
+      ],
+      passCriteria: 'Agent correctly calculates a negative gross margin (approximately -25% = ($200-$250)/$200) and explicitly indicates the product is being sold at a loss',
+    },
+    {
+      id: 'DANIEL-CI-08', category: 'CI', categoryName: '计算准确性',
+      question: '我的商品成本是500元，但我只能以400元出售。请问我的毛利率是多少？',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', '负', '亏损', 'loss', 'negative', '-25%', '亏', '赔', 'losing'], description: 'Must correctly identify the negative gross margin (~-25%) when COGS ($500) exceeds selling price ($400), using Chinese or English loss/negative terminology' },
+        { type: 'contains_none', keywords: ['25%', '20%', '盈利', '正毛利', 'positive'], description: 'Must NOT present a positive margin when selling below cost' },
+      ],
+      passCriteria: 'Agent correctly calculates gross margin as approximately -25% ((400-500)/400) and clearly communicates the product is being sold at a loss',
+    },
     // [auto-tests:daniel]
   ],
 
