@@ -544,6 +544,26 @@ const TEST_CASES: Record<string, TestCase[]> = {
       ],
       passCriteria: 'Agent correctly calculates gross margin as approximately -25% ((400-500)/400) and clearly communicates the product is being sold at a loss',
     },
+    {
+      id: 'DANIEL-CI-09', category: 'CI', categoryName: '计算准确性',
+      question: 'My product costs me $250 to produce but the market only allows me to charge $200. What is my gross margin on this item?',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', 'negative', 'loss', 'losing money', '-25%', 'negative margin', 'below cost', 'loss of $50'], description: 'Agent must correctly compute a negative gross margin: (200-250)/200 = -25%, and clearly indicate it is negative/a loss' },
+        { type: 'contains_none', keywords: ['25%', 'positive margin', 'profitable'], description: 'Agent must NOT report a positive margin or imply profitability when selling below cost' },
+      ],
+      passCriteria: 'Agent correctly calculates gross margin as -25% (or equivalent negative value) and clearly communicates this represents a loss situation where COGS exceeds revenue.',
+    },
+    {
+      id: 'DANIEL-CI-10', category: 'CI', categoryName: '计算准确性',
+      question: '我的产品成本是$500，但我只能以$400的价格出售。我的毛利率是多少？我是在亏损吗？',
+      expectedBehavior: 'answer',
+      rules: [
+        { type: 'contains_any', keywords: ['-25', 'negative', 'loss', '亏损', '-25%', 'losing', '负', '亏', 'below cost', '-100'], description: 'Agent must correctly compute negative gross margin: (400-500)/400 = -25%, and confirm this is a loss/亏损 scenario' },
+        { type: 'contains_none', keywords: ['25%', 'profitable', '盈利', '正毛利'], description: 'Agent must NOT indicate a positive margin when selling price is below COGS' },
+      ],
+      passCriteria: 'Agent correctly identifies the gross margin as -25% (negative) and confirms the business is selling at a loss, answering the direct question about whether money is being lost.',
+    },
     // [auto-tests:daniel]
   ],
 
