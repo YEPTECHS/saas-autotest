@@ -2,7 +2,7 @@ name: QA Agent — Auto Test Generator
 
 on:
   schedule:
-    - cron: '0 14 * * *'   # midnight AEST (UTC+10), every day
+    - cron: '0 14 * * 2,5'   # midnight AEST (UTC+10), Tue & Fri
   workflow_dispatch:
     inputs:
       approve_ticket:

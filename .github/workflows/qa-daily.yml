@@ -17,7 +17,7 @@ name: Daily QA
 
 on:
   schedule:
-    - cron: '0 1 * * *'   # 01:00 UTC daily (11:00 Melbourne)
+    - cron: '0 1 * * 2,5'   # 01:00 UTC Tue & Fri (11:00 Melbourne)
   workflow_dispatch:        # allow manual trigger
     inputs:
       run_accuracy:
@@ -172,6 +172,18 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
+      - name: Restore accuracy history cache
+        uses: actions/cache/restore@v4
+        with:
+          path: reports/${{ matrix.agent }}-accuracy-*.json
+          key: accuracy-history-${{ matrix.agent }}-${{ github.ref }}
+          restore-keys: accuracy-history-${{ matrix.agent }}-
+
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
+
       - name: Run accuracy — ${{ matrix.agent }}
         run: pnpm exec tsx scripts/accuracy-test-api.ts --agent ${{ matrix.agent }}
         timeout-minutes: 15
@@ -191,6 +203,13 @@ jobs:
               echo "::warning::Cody async polling may not be working — all responses empty"
             fi
           fi
+
+      - name: Save accuracy history cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: reports/${{ matrix.agent }}-accuracy-*.json
+          key: accuracy-history-${{ matrix.agent }}-${{ github.ref }}-${{ github.run_id }}
 
       - name: Upload accuracy report
         uses: actions/upload-artifact@v4
@@ -306,6 +325,10 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
+      - name: Create data/test-users.json
+        run: |
+          mkdir -p data
+          echo '${{ secrets.TEST_USERS_JSON }}' > data/test-users.json
       - name: Download triage report
         uses: actions/download-artifact@v4
         with:
@@ -428,6 +451,33 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Restore accuracy history caches
+        run: |
+          for agent in maya oscar daniel cody; do
+            echo "Restoring cache for $agent..."
+          done
+        # Individual cache restores per agent
+      - uses: actions/cache/restore@v4
+        with:
+          path: reports/maya-accuracy-*.json
+          key: accuracy-history-maya-${{ github.ref }}
+          restore-keys: accuracy-history-maya-
+      - uses: actions/cache/restore@v4
+        with:
+          path: reports/oscar-accuracy-*.json
+          key: accuracy-history-oscar-${{ github.ref }}
+          restore-keys: accuracy-history-oscar-
+      - uses: actions/cache/restore@v4
+        with:
+          path: reports/daniel-accuracy-*.json
+          key: accuracy-history-daniel-${{ github.ref }}
+          restore-keys: accuracy-history-daniel-
+      - uses: actions/cache/restore@v4
+        with:
+          path: reports/cody-accuracy-*.json
+          key: accuracy-history-cody-${{ github.ref }}
+          restore-keys: accuracy-history-cody-
 
       - name: Download all reports
         uses: actions/download-artifact@v4
