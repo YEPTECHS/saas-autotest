@@ -1,0 +1,437 @@
+# ============================================================
+# Maya Content Studio Test Suite
+# URL: /ai-team/marketing/studio
+#
+# PART 1 — Page Load & UI Check
+# PART 2 — 5 Quick Action Buttons (each generates content)
+# PART 3 — WebSocket Stability (10 sequential sessions)
+# PART 4 — Sidebar Settings Panel
+# ============================================================
+
+name: test-maya-studio
+description: Content Studio (Maya) — quick-action buttons, content generation, WebSocket stability check
+
+steps:
+  - include: _shared/login.steps.yml
+
+  - id: nav-studio
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team/marketing/studio"
+      waitUntil: "load"
+
+  - id: wait-load
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-start
+    action: browser.screenshot
+    params:
+      name: "studio-00-start"
+
+  # ── Install helpers ────────────────────────────────────────
+  - id: install-helpers
+    action: browser.execute
+    params:
+      script: |
+        window.__studioReport = [];
+        window.__wsErrors = 0;
+
+        // Check for WebSocket connection failure
+        window.__checkWsError = function() {
+          return document.body.textContent.includes('WebSocket connect failed') ||
+                 document.body.textContent.includes('Digital Staff WebSocket connect failed');
+        };
+
+        // Check for AI response in the studio chat area (after generating)
+        window.__hasStudioReply = function(lenBefore) {
+          var bodyLen = document.body.textContent.trim().length;
+          return bodyLen > lenBefore + 150;
+        };
+
+        // Get the last AI bubble text (same selector as marketing chat)
+        window.__lastAI = function() {
+          var bubbles = Array.from(document.querySelectorAll('[class*="rounded-2xl"]'));
+          for (var i = bubbles.length - 1; i >= 0; i--) {
+            var cls = bubbles[i].className || '';
+            if (!cls.includes('purple') && !cls.includes('bg-purple')) {
+              var t = bubbles[i].textContent.trim().replace(/\s*\d{1,2}:\d{2}\s*(AM|PM)\s*$/i, '').trim();
+              if (t.length > 10) return t;
+            }
+          }
+          return '';
+        };
+
+        window.__push = function(part, label, status, detail) {
+          window.__studioReport.push({ part: part, label: label, status: status, detail: (detail || '').substring(0, 200) });
+        };
+        console.log('[Studio] Helpers installed');
+        return true;
+    continueOnError: true
+
+  # ════════════════════════════════════════════════════════
+  # PART 1 — PAGE LOAD & UI CHECK
+  # ════════════════════════════════════════════════════════
+  - id: log-part1
+    action: log
+    params:
+      message: "====== PART 1: PAGE LOAD & UI CHECK ======"
+
+  - id: check-ui
+    action: browser.execute
+    params:
+      script: |
+        var body = document.body.textContent;
+        var checks = {
+          title:      body.includes('Content Studio'),
+          maya:       body.includes('Maya'),
+          textarea:   !!document.querySelector('textarea[placeholder*="Describe"]'),
+          generateBtn:!!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Generate'); }),
+          btnBlog:    !!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Write a blog post'); }),
+          btnProduct: !!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Create product description'); }),
+          btnSocial:  !!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Generate social content'); }),
+          btnCampaign:!!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Launch a campaign'); }),
+          btnMeta:    !!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Meta Title'); }),
+          viewStore:  body.includes('View Store'),
+          recentChats:body.includes('Recent chats'),
+        };
+        Object.keys(checks).forEach(function(k) {
+          var pass = checks[k];
+          window.__push('UI', k, pass ? 'PASS' : 'FAIL', '');
+          console.log('[UI] ' + k + ': ' + (pass ? 'PASS' : 'FAIL'));
+        });
+        return checks;
+    continueOnError: true
+    output: uiCheck
+
+  - id: screenshot-ui
+    action: browser.screenshot
+    params:
+      name: "studio-01-ui-check"
+    continueOnError: true
+
+  # ════════════════════════════════════════════════════════
+  # PART 2 — 5 QUICK ACTION BUTTONS
+  # ════════════════════════════════════════════════════════
+  - id: log-part2
+    action: log
+    params:
+      message: "====== PART 2: QUICK ACTION BUTTONS ======"
+
+  # Helper: click a quick btn, fill textarea, generate, wait for reply
+  - id: run-quick-buttons
+    action: browser.execute
+    params:
+      script: |
+        (async function() {
+          var buttons = [
+            { name: 'Write a blog post',          prompt: 'Write a blog post about the benefits of email marketing for e-commerce stores targeting SMBs.' },
+            { name: 'Create product description',  prompt: 'Create a product description for a premium wireless noise-cancelling headphone priced at $199, emphasizing comfort and sound quality.' },
+            { name: 'Generate social content',     prompt: 'Write 3 Instagram posts for a skincare brand promoting their new summer collection.' },
+            { name: 'Launch a campaign',           prompt: 'Plan a multi-channel Black Friday campaign for an online fashion brand with 30% off sitewide.' },
+            { name: 'Meta Title',                  prompt: 'Write an SEO-friendly meta title and description for a page selling organic skincare products targeting health-conscious women 25-40.' }
+          ];
+
+          function clickBtn(name) {
+            var btns = Array.from(document.querySelectorAll('button'));
+            var btn = btns.find(function(b) { return b.textContent.trim().includes(name); });
+            if (btn) { btn.click(); return true; }
+            return false;
+          }
+
+          function fillTextarea(text) {
+            var ta = document.querySelector('textarea[placeholder*="Describe"]') ||
+                     document.querySelector('textarea');
+            if (!ta) return false;
+            try {
+              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(ta, text);
+            } catch(e) { ta.value = text; }
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          }
+
+          function clickGenerate() {
+            var btns = Array.from(document.querySelectorAll('button'));
+            var btn = btns.find(function(b) {
+              return (b.textContent.includes('Generate') || b.textContent.includes('generate')) &&
+                     !b.textContent.includes('social') && !b.textContent.includes('content');
+            });
+            if (!btn) btn = btns.find(function(b) { return b.textContent.trim() === 'Generate'; });
+            if (btn) { btn.click(); return true; }
+            return false;
+          }
+
+          function waitForReply(bodyLenBefore, maxMs) {
+            return new Promise(function(resolve) {
+              var start = Date.now();
+              var t = setInterval(function() {
+                var wsErr = window.__checkWsError();
+                var bodyLen = document.body.textContent.trim().length;
+                var grew = bodyLen > bodyLenBefore + 200;
+                if (wsErr || grew || Date.now() - start > maxMs) {
+                  clearInterval(t);
+                  resolve({ wsErr: wsErr, grew: grew, elapsed: Date.now() - start });
+                }
+              }, 1000);
+            });
+          }
+
+          for (var i = 0; i < buttons.length; i++) {
+            var btn = buttons[i];
+            console.log('[BTN] Testing: ' + btn.name);
+
+            // Click the quick button (pre-fills textarea)
+            var clicked = clickBtn(btn.name);
+            await new Promise(function(r) { setTimeout(r, 1000); });
+
+            // Check it pre-filled the textarea
+            var ta = document.querySelector('textarea');
+            var prefilled = ta && ta.value && ta.value.length > 10;
+
+            // Override with our specific prompt
+            fillTextarea(btn.prompt);
+            await new Promise(function(r) { setTimeout(r, 500); });
+
+            // Click Generate
+            var bodyBefore = document.body.textContent.trim().length;
+            var generated = clickGenerate();
+            await new Promise(function(r) { setTimeout(r, 1500); });
+
+            // Wait up to 35s for reply
+            var res = await waitForReply(bodyBefore, 35000);
+            var status = (!res.wsErr && res.grew) ? 'PASS' : (res.wsErr ? 'WS_ERROR' : 'NO_REPLY');
+
+            window.__push('QuickBtn', btn.name, status,
+              'clicked=' + clicked + ' prefilled=' + prefilled + ' generated=' + generated +
+              ' wsErr=' + res.wsErr + ' elapsed=' + Math.round(res.elapsed/1000) + 's');
+            console.log('[BTN] ' + btn.name + ': ' + status);
+
+            if (res.wsErr) window.__wsErrors++;
+
+            // Go back to studio home for next button
+            window.location.href = window.location.href.split('?')[0];
+            await new Promise(function(r) { setTimeout(r, 3000); });
+          }
+
+          return { done: true, wsErrors: window.__wsErrors };
+        })();
+    continueOnError: true
+    output: quickBtnResults
+
+  - id: screenshot-quick-btns
+    action: browser.screenshot
+    params:
+      name: "studio-02-quick-btns-done"
+    continueOnError: true
+
+  # ════════════════════════════════════════════════════════
+  # PART 3 — WEBSOCKET STABILITY (10 sequential sessions)
+  # ════════════════════════════════════════════════════════
+  - id: log-part3
+    action: log
+    params:
+      message: "====== PART 3: WEBSOCKET STABILITY (10 sequential sessions) ======"
+
+  - id: run-ws-stability
+    action: browser.execute
+    params:
+      script: |
+        (async function() {
+          var results = [];
+          var wsFailCount = 0;
+          var TEST_MSG = 'Write a short tagline for a coffee brand.';
+
+          function fillAndGenerate(text) {
+            var ta = document.querySelector('textarea[placeholder*="Describe"]') ||
+                     document.querySelector('textarea');
+            if (!ta) return false;
+            try {
+              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(ta, text);
+            } catch(e) { ta.value = text; }
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            var btn = Array.from(document.querySelectorAll('button')).find(function(b) {
+              return b.textContent.trim() === 'Generate';
+            });
+            if (btn) { btn.click(); return true; }
+            return false;
+          }
+
+          function waitResult(bodyBefore, maxMs) {
+            return new Promise(function(resolve) {
+              var start = Date.now();
+              var t = setInterval(function() {
+                var wsErr = document.body.textContent.includes('WebSocket connect failed');
+                var bodyLen = document.body.textContent.trim().length;
+                if (wsErr || bodyLen > bodyBefore + 150 || Date.now() - start > maxMs) {
+                  clearInterval(t);
+                  resolve({ wsErr: wsErr, elapsed: Date.now() - start, grew: bodyLen > bodyBefore + 150 });
+                }
+              }, 1000);
+            });
+          }
+
+          for (var i = 1; i <= 10; i++) {
+            console.log('[WS] Session ' + i + '/10');
+            var bodyBefore = document.body.textContent.trim().length;
+            fillAndGenerate(TEST_MSG);
+            await new Promise(function(r) { setTimeout(r, 1500); });
+
+            var res = await waitResult(bodyBefore, 30000);
+            var status = res.wsErr ? 'WS_FAIL' : (res.grew ? 'OK' : 'TIMEOUT');
+            if (res.wsErr) wsFailCount++;
+
+            results.push({ session: i, status: status, ms: res.elapsed });
+            window.__push('WS', 'Session ' + i, status, 'elapsed=' + Math.round(res.elapsed/1000) + 's');
+            console.log('[WS] Session ' + i + ': ' + status);
+
+            // Re-navigate to get fresh session
+            if (i < 10) {
+              window.location.href = window.location.href.split('?')[0];
+              await new Promise(function(r) { setTimeout(r, 3000); });
+            }
+          }
+
+          window.__wsFailCount = wsFailCount;
+          var successRate = Math.round(((10 - wsFailCount) / 10) * 100);
+          console.log('[WS] Done — failures: ' + wsFailCount + '/10, success rate: ' + successRate + '%');
+          return { total: 10, wsFailures: wsFailCount, successRate: successRate, results: results };
+        })();
+    continueOnError: true
+    output: wsResults
+
+  - id: screenshot-ws
+    action: browser.screenshot
+    params:
+      name: "studio-03-ws-stability"
+    continueOnError: true
+
+  # ════════════════════════════════════════════════════════
+  # PART 4 — SIDEBAR SETTINGS PANEL
+  # ════════════════════════════════════════════════════════
+  - id: log-part4
+    action: log
+    params:
+      message: "====== PART 4: SIDEBAR SETTINGS PANEL ======"
+
+  # Enter chat mode first (click any quick button, then generate)
+  - id: enter-chat-for-sidebar
+    action: browser.execute
+    params:
+      script: |
+        (async function() {
+          var btn = Array.from(document.querySelectorAll('button')).find(function(b) {
+            return b.textContent.includes('Launch a campaign');
+          });
+          if (btn) btn.click();
+          await new Promise(function(r) { setTimeout(r, 1000); });
+
+          var ta = document.querySelector('textarea');
+          if (ta) {
+            try { Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(ta, 'Plan a summer marketing campaign for a health brand.'); } catch(e) { ta.value = 'Plan a summer marketing campaign.'; }
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+
+          var genBtn = Array.from(document.querySelectorAll('button')).find(function(b) { return b.textContent.trim() === 'Generate'; });
+          if (genBtn) genBtn.click();
+          return true;
+        })();
+    continueOnError: true
+
+  - id: wait-sidebar-load
+    action: wait
+    params:
+      ms: 20000
+
+  - id: check-sidebar
+    action: browser.execute
+    params:
+      script: |
+        var body = document.body.textContent;
+        var sidebar = {
+          newChat:        !!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('New chat'); }),
+          contentBrief:   body.includes('Content Brief'),
+          connectChannels:body.includes('Connect channels') || body.includes('connected'),
+          brandVoice:     body.includes('Brand Voice'),
+          audience:       body.includes('Audience'),
+          styleGuides:    body.includes('Style guides'),
+          generateContent:!!Array.from(document.querySelectorAll('button')).find(function(b){ return b.textContent.includes('Generate content'); }),
+          manageChannels: body.includes('Manage channels'),
+          shopifyIcon:    !!document.querySelector('img[alt*="shopify" i], [class*="shopify"]') || body.toLowerCase().includes('shopify'),
+        };
+        Object.keys(sidebar).forEach(function(k) {
+          var pass = sidebar[k];
+          window.__push('Sidebar', k, pass ? 'PASS' : 'FAIL', '');
+          console.log('[Sidebar] ' + k + ': ' + (pass ? 'PASS' : 'FAIL'));
+        });
+        return sidebar;
+    continueOnError: true
+    output: sidebarCheck
+
+  - id: screenshot-sidebar
+    action: browser.screenshot
+    params:
+      name: "studio-04-sidebar"
+    continueOnError: true
+
+  # ════════════════════════════════════════════════════════
+  # FINAL REPORT
+  # ════════════════════════════════════════════════════════
+  - id: generate-report
+    action: browser.execute
+    params:
+      script: |
+        var r = window.__studioReport || [];
+        var lines = [];
+        lines.push('');
+        lines.push('╔══════════════════════════════════════════════════════════╗');
+        lines.push('║    CONTENT STUDIO TEST REPORT — Maya (/studio)          ║');
+        lines.push('╚══════════════════════════════════════════════════════════╝');
+
+        var parts = ['UI', 'QuickBtn', 'WS', 'Sidebar'];
+        parts.forEach(function(part) {
+          var items = r.filter(function(x) { return x.part === part; });
+          if (!items.length) return;
+          lines.push('');
+          lines.push('── ' + part + ' (' + items.length + ' checks) ──');
+          items.forEach(function(item) {
+            var icon = item.status === 'PASS' || item.status === 'OK' ? '✅' :
+                       item.status === 'WS_ERROR' || item.status === 'WS_FAIL' ? '🔴' : '❌';
+            lines.push('  ' + icon + ' [' + item.label + '] ' + item.status +
+                       (item.detail ? ' | ' + item.detail : ''));
+          });
+        });
+
+        var pass = r.filter(function(x) { return x.status === 'PASS' || x.status === 'OK'; }).length;
+        var fail = r.filter(function(x) { return x.status === 'FAIL' || x.status === 'NO_REPLY' || x.status === 'TIMEOUT'; }).length;
+        var wsErr = r.filter(function(x) { return x.status === 'WS_ERROR' || x.status === 'WS_FAIL'; }).length;
+
+        lines.push('');
+        lines.push('══════════════════════════════════════════════════════════');
+        lines.push('  PASS: ' + pass + '  |  FAIL: ' + fail + '  |  WS_ERRORS: ' + wsErr + '  |  TOTAL: ' + r.length);
+        if (wsErr > 0) {
+          lines.push('  ⚠️  WebSocket failures detected — server may have connection limit issues under load');
+        }
+        lines.push('══════════════════════════════════════════════════════════');
+        return lines.join('\n');
+    continueOnError: true
+    output: finalReport
+
+  - id: log-report
+    action: log
+    params:
+      message: "{{finalReport.result}}"
+
+  - id: screenshot-final
+    action: browser.screenshot
+    params:
+      name: "studio-05-final"
+    continueOnError: true
+
+  - id: done
+    action: log
+    params:
+      message: "✅ Maya Content Studio test complete"

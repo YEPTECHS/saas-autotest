@@ -431,11 +431,57 @@ jobs:
           path: reports/ds-run-*.json
           if-no-files-found: ignore
 
-  # ── Job 7: HTML report + notify ────────────────────────────────
+  # ── Job 7: Maya Content Studio E2E ────────────────────────────
+  maya-studio:
+    name: Maya Content Studio E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Maya Content Studio flow
+        run: pnpm exec tsx src/cli/index.ts run test-maya-studio || true
+        timeout-minutes: 20
+        env:
+          YEPAI_BASE_URL:       ${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL:    ${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD: ${{ secrets.YEPAI_LOGIN_PASSWORD }}
+
+      - name: Upload Studio reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-reports
+          path: reports/studio-*.json
+          if-no-files-found: ignore
+
+      - name: Upload Studio screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-screenshots
+          path: screenshots/studio-*.png
+          if-no-files-found: ignore
+
+  # ── Job 8: HTML report + notify ────────────────────────────────
   report:
     name: HTML Report & Notify
     runs-on: ubuntu-latest
-    needs: [accuracy, triage, retry-flaky, auto-repair, digital-staff]
+    needs: [accuracy, triage, retry-flaky, auto-repair, digital-staff, maya-studio]
     if: always() && needs.accuracy.result != 'skipped'
     steps:
       - uses: actions/checkout@v4
