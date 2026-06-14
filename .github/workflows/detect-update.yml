@@ -2,7 +2,7 @@ name: Detect YepAI Agent Updates
 
 on:
   schedule:
-    - cron: '0 14 * * 1-5'   # midnight AEST (UTC+10), Mon–Fri
+    - cron: '0 14 * * 2,5'   # midnight AEST (UTC+10), Tue & Fri
   workflow_dispatch:
 
 permissions:
