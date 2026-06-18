@@ -453,9 +453,25 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Run Maya Content Studio flow
+      - name: Run Maya Studio UI + quick buttons flow
         run: pnpm exec tsx src/cli/index.ts run test-maya-studio || true
         timeout-minutes: 20
+        env:
+          YEPAI_BASE_URL:       ${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL:    ${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD: ${{ secrets.YEPAI_LOGIN_PASSWORD }}
+
+      - name: Run Maya Studio chat + security + skills flow
+        run: pnpm exec tsx src/cli/index.ts run test-maya-studio-chat || true
+        timeout-minutes: 30
+        env:
+          YEPAI_BASE_URL:       ${{ secrets.YEPAI_BASE_URL }}
+          YEPAI_LOGIN_EMAIL:    ${{ secrets.YEPAI_LOGIN_EMAIL }}
+          YEPAI_LOGIN_PASSWORD: ${{ secrets.YEPAI_LOGIN_PASSWORD }}
+
+      - name: Run Maya Studio boundary tests (100 cases)
+        run: pnpm exec tsx src/cli/index.ts run test-maya-studio-boundary || true
+        timeout-minutes: 40
         env:
           YEPAI_BASE_URL:       ${{ secrets.YEPAI_BASE_URL }}
           YEPAI_LOGIN_EMAIL:    ${{ secrets.YEPAI_LOGIN_EMAIL }}
