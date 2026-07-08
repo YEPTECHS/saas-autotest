@@ -30,6 +30,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { ImapFlow } from 'imapflow';
+import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { spawnSync, execSync } from 'child_process';
@@ -326,6 +327,17 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: 'get_page_info',
+    description: 'Open a page in a real browser and return its interactive elements (inputs, buttons, links, headings). Use this before writing a test to get accurate selectors from the live app.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        url: { type: 'string', description: 'Full URL e.g. https://bot-test.yepai.io/dashboard' },
+      },
+      required: ['url'],
+    },
+  },
+  {
     name: 'request_approval',
     description: 'Send an approval email to the human and pause this ticket. Use when you are genuinely uncertain whether automated testing is appropriate for this ticket.',
     input_schema: {
@@ -439,6 +451,64 @@ async function executeTool(
       return `Exit: ${res.status} | Duration: ${duration}s | Success: ${res.status === 0}\n\n${output}`;
     }
 
+    case 'get_page_info': {
+      const baseUrl  = process.env.YEPAI_BASE_URL || '';
+      const email    = process.env.YEPAI_LOGIN_EMAIL || '';
+      const password = process.env.YEPAI_LOGIN_PASSWORD || '';
+      if (!baseUrl || !email || !password) return 'YEPAI_* env vars not set';
+
+      let browser;
+      try {
+        browser = await chromium.launch({ headless: true });
+        const ctx  = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+
+        // Login first
+        await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await page.waitForSelector("input[type='email']", { timeout: 10000 });
+        await page.fill("input[type='email']", email);
+        await page.fill("input[type='password']", password);
+        await page.click("button[type='submit']");
+        await page.waitForURL(/dashboard|home|ai-training|analytics|customers|onboarding/, { timeout: 25000 });
+
+        // Navigate to target
+        await page.goto(input.url as string, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await page.waitForTimeout(2000);
+
+        // Extract interactive elements + headings
+        const info = await page.evaluate(() => {
+          const results: string[] = [];
+
+          const push = (tag: string, selector: string, text: string) => {
+            if (text.trim()) results.push(`[${tag}] selector="${selector}" text="${text.trim().substring(0, 80)}"`);
+          };
+
+          document.querySelectorAll('h1,h2,h3').forEach(el => {
+            push('heading', el.tagName.toLowerCase(), (el as HTMLElement).innerText);
+          });
+          document.querySelectorAll('button,a[href]').forEach((el, i) => {
+            const t = (el as HTMLElement).innerText || (el as HTMLElement).getAttribute('aria-label') || '';
+            const sel = el.id ? `#${el.id}` : el.className ? `.${el.className.trim().split(' ')[0]}` : `${el.tagName.toLowerCase()}:nth-child(${i})`;
+            push(el.tagName.toLowerCase(), sel, t);
+          });
+          document.querySelectorAll('input,textarea,select').forEach((el) => {
+            const e = el as HTMLInputElement;
+            const sel = e.id ? `#${e.id}` : e.name ? `[name="${e.name}"]` : `input[type="${e.type}"]`;
+            const label = e.placeholder || e.getAttribute('aria-label') || e.getAttribute('type') || '';
+            push(e.tagName.toLowerCase(), sel, label);
+          });
+
+          return results.slice(0, 60).join('\n');
+        });
+
+        return `Page: ${input.url}\n\n${info || '(no elements found)'}`;
+      } catch (e: any) {
+        return `get_page_info failed: ${e.message}`;
+      } finally {
+        if (browser) await browser.close();
+      }
+    }
+
     case 'request_approval': {
       ctx.pendingApprovalData = { reason: input.reason, testPlan: input.testPlan };
       try {
@@ -513,12 +583,13 @@ ${APP_CONTEXT}
 ## Your process for each ticket
 1. Call list_flows, then read_file on 1-2 relevant existing flows for structural context.
 2. Optionally call get_git_context to see what changed.
-3. Decide:
+3. If unsure about the page layout or selectors, call get_page_info with the relevant URL — it opens a real browser and returns the actual buttons, inputs, and headings on the page so you can write accurate selectors.
+4. Decide:
    - Clear, automatable test → write_flow → run_test → fix if needed → report_done
    - Genuinely uncertain → request_approval (pauses ticket, emails human)
    - Not automatable (visual/UX only, no pass/fail criteria) → skip_ticket
-4. If run_test fails: read the error carefully, update the YAML, retry (max ${MAX_TEST_RUNS} runs).
-5. Always end with report_done, skip_ticket, or request_approval.`;
+5. If run_test fails: read the error carefully, update the YAML, retry (max ${MAX_TEST_RUNS} runs).
+6. Always end with report_done, skip_ticket, or request_approval.`;
 
 // ── Agent loop ──────────────────────────────────────────────────
 

@@ -3,6 +3,10 @@
     "yepai-e2e": {
       "command": "pnpm",
       "args": ["exec", "tsx", "src/tools/mcp-server.ts"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"]
     }
   }
 }
