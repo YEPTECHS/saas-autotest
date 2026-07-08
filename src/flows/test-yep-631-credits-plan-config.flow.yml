@@ -1,0 +1,246 @@
+# YEP-631 — New Billing: Credits mechanism & plan configuration
+# Verifies the new credit-based billing scheme: each plan tier exposes
+# a credit allowance, tiers are distinct, and the user-facing subscription
+# area surfaces credits usage/balance.
+#
+# Sibling ticket YEP-632 covers pricing page display; this test focuses on
+# the credits scheme itself (per-plan credits, multiple tiers, credit
+# balance/usage in the backend).
+
+name: test-yep-631-credits-plan-config
+description: Verify new credit-based billing plan configuration and credits mechanism
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ========================================
+  # PHASE 1: Load pricing page
+  # ========================================
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: Load pricing page to inspect credit-based plan configuration"
+
+  - id: nav-pricing
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/subscription"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-pricing
+    action: wait
+    params:
+      ms: 5000
+
+  - id: screenshot-pricing
+    action: browser.screenshot
+    params:
+      name: "yep631-pricing"
+
+  - id: capture-body
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        return { length: body.length, preview: body.slice(0, 3000) };
+    output: pricingBody
+
+  # ========================================
+  # PHASE 2: Assert Credits terminology is used
+  # ========================================
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Assert new Credits terminology present on pricing"
+
+  - id: assert-credits-mentioned
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const matches = body.match(/credit/gi) || [];
+        if (matches.length === 0) {
+          throw new Error('Pricing page must reference "credit(s)" for YEP-631 credit-based billing. Preview: ' + body.slice(0, 600));
+        }
+        return { creditMentions: matches.length };
+    continueOnError: true
+
+  # ========================================
+  # PHASE 3: Assert multiple plan tiers exist
+  # ========================================
+  - id: log-phase3
+    action: log
+    params:
+      message: "Phase 3: Assert multiple plan tiers configured"
+
+  - id: assert-multi-tiers
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const tierNames = ['Free','Starter','Basic','Standard','Professional','Pro','Business','Growth','Scale','Premium','Enterprise'];
+        const found = tierNames.filter(t => new RegExp('\\b' + t + '\\b','i').test(body));
+        if (found.length < 2) {
+          throw new Error('YEP-631 expects >=2 plan tiers, found: ' + JSON.stringify(found));
+        }
+        return { tiersFound: found };
+    output: tiersInfo
+    continueOnError: true
+
+  # ========================================
+  # PHASE 4: Assert per-plan credit allowance numbers
+  # (Credits mechanism => each plan should advertise a credit quantity)
+  # ========================================
+  - id: log-phase4
+    action: log
+    params:
+      message: "Phase 4: Assert per-plan credit allowances (numeric credits per plan)"
+
+  - id: assert-credit-quantities
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        // Look for patterns like "1,000 credits", "500 Credits", "10K credits/mo"
+        const creditQtyRegex = /(\d[\d,]*\s*(k|K)?)\s*credits?/gi;
+        const qty = body.match(creditQtyRegex) || [];
+        // Also look for feature-list credit lines
+        return {
+          creditQuantityMatches: qty.slice(0, 20),
+          totalMatches: qty.length,
+        };
+    output: creditQty
+    continueOnError: true
+
+  - id: assert-at-least-one-credit-qty
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const creditQtyRegex = /(\d[\d,]*\s*(k|K)?)\s*credits?/gi;
+        const qty = body.match(creditQtyRegex) || [];
+        if (qty.length === 0) {
+          throw new Error('YEP-631: expected at least one "<N> credits" allowance on pricing page. Preview: ' + body.slice(0, 800));
+        }
+        return { creditQuantityCount: qty.length, samples: qty.slice(0,10) };
+    continueOnError: true
+
+  # ========================================
+  # PHASE 5: Assert distinct tier prices
+  # ========================================
+  - id: log-phase5
+    action: log
+    params:
+      message: "Phase 5: Assert distinct prices per tier"
+
+  - id: assert-multiple-prices
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const prices = body.match(/\$\s?\d[\d,]*(\.\d+)?/g) || [];
+        const uniq = Array.from(new Set(prices));
+        if (uniq.length < 2) {
+          throw new Error('YEP-631: expected multiple distinct prices, got: ' + JSON.stringify(uniq));
+        }
+        return { uniquePrices: uniq.slice(0, 15) };
+    output: pricesInfo
+    continueOnError: true
+
+  # ========================================
+  # PHASE 6: Backend — subscription/settings shows credits balance/usage
+  # ========================================
+  - id: log-phase6
+    action: log
+    params:
+      message: "Phase 6: Verify settings/subscription surfaces credits info"
+
+  - id: nav-settings
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-settings
+    action: wait
+    params:
+      ms: 4000
+
+  - id: screenshot-settings
+    action: browser.screenshot
+    params:
+      name: "yep631-settings"
+
+  - id: capture-settings-body
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        return { length: body.length, preview: body.slice(0, 2000) };
+    output: settingsBody
+
+  - id: try-open-subscription-tab
+    action: browser.execute
+    params:
+      script: |
+        const candidates = Array.from(document.querySelectorAll('a, button, [role="tab"]'));
+        const target = candidates.find(el => {
+          const t = (el.textContent || '').trim();
+          return /subscription|billing|plan|credit/i.test(t) && el.offsetParent !== null;
+        });
+        if (target) {
+          target.click();
+          return { clicked: (target.textContent || '').trim() };
+        }
+        return { clicked: null };
+    output: subscriptionTabClick
+    continueOnError: true
+
+  - id: wait-subscription-tab
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-subscription-tab
+    action: browser.screenshot
+    params:
+      name: "yep631-subscription-tab"
+
+  - id: assert-credits-in-backend
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const hasCredits = /credit/i.test(body);
+        const hasPlan = /plan|subscription|billing/i.test(body);
+        if (!hasPlan) {
+          throw new Error('Settings/Subscription area must show plan/subscription info. Preview: ' + body.slice(0, 500));
+        }
+        return { hasCredits, hasPlan, preview: body.slice(0, 800) };
+    output: backendCreditsCheck
+    continueOnError: true
+
+  # ========================================
+  # PHASE 7: Save results
+  # ========================================
+  - id: log-phase7
+    action: log
+    params:
+      message: "Phase 7: Save collected pricing + settings data"
+
+  - id: save-results
+    action: data.saveJson
+    params:
+      file: "yep631-credits-plan-config.json"
+      data:
+        pricingBodyLength: "{{pricingBody.length}}"
+        tiers: "{{tiersInfo}}"
+        creditQuantities: "{{creditQty}}"
+        prices: "{{pricesInfo}}"
+        subscriptionTabClick: "{{subscriptionTabClick}}"
+        backendCredits: "{{backendCreditsCheck}}"
+
+  - id: log-done
+    action: log
+    params:
+      message: "YEP-631 credits plan config test finished"

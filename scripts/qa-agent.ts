@@ -69,7 +69,8 @@ const APP_CONTEXT = `
 - AI Training:             {{YEPAI_BASE_URL}}/ai-training
 - Settings:                {{YEPAI_BASE_URL}}/settings
 - Integrations:            {{YEPAI_BASE_URL}}/integrations
-- Pricing:                 {{YEPAI_BASE_URL}}/pricing
+- Subscription/Billing:    {{YEPAI_BASE_URL}}/settings/subscription
+- Pricing (public):        {{YEPAI_BASE_URL}}/pricing  (NOTE: may not exist in test env, use /settings/subscription instead)
 
 ## Key selectors
 - Chat input (all agents): textarea
@@ -444,6 +445,7 @@ async function executeTool(
         encoding: 'utf-8',
         timeout: 10 * 60 * 1000,
         env: { ...process.env },
+        shell: true,
       });
       const duration = ((Date.now() - start) / 1000).toFixed(1);
       const output = ((res.stdout || '') + (res.stderr || '')).substring(0, 4000);

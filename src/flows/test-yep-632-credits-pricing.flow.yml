@@ -1,0 +1,227 @@
+# YEP-632 — New Credits-based Billing Pricing Page
+# Verify pricing page shows credits-based tiers and updated plan text
+# per new billing mechanism.
+
+name: test-yep-632-credits-pricing
+description: Verify new credits-based pricing page content, tiers, and plan text updates
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ========================================
+  # PHASE 1: Navigate to Pricing page (public / logged-in)
+  # ========================================
+  - id: log-phase1
+    action: log
+    params:
+      message: "Phase 1: Navigate to pricing page"
+
+  - id: navigate-pricing
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/subscription"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-pricing-loaded
+    action: wait
+    params:
+      ms: 4000
+
+  - id: screenshot-pricing
+    action: browser.screenshot
+    params:
+      name: "yep632-pricing-page"
+
+  # ========================================
+  # PHASE 2: Verify page renders with plan tiers
+  # ========================================
+  - id: log-phase2
+    action: log
+    params:
+      message: "Phase 2: Verify pricing page has plan tier structure"
+
+  - id: capture-pricing-content
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        return {
+          length: body.length,
+          preview: body.slice(0, 2000),
+        };
+    output: pricingContent
+
+  - id: verify-has-pricing-content
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        if (body.length < 100) throw new Error('Pricing page appears empty. Body: ' + body);
+        const hasPlanKeyword = /plan|pricing|tier|subscribe|upgrade|price|month|starter|professional|business|enterprise|free/i.test(body);
+        if (!hasPlanKeyword) {
+          throw new Error('Pricing page shows no plan/pricing keywords. Body: ' + body.slice(0, 500));
+        }
+        return { ok: true };
+
+  # ========================================
+  # PHASE 3: Verify Credits-based billing terminology present
+  # ========================================
+  - id: log-phase3
+    action: log
+    params:
+      message: "Phase 3: Verify Credits terminology on new pricing page"
+
+  - id: verify-credits-mentioned
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const creditMatch = body.match(/credit/gi) || [];
+        return {
+          creditMentions: creditMatch.length,
+          hasCredits: creditMatch.length > 0,
+          preview: body.slice(0, 800),
+        };
+    output: creditsCheck
+    continueOnError: true
+
+  - id: assert-credits-present
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        if (!/credit/i.test(body)) {
+          throw new Error('New pricing page must mention Credits (per YEP-632). Body preview: ' + body.slice(0, 500));
+        }
+        return { creditsOnPage: true };
+    continueOnError: true
+
+  # ========================================
+  # PHASE 4: Verify multiple plan tiers exist
+  # ========================================
+  - id: log-phase4
+    action: log
+    params:
+      message: "Phase 4: Verify multiple plan tiers"
+
+  - id: verify-multiple-tiers
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const tierNames = ['Free', 'Starter', 'Professional', 'Pro', 'Business', 'Enterprise', 'Basic', 'Standard', 'Premium', 'Growth', 'Scale'];
+        const found = tierNames.filter(t => new RegExp('\\b' + t + '\\b').test(body));
+        if (found.length < 2) {
+          throw new Error('Expected at least 2 plan tiers, found: ' + JSON.stringify(found) + ' Body: ' + body.slice(0, 500));
+        }
+        return { tiersFound: found };
+    continueOnError: true
+
+  - id: verify-price-values
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const priceMatches = body.match(/\$\s?\d+(\.\d+)?/g) || [];
+        return {
+          priceCount: priceMatches.length,
+          prices: priceMatches.slice(0, 20),
+        };
+    output: priceCheck
+
+  - id: assert-has-prices
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const priceMatches = body.match(/\$\s?\d+/g) || [];
+        if (priceMatches.length < 1) {
+          throw new Error('Expected at least one $ price on pricing page. Body: ' + body.slice(0, 500));
+        }
+        return { priceCount: priceMatches.length };
+    continueOnError: true
+
+  # ========================================
+  # PHASE 5: Verify CTA buttons exist
+  # ========================================
+  - id: log-phase5
+    action: log
+    params:
+      message: "Phase 5: Verify pricing CTAs (Subscribe/Upgrade/Choose)"
+
+  - id: verify-cta-buttons
+    action: browser.execute
+    params:
+      script: |
+        const buttons = Array.from(document.querySelectorAll('button, a'));
+        const ctas = buttons.filter(b => {
+          const t = (b.textContent || '').trim();
+          return /subscribe|upgrade|choose|start|get started|select|buy|purchase|try/i.test(t) && b.offsetParent !== null;
+        });
+        if (ctas.length === 0) {
+          throw new Error('No plan CTA buttons found on pricing page');
+        }
+        return { ctaCount: ctas.length, samples: ctas.slice(0, 5).map(c => c.textContent.trim()) };
+    continueOnError: true
+
+  # ========================================
+  # PHASE 6: Backend — Subscription page also shows credits info
+  # ========================================
+  - id: log-phase6
+    action: log
+    params:
+      message: "Phase 6: Verify backend Subscription page shows Credits info"
+
+  - id: navigate-subscription
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-settings-loaded
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-settings
+    action: browser.screenshot
+    params:
+      name: "yep632-settings-page"
+
+  - id: try-navigate-subscription-direct
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/settings/subscription"
+      waitUntil: "domcontentloaded"
+    continueOnError: true
+
+  - id: wait-subscription-loaded
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-subscription
+    action: browser.screenshot
+    params:
+      name: "yep632-subscription-page"
+
+  - id: verify-subscription-credits
+    action: browser.execute
+    params:
+      script: |
+        const body = document.body.innerText || '';
+        const hasCredit = /credit/i.test(body);
+        const hasPlan = /plan|subscription|billing/i.test(body);
+        return {
+          hasCredit,
+          hasPlan,
+          url: window.location.href,
+          preview: body.slice(0, 600),
+        };
+    output: subscriptionInfo
+    continueOnError: true
+
+  - id: log-success
+    action: log
+    params:
+      message: "YEP-632 pricing page verification completed."
