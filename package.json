@@ -87,6 +87,8 @@
     "test:boundary:cody": "tsx src/cli/index.ts run test-cody-boundary",
     "test:comprehensive:cody": "tsx src/cli/index.ts run test-cody-comprehensive",
     "qa:agent": "tsx scripts/qa-agent.ts",
+    "test:marketing": "tsx scripts/test-marketing-site.ts",
+    "check:website": "tsx scripts/check-website.ts",
     "repair": "tsx scripts/repair-agent.ts",
     "repair:all": "tsx scripts/repair-agent.ts --all",
     "coverage": "tsx scripts/coverage-agent.ts",
