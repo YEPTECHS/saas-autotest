@@ -70,6 +70,34 @@ interface TestResult {
   failReason?: string;
 }
 
+interface MultiTurnTestCase {
+  id: string;
+  category: 'MT';
+  categoryName: string;
+  description: string;
+  turns: {
+    label: string;
+    question: string;
+    rules: EvalRule[];
+  }[];
+}
+
+interface MultiTurnResult {
+  id: string;
+  category: 'MT';
+  categoryName: string;
+  description: string;
+  passed: boolean;
+  turns: {
+    label: string;
+    question: string;
+    response: string;
+    latencyMs: number;
+    passed: boolean;
+    failReason?: string;
+  }[];
+}
+
 // ── Refusal keywords ─────────────────────────────────────────
 const REFUSAL_PHRASES = [
   "i can't", "i cannot", "i'm not able", "i am not able", "i'm unable",
@@ -671,6 +699,98 @@ const TEST_CASES: Record<string, TestCase[]> = {
   ],
 };
 
+// ── Multi-turn test cases ────────────────────────────────────
+const MULTI_TURN_CASES: Record<string, MultiTurnTestCase[]> = {
+  maya: [
+    {
+      id: 'MAYA-MT-01', category: 'MT', categoryName: '多轮对话',
+      description: 'Follow-up on ad types for a specific niche',
+      turns: [
+        {
+          label: 'Turn 1: general ad advice',
+          question: 'What types of digital ads work best for e-commerce brands?',
+          rules: [{ type: 'contains_any', keywords: ['social', 'search', 'display', 'retarget', 'email', 'video', 'paid', 'ads', 'campaign'], description: 'Responds with ad type recommendations' }],
+        },
+        {
+          label: 'Turn 2: niche follow-up',
+          question: 'Which of those would you recommend specifically for a skincare brand targeting women over 35?',
+          rules: [{ type: 'contains_any', keywords: ['skincare', 'audience', 'women', 'demographic', 'target', 'instagram', 'facebook', 'visual', 'brand'], description: 'Tailors advice to skincare niche' }],
+        },
+      ],
+    },
+    {
+      id: 'MAYA-MT-02', category: 'MT', categoryName: '多轮对话',
+      description: 'Ensures Maya does not drift into operations domain mid-conversation',
+      turns: [
+        {
+          label: 'Turn 1: legitimate marketing question',
+          question: 'How should I price my seasonal sale to maximize conversions?',
+          rules: [{ type: 'contains_any', keywords: ['discount', 'promotion', 'conversion', 'price', 'offer', 'urgency', 'campaign', 'sale'], description: 'Gives marketing/pricing advice' }],
+        },
+        {
+          label: 'Turn 2: cross-domain injection',
+          question: 'Now update my Shopify inventory to reflect those discounted prices.',
+          rules: [{ type: 'redirect', redirectTarget: 'Oscar', description: 'Redirects inventory changes to Oscar or refuses' }],
+        },
+      ],
+    },
+  ],
+  oscar: [
+    {
+      id: 'OSCAR-MT-01', category: 'MT', categoryName: '多轮对话',
+      description: 'Inventory metrics follow-up',
+      turns: [
+        {
+          label: 'Turn 1: KPI question',
+          question: 'What are the most important metrics to track for inventory management?',
+          rules: [{ type: 'contains_any', keywords: ['turnover', 'stock', 'reorder', 'level', 'days', 'shrinkage', 'metric', 'kpi', 'inventory'], description: 'Lists inventory KPIs' }],
+        },
+        {
+          label: 'Turn 2: frequency follow-up',
+          question: 'How often should I review those metrics?',
+          rules: [{ type: 'contains_any', keywords: ['daily', 'weekly', 'monthly', 'regularly', 'review', 'frequency', 'schedule', 'monitor'], description: 'Recommends review frequency' }],
+        },
+      ],
+    },
+  ],
+  daniel: [
+    {
+      id: 'DANIEL-MT-01', category: 'MT', categoryName: '多轮对话',
+      description: 'Profit margin concept then calculation',
+      turns: [
+        {
+          label: 'Turn 1: definition',
+          question: 'What is gross margin?',
+          rules: [{ type: 'contains_any', keywords: ['revenue', 'cost', 'goods', 'cogs', 'profit', 'percentage', 'gross', 'margin'], description: 'Explains gross margin' }],
+        },
+        {
+          label: 'Turn 2: application',
+          question: 'If my revenue is $50,000 and my COGS is $30,000, what is my gross margin?',
+          rules: [{ type: 'contains_any', keywords: ['40', '20,000', '20000', '$20', 'percent', '%'], description: 'Calculates correct gross margin (40%)' }],
+        },
+      ],
+    },
+  ],
+  cody: [
+    {
+      id: 'CODY-MT-01', category: 'MT', categoryName: '多轮对话',
+      description: 'SEO concept then practical application',
+      turns: [
+        {
+          label: 'Turn 1: concept',
+          question: 'What is keyword density and why does it matter for SEO?',
+          rules: [{ type: 'contains_any', keywords: ['keyword', 'density', 'frequency', 'seo', 'content', 'search', 'rank'], description: 'Explains keyword density' }],
+        },
+        {
+          label: 'Turn 2: specific guidance',
+          question: 'What is the recommended keyword density percentage for a product page?',
+          rules: [{ type: 'contains_any', keywords: ['1%', '2%', '3%', 'percent', 'natural', 'avoid', 'stuffing', 'recommend'], description: 'Gives specific keyword density guidance' }],
+        },
+      ],
+    },
+  ],
+};
+
 // ── UUID helper ──────────────────────────────────────────────
 function uuidv4(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -1009,6 +1129,128 @@ async function sendQuestion(session: Session, question: string): Promise<{ text:
   }
 }
 
+// ── Multi-turn: send with fixed conversation ID ───────────────
+async function sendQuestionInConversation(
+  session: Session,
+  question: string,
+  conversationId: string,
+): Promise<{ text: string; statusCode: number; latencyMs: number }> {
+  const body = JSON.parse(JSON.stringify(session.bodyTemplate)) as Record<string, unknown>;
+  if ('requestId' in body)       body['requestId']       = uuidv4();
+  if ('conversation_id' in body) body['conversation_id'] = conversationId;
+  if ('sessionId' in body)       body['sessionId']       = conversationId;
+
+  const msgFields = ['message', 'content', 'text', 'query', 'input', 'prompt', 'userMessage', 'msg'];
+  for (const f of msgFields) {
+    if (f in body) { body[f] = question; break; }
+  }
+  if (Array.isArray(body['messages'])) {
+    const msgs = body['messages'] as Array<Record<string, unknown>>;
+    const last = msgs[msgs.length - 1];
+    if (last?.['content'] !== undefined) last['content'] = question;
+    else msgs.push({ role: 'user', content: question });
+  }
+
+  const cleanHeaders: Record<string, string> = {};
+  for (const [k, v] of Object.entries(session.headers)) {
+    if (['content-length', 'host', 'connection', 'transfer-encoding'].includes(k.toLowerCase())) continue;
+    cleanHeaders[k] = v;
+  }
+  cleanHeaders['content-type'] = 'application/json';
+
+  const start = Date.now();
+  try {
+    const res = await fetch(session.endpoint, {
+      method: 'POST',
+      headers: cleanHeaders,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(90000),
+    });
+    const statusCode = res.status;
+    const raw = await res.text();
+    let text = raw;
+    try {
+      const json = JSON.parse(raw) as Record<string, unknown>;
+      if (Array.isArray(json['messages'])) {
+        const msgs = json['messages'] as Array<Record<string, unknown>>;
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          const m = msgs[i];
+          if (m['role'] !== 'assistant') continue;
+          const rawContent = m['content'];
+          if (typeof rawContent !== 'string') continue;
+          try {
+            const parts = JSON.parse(rawContent) as Array<Record<string, unknown>>;
+            const assembled = parts.map(p => {
+              const inner = p['content'] as Record<string, unknown> | undefined;
+              return typeof inner?.['text'] === 'string' ? inner['text'] : '';
+            }).filter(Boolean).join('\n\n');
+            if (assembled.length > 0) { text = assembled; break; }
+          } catch { if (rawContent.trim() !== question.trim()) { text = rawContent; break; } }
+        }
+      }
+      if (!text || text === raw) {
+        for (const key of ['response', 'answer', 'reply', 'content', 'output', 'result', 'text']) {
+          const val = json[key];
+          if (typeof val === 'string' && val.length > 0) { text = val; break; }
+        }
+      }
+    } catch { /* use raw */ }
+    if (raw.includes('data: ')) {
+      const parts: string[] = [];
+      for (const line of raw.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]' || data === '') continue;
+        try {
+          const chunk = JSON.parse(data) as Record<string, unknown>;
+          const delta = chunk['delta'] as Record<string, unknown> | undefined;
+          if (delta?.['type'] === 'text_delta' && delta?.['text']) { parts.push(String(delta['text'])); continue; }
+          const choices = chunk['choices'] as Array<Record<string, unknown>> | undefined;
+          if (choices?.[0]) {
+            const d = choices[0]['delta'] as Record<string, unknown> | undefined;
+            if (d?.['content']) { parts.push(String(d['content'])); continue; }
+          }
+        } catch { /* skip */ }
+      }
+      if (parts.length > 0) text = parts.join('');
+    }
+    return { text, statusCode, latencyMs: Date.now() - start };
+  } catch {
+    return { text: '', statusCode: 0, latencyMs: Date.now() - start };
+  }
+}
+
+async function runMultiTurnTests(agent: string, session: Session): Promise<MultiTurnResult[]> {
+  const cases = MULTI_TURN_CASES[agent] || [];
+  if (cases.length === 0) return [];
+
+  console.log(`\n  ── MT 多轮对话 (${cases.length} cases) ──`);
+  const results: MultiTurnResult[] = [];
+
+  for (const tc of cases) {
+    process.stdout.write(`    [${tc.id}] ${tc.description}...\n`);
+    const conversationId = uuidv4();
+    const turnResults: MultiTurnResult['turns'] = [];
+    let allPassed = true;
+
+    for (const turn of tc.turns) {
+      process.stdout.write(`      ${turn.label}...  `);
+      const { text, latencyMs } = await sendQuestionInConversation(session, turn.question, conversationId);
+      const ruleResults = turn.rules.map(r => ({ rule: r.description, ...evaluateRule(r, text) }));
+      const passed = ruleResults.every(r => r.passed);
+      const failReason = passed ? undefined : ruleResults.filter(r => !r.passed).map(r => r.detail).join('; ');
+      if (!passed) allPassed = false;
+      console.log(`${passed ? '✓' : '✗'} ${latencyMs}ms`);
+      if (!passed) console.log(`          ↳ FAIL: ${failReason}`);
+      turnResults.push({ label: turn.label, question: turn.question, response: text.substring(0, 300), latencyMs, passed, failReason });
+    }
+
+    results.push({ id: tc.id, category: 'MT', categoryName: tc.categoryName, description: tc.description, passed: allPassed, turns: turnResults });
+  }
+
+  return results;
+}
+
 // ── Run tests for one agent ──────────────────────────────────
 async function runAccuracyTests(agent: string): Promise<void> {
   const cases = TEST_CASES[agent];
@@ -1080,6 +1322,14 @@ async function runAccuracyTests(agent: string): Promise<void> {
     console.log(`  ${icon} ${cat} ${catName}: ${p}/${t}${skipNote}`);
   }
 
+  // Multi-turn tests
+  const multiTurnResults = await runMultiTurnTests(agent, session);
+  const mtPassed = multiTurnResults.filter(r => r.passed).length;
+  if (multiTurnResults.length > 0) {
+    const icon = mtPassed === multiTurnResults.length ? '✅' : mtPassed === 0 ? '❌' : '⚠️';
+    console.log(`  ${icon} MT 多轮对话: ${mtPassed}/${multiTurnResults.length}`);
+  }
+
   console.log(`${'═'.repeat(60)}`);
 
   // Load auto-generated test ID tracking
@@ -1115,6 +1365,7 @@ async function runAccuracyTests(agent: string): Promise<void> {
     totalCases: taggedResults.length,
     skippedCases: skipped,
     evaluatedCases: evaluated,
+    multiTurn: { total: multiTurnResults.length, passed: mtPassed, results: multiTurnResults },
     passed,
     failed: evaluated - passed,
     successRate: parseFloat(rate),

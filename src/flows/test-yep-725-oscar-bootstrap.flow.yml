@@ -1,0 +1,238 @@
+name: test-yep-725-oscar-bootstrap
+description: |
+  YEP-725 — Oscar cannot respond in chat.
+  Regression: opens Oscar chat, sends a simple question, and verifies:
+    1. No "Digital Staff bootstrap failed" / "did not reach RUNNING" error is shown.
+    2. Oscar actually returns a non-empty reply within a reasonable time.
+
+steps:
+  - include: _shared/login.steps.yml
+
+  - id: nav-oscar
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team/operation/chat"
+      waitUntil: "networkidle"
+
+  - id: wait-load
+    action: wait
+    params:
+      ms: 5000
+
+  - id: screenshot-loaded
+    action: browser.screenshot
+    params:
+      name: "yep725-01-oscar-loaded"
+
+  # ── Step 1: Check that the bootstrap error is NOT on the page ──
+  - id: check-no-bootstrap-error
+    action: browser.execute
+    params:
+      script: |
+        var bodyText = document.body ? document.body.innerText : '';
+        var patterns = [
+          /Digital Staff bootstrap failed/i,
+          /did not reach RUNNING/i,
+          /bootstrap failed/i
+        ];
+        var hits = [];
+        patterns.forEach(function(re) {
+          if (re.test(bodyText)) hits.push(re.toString());
+        });
+        return {
+          hasError: hits.length > 0,
+          matchedPatterns: hits,
+          snippet: bodyText.substring(0, 500)
+        };
+    output: bootstrapCheck
+    continueOnError: true
+
+  - id: log-bootstrap-check
+    action: log
+    params:
+      message: "Bootstrap error check: {{bootstrapCheck}}"
+
+  - id: assert-no-bootstrap-error
+    action: browser.execute
+    params:
+      script: |
+        var bodyText = document.body ? document.body.innerText : '';
+        if (/Digital Staff bootstrap failed/i.test(bodyText) ||
+            /did not reach RUNNING/i.test(bodyText)) {
+          throw new Error('BOOTSTRAP ERROR FOUND: ' + bodyText.substring(0, 300));
+        }
+        return 'OK: no bootstrap error present';
+
+  # ── Step 2: Verify chat input is present ──
+  - id: wait-input
+    action: browser.waitForSelector
+    params:
+      selector: "textarea"
+      timeout: 15000
+
+  - id: snapshot-before
+    action: browser.execute
+    params:
+      script: |
+        // Snapshot current AI bubbles so we can detect a NEW reply
+        window.__snapBefore = Array.from(document.querySelectorAll('[class*="rounded-2xl"]'))
+          .filter(function(b) { return !b.className.includes('purple'); })
+          .map(function(b) { return b.textContent.trim().substring(0, 60); });
+        return { count: window.__snapBefore.length, snapshots: window.__snapBefore };
+    output: beforeSend
+
+  - id: log-before
+    action: log
+    params:
+      message: "Before send: {{beforeSend}}"
+
+  # ── Step 3: Send a normal question ──
+  - id: fill-question
+    action: form.fillSingle
+    params:
+      selector: "textarea"
+      value: "Hello Oscar, can you help me with order management?"
+
+  - id: send-question
+    action: browser.execute
+    params:
+      script: |
+        var inp = document.querySelector('textarea');
+        if (!inp) return { sent: false, reason: 'no textarea' };
+        // Try submit button first
+        var form = inp.closest('form');
+        var btn = null;
+        if (form) btn = form.querySelector('button[type="submit"]');
+        if (!btn && inp.parentElement) {
+          btn = inp.parentElement.querySelector('button[type="submit"]') ||
+                inp.parentElement.querySelector('button');
+        }
+        if (btn && !btn.disabled) {
+          btn.click();
+          return { sent: true, via: 'button' };
+        }
+        // Fallback: dispatch Enter key
+        var ev = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true });
+        inp.dispatchEvent(ev);
+        return { sent: true, via: 'enter' };
+    output: sendResult
+
+  - id: log-send
+    action: log
+    params:
+      message: "Send result: {{sendResult}}"
+
+  # ── Step 4: Wait for reply ──
+  - id: wait-for-reply
+    action: browser.execute
+    params:
+      script: |
+        return new Promise(function(resolve) {
+          var start = Date.now();
+          var timeoutMs = 60000; // 60s for Oscar to reply
+          var snapBefore = window.__snapBefore || [];
+          var interval = setInterval(function() {
+            var elapsed = Date.now() - start;
+            // Also check for bootstrap error mid-wait
+            var bodyText = document.body ? document.body.innerText : '';
+            var hasBootstrapErr = /Digital Staff bootstrap failed/i.test(bodyText) ||
+                                  /did not reach RUNNING/i.test(bodyText);
+            if (hasBootstrapErr) {
+              clearInterval(interval);
+              resolve({
+                success: false,
+                reason: 'bootstrap_error_appeared',
+                elapsed: elapsed,
+                snippet: bodyText.substring(0, 300)
+              });
+              return;
+            }
+            var current = Array.from(document.querySelectorAll('[class*="rounded-2xl"]'))
+              .filter(function(b) { return !b.className.includes('purple'); })
+              .map(function(b) { return b.textContent.trim(); });
+            var newReply = current.find(function(txt) {
+              if (txt.length < 15) return false;
+              var head = txt.substring(0, 60);
+              return snapBefore.indexOf(head) === -1;
+            });
+            if (newReply) {
+              clearInterval(interval);
+              // Extra wait for streaming to finish
+              setTimeout(function() {
+                var finalCurrent = Array.from(document.querySelectorAll('[class*="rounded-2xl"]'))
+                  .filter(function(b) { return !b.className.includes('purple'); })
+                  .map(function(b) { return b.textContent.trim(); });
+                var finalReply = finalCurrent.find(function(txt) {
+                  var head = txt.substring(0, 60);
+                  return txt.length > 15 && snapBefore.indexOf(head) === -1;
+                }) || newReply;
+                resolve({
+                  success: true,
+                  elapsed: Date.now() - start,
+                  replyLength: finalReply.length,
+                  replyPreview: finalReply.substring(0, 250)
+                });
+              }, 3000);
+              return;
+            }
+            if (elapsed > timeoutMs) {
+              clearInterval(interval);
+              resolve({
+                success: false,
+                reason: 'timeout',
+                elapsed: elapsed,
+                bodySnippet: bodyText.substring(0, 300)
+              });
+            }
+          }, 1000);
+        });
+    output: replyResult
+
+  - id: log-reply
+    action: log
+    params:
+      message: "Reply result: {{replyResult}}"
+
+  - id: screenshot-after
+    action: browser.screenshot
+    params:
+      name: "yep725-02-after-reply"
+
+  # ── Step 5: Final assertion: bootstrap error still absent + Oscar replied ──
+  - id: final-assertion
+    action: browser.execute
+    params:
+      script: |
+        var bodyText = document.body ? document.body.innerText : '';
+        var errors = [];
+        if (/Digital Staff bootstrap failed/i.test(bodyText)) {
+          errors.push('bootstrap failed message present');
+        }
+        if (/did not reach RUNNING/i.test(bodyText)) {
+          errors.push('"did not reach RUNNING" message present');
+        }
+        // Check AI produced a reply
+        var snapBefore = window.__snapBefore || [];
+        var current = Array.from(document.querySelectorAll('[class*="rounded-2xl"]'))
+          .filter(function(b) { return !b.className.includes('purple'); })
+          .map(function(b) { return b.textContent.trim(); });
+        var newReplies = current.filter(function(txt) {
+          var head = txt.substring(0, 60);
+          return txt.length > 15 && snapBefore.indexOf(head) === -1;
+        });
+        if (newReplies.length === 0) {
+          errors.push('Oscar did not produce a new reply');
+        }
+        if (errors.length > 0) {
+          throw new Error('YEP-725 FAIL: ' + errors.join(' | '));
+        }
+        return {
+          pass: true,
+          newReplyCount: newReplies.length,
+          firstReplyPreview: newReplies[0] ? newReplies[0].substring(0, 200) : ''
+        };
+
+  - id: done
+    action: log
+    params:
+      message: "YEP-725 regression test complete."

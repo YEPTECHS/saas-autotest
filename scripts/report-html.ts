@@ -69,6 +69,7 @@ interface AgentSummary {
   failed:      number;
   rate:        number;
   sections:    SectionSummary[];
+  latency?:    { avg: number; p95: number };
 }
 
 interface SectionSummary {
@@ -84,6 +85,7 @@ interface RowData { id: string; name: string; status: string; detail: string }
 function extractSummary(agent: string, files: ReportFile[]): AgentSummary {
   const sections: SectionSummary[] = [];
   let totalPassed = 0, totalTests = 0;
+  let latencyStats: { avg: number; p95: number } | undefined;
 
   // ── API Stress ──
   const stressFile = files.find(f =>
@@ -137,6 +139,16 @@ function extractSummary(agent: string, files: ReportFile[]): AgentSummary {
     }
     sections.push({ label: accLabel, passed: p, total: t, rate: t > 0 ? p/t : 0, rows });
     totalPassed += p; totalTests += t;
+
+    const latencies: number[] = (accFile.data.results || [])
+      .map((r: any) => r.latencyMs as number)
+      .filter((ms: number) => typeof ms === 'number' && ms > 0)
+      .sort((a: number, b: number) => a - b);
+    if (latencies.length > 0) {
+      const avg = Math.round(latencies.reduce((s, v) => s + v, 0) / latencies.length);
+      const p95idx = Math.min(Math.floor(latencies.length * 0.95), latencies.length - 1);
+      latencyStats = { avg, p95: latencies[p95idx] };
+    }
   }
 
   // ── Boundary tests (bnd-*.json arrays) ──
@@ -163,7 +175,7 @@ function extractSummary(agent: string, files: ReportFile[]): AgentSummary {
   }
 
   const rate = totalTests > 0 ? (totalPassed / totalTests) * 100 : 0;
-  return { agent, totalTests, passed: totalPassed, failed: totalTests - totalPassed, rate, sections };
+  return { agent, totalTests, passed: totalPassed, failed: totalTests - totalPassed, rate, sections, latency: latencyStats };
 }
 
 // ── Accuracy trend ────────────────────────────────────────────
@@ -287,11 +299,15 @@ function renderSection(sec: SectionSummary): string {
 
 function renderAgentCard(s: AgentSummary): string {
   const cls = s.rate >= 80 ? 'good' : s.rate >= 60 ? 'warn' : 'bad';
+  const latencyHtml = s.latency
+    ? `<div class="agent-sub">⚡ avg ${(s.latency.avg / 1000).toFixed(1)}s · p95 ${(s.latency.p95 / 1000).toFixed(1)}s</div>`
+    : '';
   return `
 <div class="agent-card ${cls}">
   <div class="agent-name">${s.agent.toUpperCase()}</div>
   <div class="agent-rate">${s.rate.toFixed(0)}%</div>
   <div class="agent-sub">${s.passed}/${s.totalTests} tests passed</div>
+  ${latencyHtml}
 </div>`;
 }
 
@@ -483,6 +499,10 @@ function buildHtml(summaries: AgentSummary[], generatedAt: string): string {
 // ── Slack ─────────────────────────────────────────────────────
 
 async function postToSlack(summaries: AgentSummary[], date: string): Promise<void> {
+  if (!SLACK_WEBHOOK) {
+    console.warn('[Slack] SLACK_WEBHOOK_URL not set — skipping');
+    return;
+  }
   const lines = [
     `*[YepAI Agent Tests] Report — ${date}*`,
     '',
