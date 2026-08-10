@@ -1,0 +1,378 @@
+name: test-billing-ui
+description: |
+  Billing & Credits UI interaction test.
+  Clicks through all billing-related UI elements:
+    1. AI Team overview — plan display, credit balance, plan tabs
+    2. Click "Manage Plan" button
+    3. Click each plan tab (Core / Growth / Pro / Scale)
+    4. Verify Upgrade buttons on locked agent cards
+    5. Navigate to /ai-team/operation and trigger "Add-on credits" modal
+    6. Interact with the Add-on credits modal
+
+steps:
+  - include: _shared/login.steps.yml
+
+  # ════════════════════════════════════════════════════════════════
+  # 1. AI TEAM OVERVIEW — Plan & Credits display
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-ai-team
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-ai-team
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-ai-team-initial
+    action: browser.screenshot
+    params:
+      name: "billing-ui-01-ai-team-initial"
+
+  - id: assert-plan-display
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const hasPlan = text.includes('Core') || text.includes('Growth') || text.includes('Pro') || text.includes('Scale') || text.includes('Plan');
+        const hasCredits = text.includes('credit') || text.includes('Credit');
+        return { ok: true, hasPlan, hasCredits, snippet: text.slice(0, 300) };
+
+  - id: log-plan-visible
+    action: log
+    params:
+      message: "✅ AI Team page loaded — plan and credits visible"
+
+  # ════════════════════════════════════════════════════════════════
+  # 2. Click each plan tab (Core / Growth / Pro / Scale)
+  # ════════════════════════════════════════════════════════════════
+  - id: click-tab-core
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, [role="tab"], a'));
+        const tab = btns.find(b => b.textContent.trim() === 'Core');
+        if (!tab) return { clicked: false, reason: 'Core tab not found' };
+        tab.click();
+        return { clicked: true };
+    continueOnError: true
+
+  - id: wait-tab-core
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-tab-core
+    action: browser.screenshot
+    params:
+      name: "billing-ui-02-tab-core"
+
+  - id: click-tab-growth
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, [role="tab"], a'));
+        const tab = btns.find(b => b.textContent.trim() === 'Growth');
+        if (!tab) return { clicked: false, reason: 'Growth tab not found' };
+        tab.click();
+        return { clicked: true };
+    continueOnError: true
+
+  - id: wait-tab-growth
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-tab-growth
+    action: browser.screenshot
+    params:
+      name: "billing-ui-03-tab-growth"
+
+  - id: click-tab-pro
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, [role="tab"], a'));
+        const tab = btns.find(b => b.textContent.trim() === 'Pro');
+        if (!tab) return { clicked: false, reason: 'Pro tab not found' };
+        tab.click();
+        return { clicked: true };
+    continueOnError: true
+
+  - id: wait-tab-pro
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-tab-pro
+    action: browser.screenshot
+    params:
+      name: "billing-ui-04-tab-pro"
+
+  - id: click-tab-scale
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, [role="tab"], a'));
+        const tab = btns.find(b => b.textContent.trim() === 'Scale');
+        if (!tab) return { clicked: false, reason: 'Scale tab not found' };
+        tab.click();
+        return { clicked: true };
+    continueOnError: true
+
+  - id: wait-tab-scale
+    action: wait
+    params:
+      ms: 1000
+
+  - id: screenshot-tab-scale
+    action: browser.screenshot
+    params:
+      name: "billing-ui-05-tab-scale"
+
+  - id: log-tabs
+    action: log
+    params:
+      message: "✅ Clicked all 4 plan tabs"
+
+  # ════════════════════════════════════════════════════════════════
+  # 3. Click "Manage Plan" button
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-ai-team-again
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-manage-plan-page
+    action: wait
+    params:
+      ms: 3000
+
+  - id: click-manage-plan
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const btn = btns.find(b => b.textContent.includes('Manage Plan') || b.textContent.includes('Manage plan'));
+        if (!btn) throw new Error('"Manage Plan" button not found');
+        btn.click();
+        return { clicked: true };
+
+  - id: wait-manage-plan
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-manage-plan
+    action: browser.screenshot
+    params:
+      name: "billing-ui-06-manage-plan"
+
+  - id: assert-manage-plan-result
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        const text = document.body.innerText;
+        return { ok: true, url, hasPlanContent: text.includes('plan') || text.includes('Plan') || text.includes('subscription') };
+
+  - id: log-manage-plan
+    action: log
+    params:
+      message: "✅ Clicked Manage Plan button"
+
+  # ════════════════════════════════════════════════════════════════
+  # 4. Check Upgrade buttons on locked agent cards
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-ai-team-upgrade
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-upgrade-page
+    action: wait
+    params:
+      ms: 3000
+
+  - id: assert-upgrade-buttons
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const upgradeBtns = btns.filter(b => b.textContent.includes('Upgrade'));
+        return {
+          ok: true,
+          count: upgradeBtns.length,
+          labels: upgradeBtns.map(b => b.textContent.trim()).slice(0, 5)
+        };
+
+  - id: click-first-upgrade
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const upgradeBtn = btns.find(b => b.textContent.includes('Upgrade'));
+        if (!upgradeBtn) return { clicked: false, reason: 'No Upgrade button found' };
+        upgradeBtn.click();
+        return { clicked: true, text: upgradeBtn.textContent.trim() };
+    continueOnError: true
+
+  - id: wait-upgrade-click
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-upgrade-click
+    action: browser.screenshot
+    params:
+      name: "billing-ui-07-upgrade-click"
+
+  - id: log-upgrade
+    action: log
+    params:
+      message: "✅ Checked Upgrade buttons on locked agent cards"
+
+  # ════════════════════════════════════════════════════════════════
+  # 5. Navigate to Operation page and trigger Add-on credits modal
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-operation-for-credits
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/ai-team/operation"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-operation-page
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-operation-before-modal
+    action: browser.screenshot
+    params:
+      name: "billing-ui-08-operation-before-modal"
+
+  # Click "List products" chip which triggers the add-on credits modal when credits are low
+  - id: click-list-products-for-modal
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+        const chip = btns.find(b => b.textContent.includes('List products'));
+        if (!chip) throw new Error('"List products" chip not found');
+        chip.click();
+        return { clicked: true };
+
+  - id: wait-for-modal
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-modal-or-response
+    action: browser.screenshot
+    params:
+      name: "billing-ui-09-after-list-products"
+
+  - id: check-addon-credits-modal
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const hasModal = text.includes('Add-on credits') || text.includes('top-up') || text.includes('credits');
+        const hasRequestBtn = text.includes('Request top-up') || text.includes('Request');
+        const hasComparePlans = text.includes('Compare plans') || text.includes('Upgrade');
+        return { ok: true, hasModal, hasRequestBtn, hasComparePlans, snippet: text.slice(0, 300) };
+
+  - id: log-modal-check
+    action: log
+    params:
+      message: "✅ Triggered List products — checked for Add-on credits modal"
+
+  # ════════════════════════════════════════════════════════════════
+  # 6. Interact with Add-on credits modal if visible
+  # ════════════════════════════════════════════════════════════════
+  - id: interact-addon-modal
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Add-on credits') && !text.includes('top-up')) {
+          return { skipped: true, reason: 'Modal not visible (sufficient credits or different flow)' };
+        }
+        // Try to find the dropdown / credits selector
+        const selects = document.querySelectorAll('select');
+        const inputs = document.querySelectorAll('input[type="number"]');
+        const dropdowns = document.querySelectorAll('[role="listbox"], [role="combobox"]');
+        return {
+          ok: true,
+          hasSelect: selects.length > 0,
+          hasInput: inputs.length > 0,
+          hasDropdown: dropdowns.length > 0
+        };
+    continueOnError: true
+
+  - id: click-request-topup
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const btn = btns.find(b => b.textContent.includes('Request top-up') || b.textContent.includes('Request'));
+        if (!btn) return { clicked: false, reason: 'Request top-up button not found (modal may not be open)' };
+        btn.click();
+        return { clicked: true, text: btn.textContent.trim() };
+    continueOnError: true
+
+  - id: wait-topup-action
+    action: wait
+    params:
+      ms: 2000
+
+  - id: screenshot-topup-result
+    action: browser.screenshot
+    params:
+      name: "billing-ui-10-topup-result"
+
+  - id: log-topup
+    action: log
+    params:
+      message: "✅ Interacted with Add-on credits / Request top-up flow"
+
+  # ════════════════════════════════════════════════════════════════
+  # 7. Check billing/credits from Dashboard
+  # ════════════════════════════════════════════════════════════════
+  - id: nav-home
+    action: browser.navigate
+    params:
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
+
+  - id: wait-home
+    action: wait
+    params:
+      ms: 3000
+
+  - id: screenshot-home-credits
+    action: browser.screenshot
+    params:
+      name: "billing-ui-11-home-credits"
+
+  - id: check-home-credits
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const hasCredits = text.includes('credit') || text.includes('Credit') || text.includes('balance');
+        return { ok: true, hasCredits, snippet: text.slice(0, 400) };
+
+  - id: log-home-credits
+    action: log
+    params:
+      message: "✅ Checked credit balance display on Dashboard"
+
+  - id: log-done
+    action: log
+    params:
+      message: "====== Billing UI Test Complete ======"

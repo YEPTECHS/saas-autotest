@@ -1,42 +1,257 @@
-# YepAI Dashboard Page — Basic Stub Test
-# Verifies the /dashboard route loads after login.
-# NOTE: Existing test-home covers "/" but not "/dashboard" explicitly.
-
 name: test-dashboard-basic
-description: Stub test for the Dashboard page (/dashboard) — verifies route loads and renders main content
+description: |
+  Dashboard page comprehensive test (new design).
+  Verifies all 6 main areas:
+    1. Performance Overview cards (Revenue, Orders, Sessions, Conversion Rate, Health Score)
+    2. Needs your attention section (Critical / Attention / Opportunity / Discounts)
+    3. Top 5 products by sales
+    4. Orders & Conversion
+    5. Your AI Workspace panel (Maya + second agent cards)
+    6. Left sidebar navigation
 
 steps:
-  # Shared login flow
   - include: _shared/login.steps.yml
 
-  # Navigate to dashboard
+  # ── Navigate to dashboard ────────────────────────────────────────
   - id: navigate-dashboard
     action: browser.navigate
     params:
-      url: "{{YEPAI_BASE_URL}}/dashboard"
-      waitUntil: "networkidle"
+      url: "{{YEPAI_BASE_URL}}/home"
+      waitUntil: "domcontentloaded"
 
-  # Wait for main content to render
-  - id: wait-main-content
-    action: browser.waitForSelector
+  - id: wait-load
+    action: wait
     params:
-      selector: "main, h1, [class*='dashboard'], [class*='content']"
-      timeout: 15000
+      ms: 4000
 
-  # Verify sidebar is present (confirms we're inside the app shell)
-  - id: verify-sidebar
-    action: browser.waitForSelector
-    params:
-      selector: "[class*='sidebar'], nav, aside"
-      timeout: 5000
-
-  # Capture a screenshot for visual reference
-  - id: screenshot-dashboard
+  - id: screenshot-initial
     action: browser.screenshot
     params:
-      name: "dashboard-basic"
+      name: "dashboard-01-initial"
 
-  - id: log-success
+  # ════════════════════════════════════════════════════════════════
+  # 1. Performance Overview
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-performance-overview-heading
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Performance Overview')) {
+          throw new Error('Performance Overview section not found');
+        }
+        return { ok: true };
+
+  - id: assert-revenue-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        if (!text.includes('REVENUE')) throw new Error('Revenue card not found');
+        return { ok: true };
+
+  - id: assert-orders-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        if (!text.includes('ORDERS')) throw new Error('Orders card not found');
+        return { ok: true };
+
+  - id: assert-sessions-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        if (!text.includes('SESSIONS')) throw new Error('Sessions card not found');
+        return { ok: true };
+
+  - id: assert-conversion-rate-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        if (!text.includes('CONVERSION RATE') && !text.includes('CONVERSION')) {
+          throw new Error('Conversion Rate card not found');
+        }
+        return { ok: true };
+
+  - id: assert-health-score-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        if (!text.includes('HEALTH SCORE') && !text.includes('HEALTH')) {
+          throw new Error('Health Score card not found');
+        }
+        const match = text.match(/(\d+)\s*\/\s*100/);
+        return { ok: true, healthScore: match ? match[1] + '/100' : 'visible' };
+
+  - id: screenshot-performance
+    action: browser.screenshot
+    params:
+      name: "dashboard-02-performance-overview"
+
+  # ════════════════════════════════════════════════════════════════
+  # 2. Needs Your Attention
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-needs-attention-section
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Needs your attention') && !text.includes('Needs Your Attention')) {
+          throw new Error('"Needs your attention" section not found');
+        }
+        return { ok: true };
+
+  - id: assert-attention-tiles
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText.toUpperCase();
+        const missing = [];
+        if (!text.includes('CRITICAL'))   missing.push('CRITICAL');
+        if (!text.includes('ATTENTION'))  missing.push('ATTENTION');
+        if (!text.includes('OPPORTUNITY')) missing.push('OPPORTUNITY');
+        if (!text.includes('DISCOUNT'))   missing.push('DISCOUNTS');
+        if (missing.length > 0) throw new Error('Missing tiles: ' + missing.join(', '));
+        return { ok: true, tiles: ['CRITICAL', 'ATTENTION', 'OPPORTUNITY', 'DISCOUNTS'] };
+
+  # ════════════════════════════════════════════════════════════════
+  # 3. Top 5 Products
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-top-products-section
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Top 5') && !text.includes('top 5') && !text.includes('products by sales')) {
+          throw new Error('Top 5 products section not found');
+        }
+        return { ok: true };
+
+  # ════════════════════════════════════════════════════════════════
+  # 4. Orders & Conversion
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-orders-conversion-section
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Orders & Conversion') && !text.includes('Orders and Conversion')) {
+          throw new Error('Orders & Conversion section not found');
+        }
+        return { ok: true };
+
+  - id: screenshot-lower-sections
+    action: browser.screenshot
+    params:
+      name: "dashboard-03-orders-products"
+
+  # ════════════════════════════════════════════════════════════════
+  # 5. Your AI Workspace (right panel)
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-ai-workspace-panel
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('AI Workspace') && !text.includes('Your AI Workspace')) {
+          throw new Error('"Your AI Workspace" panel not found');
+        }
+        return { ok: true };
+
+  - id: assert-maya-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        if (!text.includes('Maya')) throw new Error('Maya card not found in AI Workspace');
+        return { ok: true };
+
+  - id: assert-send-message-button
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const sendBtn = btns.find(b => b.textContent && b.textContent.includes('Send message'));
+        if (!sendBtn) throw new Error('"Send message" button not found');
+        return { ok: true };
+
+  - id: assert-second-agent-card
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const hasSecond = text.includes('Rebecca') || text.includes('Customer Support');
+        return { ok: true, secondAgent: hasSecond ? 'visible' : 'not visible (account may vary)' };
+
+  - id: screenshot-ai-workspace
+    action: browser.screenshot
+    params:
+      name: "dashboard-04-ai-workspace"
+
+  # ════════════════════════════════════════════════════════════════
+  # 6. Left Sidebar Navigation
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-sidebar-links
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const missing = [];
+        if (!text.includes('Home'))         missing.push('Home');
+        if (!text.includes('AI Team'))      missing.push('AI Team');
+        if (!text.includes('Integration'))  missing.push('Integrations');
+        if (missing.length > 0) throw new Error('Sidebar missing: ' + missing.join(', '));
+        return { ok: true };
+
+  # ════════════════════════════════════════════════════════════════
+  # 7. Date Period Selector
+  # ════════════════════════════════════════════════════════════════
+  - id: assert-date-picker
+    action: browser.execute
+    params:
+      script: |
+        const text = document.body.innerText;
+        const hasPeriod = /last\s*\d+\s*days|this month|last month/i.test(text);
+        return { ok: true, periodVisible: hasPeriod };
+
+  # ════════════════════════════════════════════════════════════════
+  # 8. Click "Send message" → navigates to Maya chat
+  # ════════════════════════════════════════════════════════════════
+  - id: click-send-message-maya
+    action: browser.execute
+    params:
+      script: |
+        const btns = Array.from(document.querySelectorAll('button, a'));
+        const sendBtn = btns.find(b => b.textContent && b.textContent.includes('Send message'));
+        if (!sendBtn) throw new Error('"Send message" button not found');
+        sendBtn.click();
+        return { clicked: true };
+
+  - id: wait-navigation
+    action: wait
+    params:
+      ms: 2000
+
+  - id: assert-navigated-to-agent-chat
+    action: browser.execute
+    params:
+      script: |
+        const url = window.location.href;
+        if (!url.includes('marketing') && !url.includes('maya') && !url.includes('chat') && !url.includes('ai-team')) {
+          throw new Error('Expected navigation to agent chat, got: ' + url);
+        }
+        return { ok: true, url };
+
+  - id: screenshot-chat-navigated
+    action: browser.screenshot
+    params:
+      name: "dashboard-05-chat-navigated"
+
+  - id: log-done
     action: log
     params:
-      message: "Dashboard page stub test completed successfully!"
+      message: "Dashboard comprehensive test complete — all sections verified."
