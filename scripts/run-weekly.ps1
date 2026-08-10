@@ -11,15 +11,15 @@ function Log($msg) {
 
 Log "=== YepAI Weekly Full Test Run ==="
 
-# ── 1. API Stress ──────────────────────────────────────────
-Log "--- API Stress: Maya ---"
-pnpm stress:api:maya 2>&1 | Tee-Object -FilePath $logFile -Append
+# ── 1. WebSocket Stress (replaces old HTTP API stress — app uses WS now) ──
+Log "--- WS Stress: Maya ---"
+pnpm stress:ws:maya 2>&1 | Tee-Object -FilePath $logFile -Append
 
-Log "--- API Stress: Oscar ---"
-pnpm stress:api:oscar 2>&1 | Tee-Object -FilePath $logFile -Append
+Log "--- WS Stress: Oscar ---"
+pnpm stress:ws:oscar 2>&1 | Tee-Object -FilePath $logFile -Append
 
-Log "--- API Stress: Daniel ---"
-pnpm stress:api:daniel 2>&1 | Tee-Object -FilePath $logFile -Append
+Log "--- WS Stress: Daniel ---"
+pnpm stress:ws:daniel 2>&1 | Tee-Object -FilePath $logFile -Append
 
 # ── 2. Tab Isolation ───────────────────────────────────────
 Log "--- Tab Isolation: Maya ---"
@@ -52,7 +52,20 @@ pnpm ds:run:weekly 2>&1 | Tee-Object -FilePath $logFile -Append
 Log "--- DS Email Report ---"
 pnpm ds:email:report 2>&1 | Tee-Object -FilePath $logFile -Append
 
-# ── 6. HTML Report + Email ─────────────────────────────────
+# ── 6. UI Interaction Flows ────────────────────────────────
+Log "--- UI: Dashboard ---"
+pnpm test:ui:dashboard 2>&1 | Tee-Object -FilePath $logFile -Append
+
+Log "--- UI: Marketing buttons ---"
+pnpm test:ui:marketing 2>&1 | Tee-Object -FilePath $logFile -Append
+
+Log "--- UI: Operation buttons ---"
+pnpm test:ui:operation 2>&1 | Tee-Object -FilePath $logFile -Append
+
+Log "--- UI: Billing & Credits ---"
+pnpm test:ui:billing 2>&1 | Tee-Object -FilePath $logFile -Append
+
+# ── 7. HTML Report + Email ─────────────────────────────────
 Log "--- Generating HTML Report and Sending Email ---"
 pnpm report:html:email 2>&1 | Tee-Object -FilePath $logFile -Append
 
