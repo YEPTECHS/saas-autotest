@@ -1,21 +1,19 @@
-// BDD 第 5 节：第 3 项——店铺 agent 改走 LiteLLM + 商家 vkey。
+// 改造后（无开关，09-28）。BDD 第 5 节：第 3 项——店铺 agent 改走 LiteLLM + 商家 vkey（yepairag 36fc34b6）。
+// B3-5（「开关已开、第 3 项未上」的漏计窗口）、B3-6（不含第 3 项时 R2 重试回归）已删：无开关后不存在这两种部署状态。
 // 前置阻塞（BDD 0.1 / Q30）：dev LiteLLM 上要先挂好 PREMIUM_LLM_MODEL / PREMIUM_LLM_MODEL_STABLE 两个 Gemini 别名，否则整轮 500。
 import { test, expect } from '@playwright/test';
-import { merchant, requireSwitch, requireWhitelistOnlyConcierge, env, nowIso, cfg } from '../lib/config';
+import { merchant, requireWhitelistOnlyConcierge, nowIso, cfg } from '../lib/config';
 import { adminPage, visitor, visitorRound, visitorSend, balance, waitBalance, aiBubbleCount, history, debitsSince } from '../lib/web';
 import {
   LOG, ensureYepairagPath, waitW23, w23Rows, isRagVkey, byAlias, rowsPerRequest, sumCredits, logsSince, count, TEXT_RETIRED, TEXT_SENT,
-  expectNoVkeyErrors, expectNoW23, sql, CHAT_MEMORY_FROM,
+  expectNoVkeyErrors, expectNoW23, sql, gateDeny,
 } from '../lib/backend';
 
-test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
-  test.beforeEach(() => {
-    requireSwitch('on');
-    requireWhitelistOnlyConcierge();
-  });
+test.describe('改造后 第 3 项：店铺 agent 走 LiteLLM', () => {
+  test.beforeEach(() => requireWhitelistOnlyConcierge());
 
   // B3-1 新套餐商家的店铺访客对话计入该商家 W23 账户
-  test('B3-1 店铺对话计入商家：主回复行 ≥1、路由行 1–4、每个 request_id 1 行', async ({ browser }) => {
+  test('B3-1 [BL-1b → 改造后] 店铺对话计入商家：主回复行 ≥1、路由行 1–4、每个 request_id 1 行', async ({ browser }) => {
     const m = merchant('NEW');
     const admin = await adminPage(browser, m);
     const A = await balance(admin, m.tenant);
@@ -40,7 +38,7 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
   });
 
   // B3-2 老套餐（已发止血额度）商家的店铺对话开始扣费
-  test('B3-2 老套餐店铺对话开始扣费', async ({ browser }) => {
+  test('B3-2 [BL-12 → 改造后] 老套餐店铺对话走 yepairag 并开始扣费（W23 有该商家行，余额减少）', async ({ browser }) => {
     const m = merchant('LEGACY');
     const admin = await adminPage(browser, m);
     const A = await balance(admin, m.tenant);
@@ -55,7 +53,7 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
   });
 
   // B3-3 同一轮对话不能既进 LiteLLM 又发 SQS text 事件（防重复计费）
-  test('B3-3 不重复计费：text rail retired、无 kind=text、余额减少 = 本轮 credits 之和', async ({ browser }) => {
+  test('B3-3 [BL-1b → 改造后] 不重复计费：这一轮 [CreditUsage] text rail retired、无 kind=text、W23 无 source≠litellm 行、余额减少 = 本轮 credits 之和', async ({ browser }) => {
     const m = merchant('NEW');
     const admin = await adminPage(browser, m);
     const A = await balance(admin, m.tenant);
@@ -64,7 +62,7 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
     const { conv } = await visitorRound(page, w, 'What is your return policy?');
     const log = await ensureYepairagPath(m.tenant, since, conv);
     expect(count(log, TEXT_RETIRED)).toBeGreaterThanOrEqual(1);
-    expect(count(log, TEXT_SENT), '开关打开后不应再发 kind=text').toBe(0);
+    expect(count(log, TEXT_SENT), '改造后不应再发 SQS kind=text').toBe(0);
     const rows = await waitW23(m.tenant, since, (r) => r.some(byAlias(cfg.mainModel)));
     expect(rowsPerRequest(rows).every((n) => n === 1)).toBe(true);
     const nonLitellm = sql(
@@ -78,8 +76,8 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
     expect(A - B).toBeCloseTo(sumCredits(w23Rows(m.tenant, since)), 2);
   });
 
-  // B3-4 白名单商家不被重复计费（concierge，每个 request_id 恰好 2 行，与 R0-3 一致）
-  test('B3-4 白名单 concierge：每个 request_id 恰好 2 行', async ({ browser }) => {
+  // B3-4 白名单商家不被重复计费（concierge，每个 request_id 恰好 2 行，与 BL-1a 一致）
+  test('B3-4 [BL-1a → 改造后] 白名单 concierge 不受影响：不打 yepairag /responseV3，每个 request_id 恰好 2 行', async ({ browser }) => {
     const m = merchant('WHITELIST', false);
     const since = nowIso();
     const { page, w } = await visitor(browser, m);
@@ -90,53 +88,8 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
     expect(rowsPerRequest(rows).every((n) => n === 2)).toBe(true);
   });
 
-  // B3-5 ADK 改造没上而开关已打开时，对账检查必须报出主回复漏计（造故障：需部署不含第 3 项的镜像，单独授权）
-  test('B3-5 漏计窗口：有路由行、主回复行 0，对账判「主回复漏计」', async ({ browser }) => {
-    test.skip(env('E2E_B35_DEPLOYED') !== '1', '需要在 dev 部署不含第 3 项的 yepairag 镜像并打开开关——改部署，需单独授权（E2E_B35_DEPLOYED=1）');
-    test.skip(cfg.mainModel === cfg.routeModel, 'PREMIUM_LLM_MODEL 与 PREMIUM_LLM_MODEL_STABLE 取值相同，无法区分主回复');
-    const m = merchant('NEW', false);
-    const since = nowIso();
-    const { page, w } = await visitor(browser, m);
-    for (const q of ['Do you ship to Australia?', 'What is your return policy?', 'Do you have gift cards?']) {
-      const { conv } = await visitorRound(page, w, q);
-      const round = await ensureYepairagPath(m.tenant, since, conv);
-      expect(count(round, TEXT_RETIRED), `conversation_id=${conv} 这一轮应 text rail retired`).toBe(1);
-    }
-    const rows = await waitW23(m.tenant, since, (r) => r.some(byAlias(cfg.routeModel)));
-    expect(rows.filter(byAlias(cfg.routeModel)).length).toBeGreaterThan(0);
-    expect(rows.filter(byAlias(cfg.mainModel)).length).toBe(0);
-    const rounds = Number(
-      sql(
-        'YEPAIRAG_DATABASE_URL',
-        `SELECT count(DISTINCT e.invocation_id) AS n FROM ${CHAT_MEMORY_FROM}
-         WHERE e.author = 'root_main_agent' AND NOT s.is_preview AND s.tenant_id::text = :'uid'
-           AND e.timestamp >= (:'since'::timestamptz AT TIME ZONE 'UTC')`,
-        { uid: m.tenant, since },
-      )[0]?.n ?? 0,
-    );
-    const mainRows = rows.filter(byAlias(cfg.mainModel)).length;
-    // 对账判定（Q21 口径）：主回复行数 < 轮数 → 漏计
-    expect(rounds).toBe(3);
-    expect(mainRows < rounds, `对账应判定「主回复漏计」：轮数 ${rounds}，主回复行 ${mainRows}`).toBe(true);
-  });
-
-  // B3-6 回归（R2 不改，BDD 第 5 版）：主 agent 直连 Gemini 时，格式错误的工具调用仍由直连 OpenAI 的重试兜住【故障注入，默认 skip】
-  test('B3-6 R2 不改：注入 MALFORMED → 重试兜住、访客有回复、LiteLLM 侧查不到重试', async ({ browser }) => {
-    test.skip(env('E2E_FAULT_INJECTION') !== 'before', '需要 dev 部署不含第 3 项的 yepairag 并设 GOOGLE_GEMINI_BASE_URL→mock 注入 MALFORMED_FUNCTION_CALL——改部署，需单独授权（E2E_FAULT_INJECTION=before）');
-    const m = merchant('NEW', false);
-    const since = nowIso();
-    const { page, w } = await visitor(browser, m);
-    await visitorRound(page, w, 'Do you have this in size M?');
-    const rag = logsSince('YEPAIRAG_LOGS', since);
-    expect(rag).toContain('LLM error: FinishReason.MALFORMED_FUNCTION_CALL');
-    expect(rag).not.toContain('retry failed');
-    // 直连 OpenAI 的重试不经过 LiteLLM：该时间窗内 W23 不应出现 OpenAI 模型的行（主 agent 本身也直连 Gemini，不含第 3 项时应为 0 行主回复）
-    await new Promise((r) => setTimeout(r, 90_000));
-    expect(w23Rows(m.tenant, since).filter(byAlias(cfg.mainModel)), '不含第 3 项时主回复和重试都不应出现在 W23').toEqual([]);
-  });
-
-  // B3-7 零余额商家在开关打开后仍被 chatbot 余额闸门拦下，yepairag 不产生调用
-  test('B3-7 零余额商家被 storefront-forward 闸门拦下', async ({ browser }) => {
+  // B3-7 零余额商家改造后仍被 chatbot 余额闸门拦下，yepairag 不产生调用
+  test('B3-7 [BL-6 → 改造后] 零余额商家被 storefront-forward 闸门拦下，无 AI 回复，无 W23 行', async ({ browser }) => {
     const m = merchant('ZERO', false);
     const since = nowIso();
     const { page, w } = await visitor(browser, m);
@@ -146,14 +99,14 @@ test.describe('第 3 项：店铺 agent 走 LiteLLM', () => {
     const body = await res.json();
     expect(body.subtype).toBe('visit_limits_reached');
     expect(String(body.errorMessage)).toMatch(/^INSUFFICIENT_CREDITS:/);
-    expect(logsSince('CHATBOT_LOGS', since)).toContain('[Bill][gate] deny storefront-forward');
+    expect(logsSince('CHATBOT_LOGS', since)).toContain(gateDeny('storefront-forward', m.tenant));
     await page.waitForTimeout(30_000);
     expect(await aiBubbleCount(w)).toBe(before);
     await expectNoW23(m.tenant, since);
   });
 
-  // B3-8 知识问答（ADK 查知识库）在开关打开后能回答，并计入商家（含查询向量化，R5）
-  test('B3-8 知识问答：依据 FAQ 回答，有主回复行和向量化行', async ({ browser }) => {
+  // B3-8 知识问答（ADK 查知识库）改造后能回答，并计入商家（含查询向量化，R5）
+  test('B3-8 [BL-3/BL-9 → 改造后] 知识问答：依据 FAQ 回答，有主回复行和向量化行，全是商家 rag vkey', async ({ browser }) => {
     const m = merchant('NEW', false);
     const since = nowIso();
     const { page, w } = await visitor(browser, m);

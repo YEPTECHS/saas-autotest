@@ -105,7 +105,7 @@ export function overdraftRows(tenant: string, since: string): Record<string, str
   );
 }
 
-/** 某个模型别名在时间窗内的全部 W23 行（不限商家；B9-3 用来证明「没有记到任何商家」）。 */
+/** 某个模型别名在时间窗内的全部 W23 行（不限商家；B9-3 用来证明「没有记到任何商家」——平台 vkey 的行可能记在平台账户下，按 account_key 过滤）。 */
 export function w23RowsByAlias(alias: string, since: string): Record<string, string>[] {
   return sql(
     'W23_DATABASE_URL',
@@ -151,13 +151,15 @@ export const LOG = {
 /** MCP 工具调用：access 日志路径里带商家（W32 round3 实测样例）。 */
 export const mcpAccess = (tenant: string) => new RegExp(`POST /yepairag/mcp/[^/]+/${tenant}/mcp`);
 
-/** chatbot 余额闸门拒绝日志：storefront-forward 实测为 "[Bill][gate] deny storefront-forward"，其它入口同一个闸门类，按同格式带 entry 标签。
- *  kb-train、预览的标签由实现定（W3 建议 kb-train），不同就用 E2E_GATE_LABEL_<KEY> 覆盖。 */
-export const gateDeny = (label: string) => `[Bill][gate] deny ${label}`;
-export const gateLabel = (key: 'KB_TRAIN' | 'PREVIEW', dflt: string) => env(`E2E_GATE_LABEL_${key}`) || dflt;
+/** chatbot 余额闸门拒绝日志（BillBalanceGate.java）：`[Bill][gate] deny <entry> user=<租户> — …`。
+ *  entry 标签（chatbot-api feature/jifei3 实现）：storefront-forward、preview、kb-train、asr、human-support-summary。 */
+export const gateDeny = (label: string, tenant?: string) => `[Bill][gate] deny ${label}${tenant ? ` user=${tenant}` : ''}`;
+
+/** 店铺 agent「工具调用格式错误」的识别日志（yepairag callback.py）：`agent <name> LLM error: FinishReason.<OTHER|MALFORMED_FUNCTION_CALL>`。 */
+export const MALFORMED_LOG = /LLM error: FinishReason\.(OTHER|MALFORMED_FUNCTION_CALL)/;
 
 /** 还定不下来的日志特征（由实现决定）：从 E2E_LOGPAT_<KEY> 读正则，没配就 skip，不猜。 */
-export function unverifiedLogPattern(key: 'MALFORMED_OTHER' | 'ALREADY_PROCESSING'): RegExp {
+export function unverifiedLogPattern(key: 'ALREADY_PROCESSING'): RegExp {
   const v = env(`E2E_LOGPAT_${key}`);
   test.skip(!v, `日志文字由实现决定、尚未确定：E2E_LOGPAT_${key}`);
   return new RegExp(v);

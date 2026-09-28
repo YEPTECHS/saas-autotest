@@ -1,24 +1,22 @@
-// BDD 第 9 节：dev 打开开关后的整体验收。
+// 改造后（无开关，09-28）。BDD 第 9 节：改造后代码部署 dev 后的整体验收。
 import { test, expect } from '@playwright/test';
-import { merchant, requireSwitch, requireWhitelistOnlyConcierge, requireEnv, env, nowIso, cfg, sleep } from '../lib/config';
+import { merchant, requireWhitelistOnlyConcierge, requireEnv, env, nowIso, cfg, sleep } from '../lib/config';
 import { adminPage, visitor, visitorRound, previewSend, waitReplyAfter, openInboxConversation, marker } from '../lib/web';
 import { logsSince, count, VKEY_ERRORS, UNKNOWN_MODEL, ensureYepairagPath, waitW23, byAlias, expectNoVkeyErrors } from '../lib/backend';
 
-test.describe('dev 开关打开：整体验收', () => {
-  test.beforeEach(() => requireSwitch('on'));
-
+test.describe('改造后 dev 整体验收', () => {
   // D-1 dev 连续 24 小时日志干净
-  test('D-1 开关打开起 24 小时无 VkeyMissing / LiteLLMBaseMissing / Unknown model', async () => {
-    requireEnv('E2E_SWITCH_ON_AT');
-    const since = env('E2E_SWITCH_ON_AT');
-    test.skip(Date.now() - Date.parse(since) < 24 * 3600_000, '开关打开未满 24 小时');
+  test('D-1 [BL-无 → 改造后] 部署起 24 小时 yepairag 无 VkeyMissing / LiteLLMBaseMissing / Unknown model', async () => {
+    requireEnv('E2E_DEPLOYED_AT');
+    const since = env('E2E_DEPLOYED_AT');
+    test.skip(Date.now() - Date.parse(since) < 24 * 3600_000, '部署未满 24 小时');
     const log = logsSince('YEPAIRAG_LOGS', since);
     for (const e of [...VKEY_ERRORS, UNKNOWN_MODEL]) expect(count(log, e), e).toBe(0);
   });
 
   // D-2 入口各跑一次，都能在 W23 里看到对应记录。
   // ⚠️ 线索意图已判「不改、放行」（不记商家），这里只跑店铺对话、知识问答、会话摘要三个（BDD D-2 需同步，缺口）
-  test('D-2 店铺对话 / 知识问答 / 会话摘要各有 W23 记录', async ({ browser }) => {
+  test('D-2 [BL-1b/BL-3/BL-2 → 改造后] 店铺对话 / 知识问答 / 会话摘要各有 W23 记录', async ({ browser }) => {
     requireWhitelistOnlyConcierge();
     const m = merchant('NEW');
     const tag = marker('d2');
@@ -43,8 +41,8 @@ test.describe('dev 开关打开：整体验收', () => {
     test.info().annotations.push({ type: 'SQL-W23 结果', description: JSON.stringify({ shop, kb, sum }) });
   });
 
-  // D-3 开关打开后，后台 Anna 预览仍能回复，用量同样记到商家（预览带商家 vkey，Q17；余额 > 0 时过闸门，第 10 项）
-  test('D-3 预览能回复，W23 有归属商家的行', async ({ browser }) => {
+  // D-3 改造后，后台 Anna 预览仍能回复，用量同样记到商家（预览带商家 vkey，Q17；余额 > 0 时过闸门，第 10 项）
+  test('D-3 [BL-4 → 改造后] 余额 > 0 商家预览能回复（过 preview 闸门放行），W23 有归属商家的行', async ({ browser }) => {
     requireWhitelistOnlyConcierge();
     const m = merchant('NEW');
     const admin = await adminPage(browser, m);

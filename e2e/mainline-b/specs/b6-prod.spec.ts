@@ -1,14 +1,15 @@
-// BDD 第 8 节：第 6 项 + 上线第 3 步（prod）。全部只读；每次运行都要人类授权（requireProdReadonly）。
+// 改造后（无开关，09-28）。BDD 第 8 节：第 6 项 + prod 发版。全部只读；每次运行都要人类授权（requireProdReadonly）。
+// 无开关 = 发版即切换：B6-1 / B6-2 必须在 prod 发版前通过；B6-3（「发版后开关仍关闭，仍发 kind=text」）已删。
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { requireProdReadonly, requireEnv, env, cfg } from '../lib/config';
 import { logsSince, count, VKEY_ERRORS, RECORDED_ECOMMERCE, TEXT_SENT, TEXT_RETIRED, sql, chatbotConfigValue, deploymentImage, CHAT_MEMORY_FROM } from '../lib/backend';
 
-test.describe('prod（只读）', () => {
+test.describe('改造后 prod（只读）', () => {
   test.beforeEach(() => requireProdReadonly());
 
-  // B6-1 打开 prod 开关前：litellm-prod 已配置所需模型（当前已知必然失败：缺两个 Gemini 别名和 Google 凭据，Q30）
-  test('B6-1 litellm-prod 有主回复 / 路由 / 向量化 / 语音别名，且能调通', async ({ request }) => {
+  // B6-1 prod 发版前：litellm-prod 已配置所需模型（当前已知必然失败：缺两个 Gemini 别名和 Google 凭据，Q30）
+  test('B6-1 [BL-无 → 改造后，发版前置] litellm-prod 有主回复 / 路由 / 向量化 / 语音别名，且能调通', async ({ request }) => {
     requireEnv('LITELLM_PROD_BASE_URL', 'LITELLM_PROD_TEST_VKEY');
     const base = env('LITELLM_PROD_BASE_URL');
     const key = env('LITELLM_PROD_TEST_VKEY');
@@ -23,8 +24,8 @@ test.describe('prod（只读）', () => {
     }
   });
 
-  // B6-2 打开 prod 开关前：yepairag prod 能连到 litellm-prod（kubectl exec 进 prod pod，需单独授权）
-  test('B6-2 yepairag prod → litellm-prod 连通', async () => {
+  // B6-2 prod 发版前：yepairag prod 能连到 litellm-prod（kubectl exec 进 prod pod，需单独授权）
+  test('B6-2 [BL-无 → 改造后，发版前置] yepairag prod → litellm-prod 连通', async () => {
     test.skip(env('E2E_ALLOW_PROD_EXEC') !== '1', '需要 kubectl exec 进 yepairag prod pod，执行人待定（Q15），需单独授权（E2E_ALLOW_PROD_EXEC=1）');
     requireEnv('YEPAIRAG_PROD_EXEC', 'LITELLM_PROD_INTERNAL_URL');
     const out = execFileSync('kubectl', ['exec', ...env('YEPAIRAG_PROD_EXEC').split(/\s+/), '--', 'python', '-c',
@@ -32,30 +33,10 @@ test.describe('prod（只读）', () => {
     expect(out.trim()).toBe('200');
   });
 
-  // B6-3 prod 发版后、开关仍关闭时，线上行为不变（观察 24 小时）
-  test('B6-3 发版后 24 小时：仍发 kind=text，无 vkey 报错，回复量与发版前相当', async () => {
-    requireEnv('E2E_PROD_RELEASED_AT');
-    const at = env('E2E_PROD_RELEASED_AT');
-    test.skip(Date.now() - Date.parse(at) < 24 * 3600_000, '发版未满 24 小时');
-    const log = logsSince('YEPAIRAG_LOGS', at);
-    const rec = count(log, RECORDED_ECOMMERCE);
-    expect(count(log, TEXT_SENT), '每条 Recorded conversation 后应仍有 kind=text').toBeGreaterThanOrEqual(rec);
-    for (const e of VKEY_ERRORS) expect(count(log, e)).toBe(0);
-    const [r] = sql(
-      'YEPAIRAG_DATABASE_URL',
-      `SELECT sum(CASE WHEN e.timestamp >= x.t THEN 1 ELSE 0 END) AS after, sum(CASE WHEN e.timestamp < x.t THEN 1 ELSE 0 END) AS before
-       FROM ${CHAT_MEMORY_FROM} CROSS JOIN (SELECT (:'at'::timestamptz AT TIME ZONE 'UTC') AS t) x
-       WHERE e.author = 'root_main_agent' AND NOT s.is_preview AND e.timestamp >= x.t - interval '24 hours' AND e.timestamp < x.t + interval '24 hours'`,
-      { at },
-    );
-    // 「相当」的阈值未定：先按不低于发版前 50% 判
-    expect(Number(r.after)).toBeGreaterThanOrEqual(Number(r.before) * 0.5);
-  });
-
-  // P-1 打开 prod 开关前：部署版本含第 3、4、5、7 项，chatbot 配置和版本含第 1、2 项
-  test('P-1 prod 镜像含改造提交，chatbot VKEY_HEADER_NAME 正确', async () => {
+  // P-1 prod 发版后：部署版本含 yepairag 第 3、4、5、7、9 项，chatbot 含第 1、2、9、10 项；chatbot 没把 rag 头名覆盖成别的
+  test('P-1 [BL-无 → 改造后] prod 镜像含改造提交，chatbot 未覆盖 vkey.rag-header-name', async () => {
     requireEnv('YEPAIRAG_PROD_DEPLOY', 'CHATBOT_PROD_DEPLOY', 'E2E_REQUIRED_COMMITS_YEPAIRAG', 'E2E_REQUIRED_COMMITS_CHATBOT', 'YEPAIRAG_REPO', 'CHATBOT_REPO');
-    expect(chatbotConfigValue('VKEY_HEADER_NAME')).toBe('X-Yep-Rag-Vkey');
+    for (const k of ['VKEY_RAGHEADERNAME', 'VKEY_RAG_HEADER_NAME']) expect(['', 'X-Yep-Rag-Vkey'], k).toContain(chatbotConfigValue(k));
     const check = (deploy: string, repo: string, commits: string) => {
       const tag = deploymentImage(deploy).split(':').pop() ?? '';
       const sha = tag.replace(/^prod-/, '');
@@ -66,17 +47,17 @@ test.describe('prod（只读）', () => {
         } catch {
           ok = false;
         }
-        expect(ok, `镜像 ${tag} 不含提交 ${c}（${repo}）——不得打开 prod 开关`).toBe(true);
+        expect(ok, `镜像 ${tag} 不含提交 ${c}（${repo}）——prod 跑的不是改造后版本`).toBe(true);
       }
     };
     check(env('YEPAIRAG_PROD_DEPLOY'), env('YEPAIRAG_REPO'), env('E2E_REQUIRED_COMMITS_YEPAIRAG'));
     check(env('CHATBOT_PROD_DEPLOY'), env('CHATBOT_REPO'), env('E2E_REQUIRED_COMMITS_CHATBOT'));
   });
 
-  // P-2 prod 开关打开后：有店铺对话的商家主回复行数 ≥ 非预览轮数（对账，第 1 / 24 小时各一次）
-  test('P-2 对账：每家商家主回复行 ≥ 非预览 ecommerce 轮数', async () => {
-    requireEnv('E2E_SWITCH_ON_AT');
-    const since = env('E2E_SWITCH_ON_AT');
+  // P-2 prod 发版后：有店铺对话的商家主回复行数 ≥ 非预览轮数（对账，第 1 / 24 小时各一次）
+  test('P-2 [BL-1b → 改造后] 对账：每家商家主回复行 ≥ 非预览 ecommerce 轮数', async () => {
+    requireEnv('E2E_DEPLOYED_AT');
+    const since = env('E2E_DEPLOYED_AT');
     // 商家 = sessions.tenant_id，预览 = sessions.is_preview（W32）
     const rounds = sql(
       'YEPAIRAG_DATABASE_URL',
@@ -104,11 +85,11 @@ test.describe('prod（只读）', () => {
     expect(count(log, TEXT_RETIRED)).toBeGreaterThanOrEqual(count(log, RECORDED_ECOMMERCE));
   });
 
-  // P-3 prod 开关打开后 24 小时：日志干净，MCP 工具照常可用（成功率口径未定，Q16）
-  test('P-3 开关打开 24 小时：无 vkey 报错；MCP 成功率与打开前相当', async () => {
-    requireEnv('E2E_SWITCH_ON_AT');
-    const since = env('E2E_SWITCH_ON_AT');
-    test.skip(Date.now() - Date.parse(since) < 24 * 3600_000, '开关打开未满 24 小时');
+  // P-3 prod 发版后 24 小时：日志干净，MCP 工具照常可用（成功率口径未定，Q16）
+  test('P-3 [BL-9 → 改造后] 发版 24 小时：无 vkey 报错；MCP 成功率与发版前相当', async () => {
+    requireEnv('E2E_DEPLOYED_AT');
+    const since = env('E2E_DEPLOYED_AT');
+    test.skip(Date.now() - Date.parse(since) < 24 * 3600_000, '发版未满 24 小时');
     const log = logsSince('YEPAIRAG_LOGS', since);
     for (const e of VKEY_ERRORS) expect(count(log, e)).toBe(0);
     test.skip(!env('E2E_MCP_SUCCESS_SQL'), 'MCP 工具成功率口径未定（Q16）：E2E_MCP_SUCCESS_SQL');

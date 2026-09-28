@@ -38,7 +38,8 @@ export function merchant(kind: MerchantKind, needLogin = true): Merchant {
   return m;
 }
 
-/** 需要的开关状态。 */
+/** 只给 specs/baseline（改造前现状基线，保留不动）用：那套是 RAG_METERING_ENABLED 关闭时写的。
+ *  用户 09-28 定：不要开关，代码一部署即切新方案——改造后用例一律不调用这个函数。 */
 export function requireSwitch(state: 'on' | 'off') {
   const cur = env('E2E_METERING_SWITCH');
   test.skip(cur !== state, `需要 RAG_METERING_ENABLED=${state}，当前声明为 "${cur || '未声明'}"（E2E_METERING_SWITCH）`);

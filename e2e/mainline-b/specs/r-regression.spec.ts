@@ -1,14 +1,12 @@
-// BDD 第 12 节：回归——改造不影响已接入 W23 的数字员工链路。
+// 改造后（无开关，09-28）。BDD 第 12 节：回归——改造不影响已接入 W23 的数字员工链路。
 import { test, expect } from '@playwright/test';
-import { merchant, requireSwitch, nowIso } from '../lib/config';
+import { merchant, nowIso } from '../lib/config';
 import { adminPage, balance, waitBalance, staffChatSend, waitPageGrows, brandIqAutoSetup, waitFor } from '../lib/web';
 import { waitW23, rowsPerRequest, isRagVkey } from '../lib/backend';
 
-test.describe('回归：数字员工', () => {
-  test.beforeEach(() => requireSwitch('on'));
-
-  // R-1 开关打开后，新套餐商家和 Oscar 聊天仍然正常扣费（每个 request_id 2 行，设计行为）
-  test('R-1 Oscar：先 precheck，有回复，余额减少，每个 request_id 恰好 2 行', async ({ browser }) => {
+test.describe('改造后 回归：数字员工', () => {
+  // R-1 改造后，新套餐商家和 Oscar 聊天仍然正常扣费（每个 request_id 2 行，设计行为）
+  test('R-1 [BL-8 Oscar → 改造后] Oscar：先 precheck，有回复，余额减少，每个 request_id 恰好 2 行', async ({ browser }) => {
     const m = merchant('NEW');
     const admin = await adminPage(browser, m);
     const A = await balance(admin, m.tenant);
@@ -23,8 +21,8 @@ test.describe('回归：数字员工', () => {
     expect(await waitBalance(admin, m.tenant, (v) => v < A)).toBeLessThan(A);
   });
 
-  // R-2 开关打开后，Brand IQ 一键设置（由 Maya 完成）照常完成并在 W23 计费（原 B5-2 改成的回归）
-  test('R-2 Brand IQ Auto Set Up → request-analysis，余额减少，每个 request_id 2 行', async ({ browser }) => {
+  // R-2 改造后，Brand IQ 一键设置（由 Maya 完成）照常完成并在 W23 计费（原 B5-2 改成的回归）
+  test('R-2 [BL-8 Maya → 改造后] Brand IQ Auto Set Up → request-analysis，余额减少，每个 request_id 2 行', async ({ browser }) => {
     const m = merchant('NEW');
     const admin = await adminPage(browser, m);
     const A = await balance(admin, m.tenant);
