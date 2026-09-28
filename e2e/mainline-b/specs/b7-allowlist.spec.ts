@@ -1,10 +1,10 @@
 // 改造后（无开关，09-28）。BDD 第 10 节：第 7 项——临时放行名单（MCP、选品报告、货源信号、商品工具，以及 E2E可写性判定里「不改」的 /activeLeads、/collect、/async-response）。
 // 放行名单集中在 yepairag core/llm/vkey_context.py PLATFORM_FALLBACK_ENTRIES：不带 vkey 用平台 vkey；其余入口没有 vkey 一律 VkeyMissing。
-// B7-2 请求体、集群内地址、判据按 W32-round3-logs-B7.txt；Q18（PM 定）：放行入口带 vkey 也走平台。
+// B7-2 请求体、集群内地址、判据按 W32-round3-logs-B7.txt；Q18 作废——PM 09-28 按实现改口径：放行入口带 vkey 记商家，不带走平台。
 import { test, expect } from '@playwright/test';
-import { merchant, requireEnv, env, nowIso, sleep } from '../lib/config';
+import { merchant, requireEnv, env, nowIso } from '../lib/config';
 import { adminPage, staffChatSend, waitPageGrows } from '../lib/web';
-import { logsSince, count, expectNoVkeyErrors, w23Rows, isRagVkey, waitW23, unverifiedLogPattern, mcpAccess, LOG } from '../lib/backend';
+import { logsSince, count, expectNoVkeyErrors, isRagVkey, waitW23, unverifiedLogPattern, mcpAccess, LOG } from '../lib/backend';
 
 // 集群内地址（老 dev）；本机跑要 kubectl port-forward 后改成 http://localhost:<port>
 const yep = () => env('YEPAIRAG_BASE_URL') || 'http://yepairag-dev.llm:8080';
@@ -89,10 +89,9 @@ test.describe('改造后 第 7 项：临时放行', () => {
     expect(count(logsSince('YEPAIRAG_LOGS', since), 'VkeyMissing')).toBeGreaterThanOrEqual(1);
   });
 
-  // B7-5 放行入口带上了有效商家 vkey 时，仍走平台出口、不记商家（Q18，PM 定）
-  // ⚠️ 与实现冲突：yepairag vkey_context._vkey_for「商家 vkey 有就用商家的」（0c695a44 提交说明：带了商家 vkey 用商家的）→ 按现实现本条会失败。
-  //   断言保留 Q18 口径不改，等 PM 决定改实现还是改 Q18。
-  test('B7-5 [BL-11 → 改造后] /tools/product 带商家 vkey → 结果非空，不记商家（Q18；与现实现冲突，见注释）', async ({ request }) => {
+  // B7-5 放行入口带上了有效商家 vkey 时记给该商家（yepairag vkey_context._vkey_for：商家 vkey 优先，不带才用平台 vkey）
+  // PM 09-28 按实现改口径：带 vkey 记商家（Q18「带 vkey 也走平台」作废）
+  test('B7-5 [BL-11 → 改造后] /tools/product 带商家 vkey → 结果非空，W23 有该商家 rag vkey 行（商品查询向量化）', async ({ request }) => {
     requireEnv('E2E_NEW_MERCHANT_VKEY');
     const m = merchant('NEW', false);
     const since = nowIso();
@@ -103,7 +102,9 @@ test.describe('改造后 第 7 项：临时放行', () => {
     expect(res.status()).toBe(200);
     expect(((await res.json()).Product_information ?? []).length).toBeGreaterThan(0);
     expectNoVkeyErrors(since);
-    await sleep(90_000);
-    expect(w23Rows(m.tenant, since), '放行入口走平台出口，不应记到商家').toEqual([]);
+    const rows = await waitW23(m.tenant, since, (r) => r.some(isRagVkey));
+    test.info().annotations.push({ type: 'SQL-W23 结果', description: JSON.stringify(rows) });
+    expect(rows.filter(isRagVkey).length, '带商家 vkey：应记到该商家').toBeGreaterThanOrEqual(1);
+    expect(rows.every((r) => r.merchant_account_key === `chatbot:acct:${m.tenant}`)).toBe(true);
   });
 });
