@@ -35,12 +35,15 @@ test.describe('改造后 第 4 项：关闭思考（老客服保持原样）', (
     const m = merchant('NEW', false);
     const since = nowIso();
     const { page, w } = await visitor(browser, m);
-    for (const q of QUESTIONS) {
+    for (const [i, q] of QUESTIONS.entries()) {
+      // 10 轮在同一个挂件会话里，conversation_id（= kind=text 的 sessionId）相同：
+      // 每轮单独取时间窗，窗口内该会话恰好 1 条 kind=text，前几轮的事件不落进来（v2 重跑 09-29 实测）
+      const roundSince = nowIso();
       const { reply, conv } = await visitorRound(page, w, q);
       expect(reply.length, q).toBeGreaterThan(0);
-      await ensureYepairagPath(m.tenant, since, conv);
-      // kind=text 在独立任务（taskName=sqs-credit-usage-*）里发，按全窗口 + sessionId 数（lib/backend textSentFor）
-      expect(await waitTextSent(since, conv), `conversation_id=${conv} 应发 1 条 kind=text`).toBe(1);
+      await ensureYepairagPath(m.tenant, roundSince, conv);
+      // kind=text 在独立任务（taskName=sqs-credit-usage-*）里发，按该轮时间窗 + sessionId 数（lib/backend textSentFor）
+      expect(await waitTextSent(roundSince, conv), `第 ${i + 1} 轮 conversation_id=${conv} 应发 1 条 kind=text`).toBe(1);
     }
     await sleep(90_000);
     expect(w23Rows(m.tenant, since).filter(isRagVkey), '老客服不走 LiteLLM：不应有该商家 rag vkey 的 W23 行').toEqual([]);
