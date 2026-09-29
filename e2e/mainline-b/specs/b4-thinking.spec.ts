@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { merchant, requireWhitelistOnlyConcierge, requireEnv, env, nowIso, sleep } from '../lib/config';
 import { visitor, visitorRound } from '../lib/web';
-import { ensureYepairagPath, w23Rows, sql, logsSince, count, CHAT_MEMORY_FROM, isRagVkey, TEXT_SENT } from '../lib/backend';
+import { ensureYepairagPath, w23Rows, sql, logsSince, CHAT_MEMORY_FROM, isRagVkey, waitTextSent } from '../lib/backend';
 
 const QUESTIONS = [
   'Do you ship to Australia?', 'What is your return policy?', 'Do you have gift cards?', 'How long does delivery take?', 'Can I change my order?',
@@ -38,8 +38,9 @@ test.describe('改造后 第 4 项：关闭思考（老客服保持原样）', (
     for (const q of QUESTIONS) {
       const { reply, conv } = await visitorRound(page, w, q);
       expect(reply.length, q).toBeGreaterThan(0);
-      const round = await ensureYepairagPath(m.tenant, since, conv);
-      expect(count(round, TEXT_SENT), `conversation_id=${conv} 应发 1 条 kind=text`).toBe(1);
+      await ensureYepairagPath(m.tenant, since, conv);
+      // kind=text 在独立任务（taskName=sqs-credit-usage-*）里发，按全窗口 + sessionId 数（lib/backend textSentFor）
+      expect(await waitTextSent(since, conv), `conversation_id=${conv} 应发 1 条 kind=text`).toBe(1);
     }
     await sleep(90_000);
     expect(w23Rows(m.tenant, since).filter(isRagVkey), '老客服不走 LiteLLM：不应有该商家 rag vkey 的 W23 行').toEqual([]);

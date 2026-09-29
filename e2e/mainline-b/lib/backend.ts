@@ -221,12 +221,29 @@ export function deploymentImage(spec: string): string {
   return execFileSync('kubectl', ['get', ...spec.split(/\s+/), '-o', 'jsonpath={.spec.template.spec.containers[*].image}'], { encoding: 'utf8' }).trim();
 }
 
+/** 某会话的 SQS text 事件条数（v2 实跑 09-29 实测）：发送在独立任务里（taskName=sqs-credit-usage-<hex>），不在这一轮的 taskName 下，
+ *  所以按「时间窗内全部 yepairag 日志」数：行里有 [CreditUsage] sent to、kind=text、sessionId=<conversation_id>（引号可能被外层 JSON 转义）。 */
+export function textSentFor(all: string, conversationId: string): number {
+  const q = '\\\\?"'; // 匹配 " 或 \"
+  const kind = new RegExp(`${q}kind${q}:\\s*${q}text${q}`);
+  const sess = new RegExp(`${q}sessionId${q}:\\s*${q}${conversationId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${q}`);
+  return all.split('\n').filter((l) => l.includes('[CreditUsage] sent to') && kind.test(l) && sess.test(l)).length;
+}
+
+/** 等这一会话的 kind=text 出现（独立任务，可能晚于 Recorded conversation 行），返回条数。 */
+export async function waitTextSent(since: string, conversationId: string): Promise<number> {
+  const all = await poll(() => logsSince('YEPAIRAG_LOGS', since), (l) => textSentFor(l, conversationId) > 0, 60_000, 10_000);
+  return textSentFor(all, conversationId);
+}
+
 /** 老店铺客服（/responseV3，ecommerce_concierge）保持改造前原样（用户 09-29；yepairag core/llm/legacy_storefront.py，老客服下线后删）。
- *  断言照 baseline BL-1b：这一轮走了 yepairag、发了 1 条 [CreditUsage] sent … kind=text、90 秒后 W23 没有该商家 rag vkey 行。返回这一轮日志。 */
+ *  断言照 baseline BL-1b：这一轮走了 yepairag；时间窗内该会话（sessionId=<conv>）恰好 1 条 kind=text；
+ *  时间窗内全部 yepairag 日志不出现 text rail retired——retired 行不带 sessionId、归不到会话，而 send_text_usage 只有 /responseV3 调、
+ *  老客服下永远走发送分支，所以口径是「整个窗口一条都不该有」；90 秒后 W23 没有该商家 rag vkey 行。返回这一轮日志。 */
 export async function expectLegacyStorefrontRound(tenant: string, since: string, conversationId: string): Promise<string> {
   const round = await ensureYepairagPath(tenant, since, conversationId);
-  expect(count(round, TEXT_SENT), '老客服这一轮应照旧发一条 [CreditUsage] sent … "kind": "text"').toBe(1);
-  expect(count(round, TEXT_RETIRED), '老客服不应走 text rail retired').toBe(0);
+  expect(await waitTextSent(since, conversationId), `老客服这一轮应照旧发一条 [CreditUsage] sent … kind=text（sessionId=${conversationId}）`).toBe(1);
+  expect(count(logsSince('YEPAIRAG_LOGS', since), TEXT_RETIRED), '老客服不应走 text rail retired（全窗口）').toBe(0);
   await new Promise((r) => setTimeout(r, 90_000));
   expect(w23Rows(tenant, since).filter(isRagVkey), '老客服不走 LiteLLM：不应有该商家 rag vkey 的 W23 行').toEqual([]);
   return round;
