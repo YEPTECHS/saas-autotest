@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 import { merchant, requireWhitelistOnlyConcierge, requireEnv, env, nowIso, cfg } from '../lib/config';
 import { adminPage, visitor, visitorRound, balance, waitBalance, openInboxConversation, marker, waitFor } from '../lib/web';
 import {
-  chatbotConfigValue, logsSince, count, ensureYepairagPath, waitW23, isRagVkey, rowsPerRequest, expectNoVkeyErrors, sumCredits, byAlias, LOG,
+  chatbotConfigValue, logsSince, count, expectLegacyStorefrontRound, waitW23, rowsPerRequest, expectNoVkeyErrors, sumCredits, byAlias, LOG,
 } from '../lib/backend';
 
 test.describe('改造后 第 1 项：vkey 请求头名字', () => {
@@ -19,21 +19,15 @@ test.describe('改造后 第 1 项：vkey 请求头名字', () => {
     expect(count(logsSince('YEPAIRAG_LOGS', env('E2E_DEPLOYED_AT')), 'no rag vkey in request context')).toBe(0);
   });
 
-  // B1-2 店铺对话正常且计入商家（正向对照）
-  test('B1-2 [BL-1b → 改造后] 店铺对话正常，W23 有 rag vkey 行、归属该商家，余额减少', async ({ browser }) => {
+  // B1-2 店铺对话：老客服保持改造前原样（用户 09-29）。头名修复对店铺对话不产生计费差异，这里只守「和改造前一样」
+  test('B1-2 [BL-1b → 改造后：老客服保持原样] 店铺对话有回复，yepairag 有这一轮，发 kind=text，W23 无该商家 rag vkey 行', async ({ browser }) => {
     requireWhitelistOnlyConcierge();
-    const m = merchant('NEW');
-    const admin = await adminPage(browser, m);
-    const A = await balance(admin, m.tenant);
+    const m = merchant('NEW', false);
     const since = nowIso();
     const { page, w } = await visitor(browser, m);
-    const { conv } = await visitorRound(page, w, 'Do you ship to Australia?');
-    await ensureYepairagPath(m.tenant, since, conv);
-    const rows = await waitW23(m.tenant, since, (r) => r.some(isRagVkey));
-    test.info().annotations.push({ type: 'SQL-W23 结果', description: JSON.stringify(rows) });
-    expect(rows.filter(isRagVkey).length).toBeGreaterThanOrEqual(1);
-    expect(rows.every((r) => r.merchant_account_key === `chatbot:acct:${m.tenant}`)).toBe(true);
-    expect(await waitBalance(admin, m.tenant, (v) => v < A)).toBeLessThan(A);
+    const { reply, conv } = await visitorRound(page, w, 'Do you ship to Australia?');
+    expect(reply.length).toBeGreaterThan(0);
+    await expectLegacyStorefrontRound(m.tenant, since, conv);
     expectNoVkeyErrors(since);
   });
 

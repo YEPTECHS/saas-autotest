@@ -155,16 +155,6 @@ export const mcpAccess = (tenant: string) => new RegExp(`POST /yepairag/mcp/[^/]
  *  entry 标签（chatbot-api feature/jifei3 实现）：storefront-forward、preview、kb-train、asr、human-support-summary。 */
 export const gateDeny = (label: string, tenant?: string) => `[Bill][gate] deny ${label}${tenant ? ` user=${tenant}` : ''}`;
 
-/** 店铺 agent「工具调用格式错误」的识别日志（yepairag callback.py）：`agent <name> LLM error: FinishReason.<OTHER|MALFORMED_FUNCTION_CALL>`。 */
-export const MALFORMED_LOG = /LLM error: FinishReason\.(OTHER|MALFORMED_FUNCTION_CALL)/;
-
-/** 还定不下来的日志特征（由实现决定）：从 E2E_LOGPAT_<KEY> 读正则，没配就 skip，不猜。 */
-export function unverifiedLogPattern(key: 'ALREADY_PROCESSING'): RegExp {
-  const v = env(`E2E_LOGPAT_${key}`);
-  test.skip(!v, `日志文字由实现决定、尚未确定：E2E_LOGPAT_${key}`);
-  return new RegExp(v);
-}
-
 // chat_memory（W32）：events 挂到 sessions 上取商家和是否预览；timestamp 为 UTC
 export const CHAT_MEMORY_FROM = `chat_memory.events e JOIN chat_memory.sessions s ON s.app_name = e.app_name AND s.user_id = e.user_id AND s.id = e.session_id`;
 
@@ -229,4 +219,15 @@ export function chatbotConfigValue(key: string): string {
 
 export function deploymentImage(spec: string): string {
   return execFileSync('kubectl', ['get', ...spec.split(/\s+/), '-o', 'jsonpath={.spec.template.spec.containers[*].image}'], { encoding: 'utf8' }).trim();
+}
+
+/** 老店铺客服（/responseV3，ecommerce_concierge）保持改造前原样（用户 09-29；yepairag core/llm/legacy_storefront.py，老客服下线后删）。
+ *  断言照 baseline BL-1b：这一轮走了 yepairag、发了 1 条 [CreditUsage] sent … kind=text、90 秒后 W23 没有该商家 rag vkey 行。返回这一轮日志。 */
+export async function expectLegacyStorefrontRound(tenant: string, since: string, conversationId: string): Promise<string> {
+  const round = await ensureYepairagPath(tenant, since, conversationId);
+  expect(count(round, TEXT_SENT), '老客服这一轮应照旧发一条 [CreditUsage] sent … "kind": "text"').toBe(1);
+  expect(count(round, TEXT_RETIRED), '老客服不应走 text rail retired').toBe(0);
+  await new Promise((r) => setTimeout(r, 90_000));
+  expect(w23Rows(tenant, since).filter(isRagVkey), '老客服不走 LiteLLM：不应有该商家 rag vkey 的 W23 行').toEqual([]);
+  return round;
 }

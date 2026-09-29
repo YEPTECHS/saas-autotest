@@ -3,7 +3,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { requireProdReadonly, requireEnv, env, cfg } from '../lib/config';
-import { logsSince, count, VKEY_ERRORS, RECORDED_ECOMMERCE, TEXT_SENT, TEXT_RETIRED, sql, chatbotConfigValue, deploymentImage, CHAT_MEMORY_FROM } from '../lib/backend';
+import { logsSince, count, VKEY_ERRORS, RECORDED_ECOMMERCE, TEXT_SENT, TEXT_RETIRED, chatbotConfigValue, deploymentImage } from '../lib/backend';
 
 test.describe('改造后 prod（只读）', () => {
   test.beforeEach(() => requireProdReadonly());
@@ -33,7 +33,7 @@ test.describe('改造后 prod（只读）', () => {
     expect(out.trim()).toBe('200');
   });
 
-  // P-1 prod 发版后：部署版本含 yepairag 第 3、4、5、7、9 项，chatbot 含第 1、2、9、10 项；chatbot 没把 rag 头名覆盖成别的
+  // P-1 prod 发版后：部署版本含 yepairag 第 5、7、9 项（第 3、4 项 09-29 撤回，不上 prod），chatbot 含第 1、2、9、10 项；chatbot 没把 rag 头名覆盖成别的
   test('P-1 [BL-无 → 改造后] prod 镜像含改造提交，chatbot 未覆盖 vkey.rag-header-name', async () => {
     requireEnv('YEPAIRAG_PROD_DEPLOY', 'CHATBOT_PROD_DEPLOY', 'E2E_REQUIRED_COMMITS_YEPAIRAG', 'E2E_REQUIRED_COMMITS_CHATBOT', 'YEPAIRAG_REPO', 'CHATBOT_REPO');
     for (const k of ['VKEY_RAGHEADERNAME', 'VKEY_RAG_HEADER_NAME']) expect(['', 'X-Yep-Rag-Vkey'], k).toContain(chatbotConfigValue(k));
@@ -54,35 +54,15 @@ test.describe('改造后 prod（只读）', () => {
     check(env('CHATBOT_PROD_DEPLOY'), env('CHATBOT_REPO'), env('E2E_REQUIRED_COMMITS_CHATBOT'));
   });
 
-  // P-2 prod 发版后：有店铺对话的商家主回复行数 ≥ 非预览轮数（对账，第 1 / 24 小时各一次）
-  test('P-2 [BL-1b → 改造后] 对账：每家商家主回复行 ≥ 非预览 ecommerce 轮数', async () => {
+  // P-2 prod 发版后：老店铺客服保持原样（用户 09-29，第 3、4 项不上 prod）——每条 ecommerce Recorded conversation 仍发 kind=text，不走 text rail retired
+  test('P-2 [BL-1b → 改造后：老客服保持原样] prod 店铺对话照发 kind=text：kind=text 条数 ≥ Recorded ecommerce 条数，无 text rail retired', async () => {
     requireEnv('E2E_DEPLOYED_AT');
-    const since = env('E2E_DEPLOYED_AT');
-    // 商家 = sessions.tenant_id，预览 = sessions.is_preview（W32）
-    const rounds = sql(
-      'YEPAIRAG_DATABASE_URL',
-      `SELECT s.tenant_id::text AS tenant, count(DISTINCT e.invocation_id) AS n FROM ${CHAT_MEMORY_FROM}
-       WHERE e.author = 'root_main_agent' AND NOT s.is_preview AND e.timestamp >= (:'since'::timestamptz AT TIME ZONE 'UTC')
-       GROUP BY s.tenant_id`,
-      { since },
-    );
-    const main = sql(
-      'W23_DATABASE_URL',
-      `SELECT replace(a.creation_idempotency_key, 'chatbot:acct:', '') AS tenant, count(*) AS n
-       FROM "digital-staff-su".usage_records_v2 u JOIN "digital-staff-su".accounts a ON a.id = u.account_id
-       JOIN litellm."LiteLLM_SpendLogs" s ON s.request_id = u.source_event_id
-       WHERE u.source = 'litellm' AND a.platform = 'chatbot' AND s.model_group = :'main' AND u.occurred_at >= :'since'::timestamptz
-       GROUP BY 1`,
-      { since, main: cfg.mainModel },
-    );
-    const got = new Map(main.map((r) => [r.tenant, Number(r.n)]));
-    const white = env('E2E_WHITELIST_TENANT');
-    const short = rounds.filter((r) => r.tenant !== white && (got.get(r.tenant) ?? 0) < Number(r.n));
-    // 已知干扰：长耗时调用会被 W23 永久漏采（Q25），差异先按 SpendLogs 排除
-    expect(short, '有对话但主回复行不足的商家——判定漏计窗口，立即上报').toEqual([]);
-    const log = logsSince('YEPAIRAG_LOGS', since);
-    expect(count(log, TEXT_SENT)).toBe(0);
-    expect(count(log, TEXT_RETIRED)).toBeGreaterThanOrEqual(count(log, RECORDED_ECOMMERCE));
+    const log = logsSince('YEPAIRAG_LOGS', env('E2E_DEPLOYED_AT'));
+    const rec = count(log, RECORDED_ECOMMERCE);
+    test.info().annotations.push({ type: 'Recorded ecommerce / kind=text', description: `${rec} / ${count(log, TEXT_SENT)}` });
+    expect(count(log, TEXT_SENT)).toBeGreaterThanOrEqual(rec);
+    // send_text_usage 只有 /responseV3 调；它在老客服下永远走发送分支
+    expect(count(log, TEXT_RETIRED)).toBe(0);
   });
 
   // P-3 prod 发版后 24 小时：日志干净，MCP 工具照常可用（成功率口径未定，Q16）

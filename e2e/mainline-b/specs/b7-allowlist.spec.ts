@@ -1,10 +1,11 @@
 // 改造后（无开关，09-28）。BDD 第 10 节：第 7 项——临时放行名单（MCP、选品报告、货源信号、商品工具，以及 E2E可写性判定里「不改」的 /activeLeads、/collect、/async-response）。
 // 放行名单集中在 yepairag core/llm/vkey_context.py PLATFORM_FALLBACK_ENTRIES：不带 vkey 用平台 vkey；其余入口没有 vkey 一律 VkeyMissing。
+// 例外（用户 09-29）：/responseV3 老店铺客服整条保持改造前原样（core/llm/legacy_storefront.py），不需要 vkey。
 // B7-2 请求体、集群内地址、判据按 W32-round3-logs-B7.txt；Q18 作废——PM 09-28 按实现改口径：放行入口带 vkey 记商家，不带走平台。
 import { test, expect } from '@playwright/test';
 import { merchant, requireEnv, env, nowIso } from '../lib/config';
 import { adminPage, staffChatSend, waitPageGrows } from '../lib/web';
-import { logsSince, count, expectNoVkeyErrors, isRagVkey, waitW23, unverifiedLogPattern, mcpAccess, LOG } from '../lib/backend';
+import { logsSince, count, expectNoVkeyErrors, isRagVkey, waitW23, mcpAccess, LOG } from '../lib/backend';
 
 // 集群内地址（老 dev）；本机跑要 kubectl port-forward 后改成 http://localhost:<port>
 const yep = () => env('YEPAIRAG_BASE_URL') || 'http://yepairag-dev.llm:8080';
@@ -62,32 +63,20 @@ test.describe('改造后 第 7 项：临时放行', () => {
     });
   }
 
-  // B7-3 其余入口没有 vkey 时必须被拒，且不连累同一会话的后续消息
-  test('B7-3 [BL-无（改造后新增拒绝）→ 改造后] /responseV3 无 vkey → 500 + VkeyMissing；30 秒内同会话带 vkey 正常', async ({ request }) => {
-    // /responseV3 的请求体 W32 没给（缺口），同会话后续消息被跳过时的日志文字由实现决定
-    requireEnv('E2E_RESPONSEV3_BODY', 'E2E_NEW_MERCHANT_VKEY');
-    const busy = unverifiedLogPattern('ALREADY_PROCESSING');
+  // B7-3 /responseV3 不带 vkey：老店铺客服保持改造前原样（用户 09-29；legacy_storefront 依赖只挂在 /responseV3），不 fail-closed
+  test('B7-3 [BL-1b → 改造后：老客服保持原样] /responseV3 不带 vkey → 照常处理（<300），无 VkeyMissing', async ({ request }) => {
+    // /responseV3 的请求体 W32 没给（缺口）
+    requireEnv('E2E_RESPONSEV3_BODY');
     const conv = `e2e-b73-${Date.now()}`;
-    const body = { ...jsonEnv('E2E_RESPONSEV3_BODY'), conversation_id: conv, session_id: conv };
     const since = nowIso();
-    const bad = await request.post(`${yep()}/yepairag/responseV3`, { data: body });
-    expect(bad.status()).toBe(500);
-    expect(await bad.text()).toBe('Internal Server Error');
-    expect(count(logsSince('YEPAIRAG_LOGS', since), 'VkeyMissing')).toBeGreaterThanOrEqual(1);
-    const ok = await request.post(`${yep()}/yepairag/responseV3`, { data: body, headers: { 'X-Yep-Rag-Vkey': env('E2E_NEW_MERCHANT_VKEY') } });
-    expect(ok.status(), await ok.text()).toBeLessThan(300);
-    expect(count(logsSince('YEPAIRAG_LOGS', since), busy), '同会话后续消息不应被 is_processing 卡住跳过').toBe(0);
+    const res = await request.post(`${yep()}/yepairag/responseV3`, { data: { ...jsonEnv('E2E_RESPONSEV3_BODY'), conversation_id: conv, session_id: conv } });
+    expect(res.status(), await res.text()).toBeLessThan(300);
+    expectNoVkeyErrors(since);
   });
 
-  // B7-4 放行只认入口，不能被其他入口借用
-  test('B7-4 [BL-无（改造后新增拒绝）→ 改造后] 非放行入口带 MCP 请求特征、不带 vkey → 仍被拒', async ({ request }) => {
-    // 「MCP 请求特征」指哪些请求头没有定义（缺口）
-    requireEnv('E2E_RESPONSEV3_BODY', 'E2E_MCP_LIKE_HEADERS');
-    const since = nowIso();
-    const res = await request.post(`${yep()}/yepairag/responseV3`, { data: jsonEnv('E2E_RESPONSEV3_BODY'), headers: jsonEnv('E2E_MCP_LIKE_HEADERS') });
-    expect(res.status()).toBe(500);
-    expect(count(logsSince('YEPAIRAG_LOGS', since), 'VkeyMissing')).toBeGreaterThanOrEqual(1);
-  });
+  // B7-4 放行只认入口，不能被其他入口借用。原来拿 /responseV3 当「非放行入口」，09-29 后它不再要求 vkey，靶子失效。
+  // ⚠️ 待 PM 定：换哪个「非放行、会调模型、可直调」的入口当靶子（候选：/yepairag/create、会话摘要路由），以及「MCP 请求特征」指哪些请求头。
+  test.fixme('B7-4 [BL-无（改造后新增拒绝）→ 改造后] 非放行入口带 MCP 请求特征、不带 vkey → 仍被拒（靶子入口待 PM 定）', async () => {});
 
   // B7-5 放行入口带上了有效商家 vkey 时记给该商家（yepairag vkey_context._vkey_for：商家 vkey 优先，不带才用平台 vkey）
   // PM 09-28 按实现改口径：带 vkey 记商家（Q18「带 vkey 也走平台」作废）
