@@ -105,19 +105,6 @@ export function overdraftRows(tenant: string, since: string): Record<string, str
   );
 }
 
-/** 某个模型别名在时间窗内的全部 W23 行（不限商家；B9-3 用来证明「没有记到任何商家」——平台 vkey 的行可能记在平台账户下，按 account_key 过滤）。 */
-export function w23RowsByAlias(alias: string, since: string): Record<string, string>[] {
-  return sql(
-    'W23_DATABASE_URL',
-    `SELECT u.occurred_at, a.creation_idempotency_key AS account_key, s.model_group AS model_alias
-     FROM "digital-staff-su".usage_records_v2 u
-     JOIN "digital-staff-su".accounts a ON a.id = u.account_id
-     JOIN litellm."LiteLLM_SpendLogs" s ON s.request_id = u.source_event_id
-     WHERE u.source = 'litellm' AND s.model_group = :'alias' AND u.occurred_at >= :'since'::timestamptz`,
-    { alias, since },
-  );
-}
-
 // ---------- kubectl 日志 ----------
 
 export type LogTarget = 'YEPAIRAG_LOGS' | 'CHATBOT_LOGS' | 'LITELLM_LOGS';

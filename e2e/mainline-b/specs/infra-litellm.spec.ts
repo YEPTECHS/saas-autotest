@@ -135,7 +135,8 @@ test.describe('第 6 项 LiteLLM（老 dev）', () => {
       expect(rt ?? 0, '关闭思考后不应有思考 token').toBe(0);
     });
 
-    test('IL-5 whisper-1 转写 wavBase64 录音 → 200 且含 Australia', () => {
+    // IL-5 不适用（用户 09-29）：语音转文字保持原样，yepairag /asr 直连 OpenAI Whisper、不经 LiteLLM；prod LiteLLM 也不挂 whisper-1。默认 skip，保留备查
+    test.skip('IL-5 [不适用：语音保持原样] whisper-1 转写 wavBase64 录音 → 200 且含 Australia', () => {
       const r = whisper();
       expect(r.status, errMsg(r)).toBe(200);
       expect(String(r.json.text)).toMatch(/Australia/i);
