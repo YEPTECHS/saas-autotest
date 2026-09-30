@@ -25,3 +25,21 @@ test('selfcheck: 行统计 / rag vkey 判定 / 按 conversation_id + taskName �
   expect(roundLog(log, 'c2')).toBeNull();
   expect(LOG.KB_CREATE.test('{"message": "10.0.0.1:1 - \\"POST /yepairag/create HTTP/1.1\\" 200"}')).toBe(true);
 });
+
+import { matchEntry, normalize, ignored, ENTRIES } from '../lib/entries';
+
+test('selfcheck: 入口清单 89 条、流量路径对账（归一 / 路径参数 / MCP mount / 排除项）', () => {
+  expect(ENTRIES).toHaveLength(89);
+  expect(ENTRIES.filter((e) => e.rejects)).toHaveLength(19);
+  expect(normalize('/yepairag/mcp/task/1157962189542760448/mcp')).toBe('/yepairag/mcp/task/N/mcp');
+  expect(matchEntry('POST', '/yepairag/mcp/task/0/mcp')?.method).toBe('MOUNT');
+  expect(matchEntry('DELETE', '/yepairag/composio/connections/instagram')?.n).toBe(67);
+  expect(matchEntry('GET', '/yepairag/merchant/marketing/calendar/plan/0/outcome')?.n).toBe(17);
+  const cal = matchEntry('GET', '/yepairag/merchant/marketing/calendar')!;
+  expect([cal.n, cal.rejects, cal.callerNoVkey]).toEqual([16, true, true]);
+  expect(matchEntry('GET', '/yepairag/brand_summary')?.rejects).toBe(false); // GET 版本不调模型
+  expect(matchEntry('POST', '/yepairag/brand_summary')?.callerNoVkey).toBe(true);
+  expect(matchEntry('POST', '/yepairag/kb/merchant/policies/sync')?.callerNoVkey).toBe(false);
+  expect(matchEntry('POST', '/yepairag/nope')).toBeUndefined();
+  expect([ignored('GET', '/health/live'), ignored('GET', '/yepairag'), ignored('POST', '/yepairag')]).toEqual([true, true, false]);
+});

@@ -3,7 +3,8 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { requireProdReadonly, requireEnv, env, cfg } from '../lib/config';
-import { logsSince, count, VKEY_ERRORS, RECORDED_ECOMMERCE, TEXT_SENT, TEXT_RETIRED, chatbotConfigValue, deploymentImage } from '../lib/backend';
+import { logsSince, count, RECORDED_ECOMMERCE, TEXT_SENT_ANY, TEXT_RETIRED, chatbotConfigValue, deploymentImage } from '../lib/backend';
+import { expectCleanLogs } from '../lib/loki';
 
 test.describe('改造后 prod（只读）', () => {
   test.beforeEach(() => requireProdReadonly());
@@ -59,19 +60,20 @@ test.describe('改造后 prod（只读）', () => {
     requireEnv('E2E_DEPLOYED_AT');
     const log = logsSince('YEPAIRAG_LOGS', env('E2E_DEPLOYED_AT'));
     const rec = count(log, RECORDED_ECOMMERCE);
-    test.info().annotations.push({ type: 'Recorded ecommerce / kind=text', description: `${rec} / ${count(log, TEXT_SENT)}` });
-    expect(count(log, TEXT_SENT)).toBeGreaterThanOrEqual(rec);
+    test.info().annotations.push({ type: 'Recorded ecommerce / kind=text', description: `${rec} / ${count(log, TEXT_SENT_ANY)}` });
+    // 发送行在 JSON 日志里引号被转义（\"kind\": \"text\"），用 TEXT_SENT_ANY 两种写法都认（1.4.2 曾因只认不转义写法误报）
+    expect(count(log, TEXT_SENT_ANY)).toBeGreaterThanOrEqual(rec);
     // send_text_usage 只有 /responseV3 调；它在老客服下永远走发送分支
     expect(count(log, TEXT_RETIRED)).toBe(0);
   });
 
-  // P-3 prod 发版后 24 小时：日志干净，MCP 工具照常可用（成功率口径未定，Q16）
-  test('P-3 [BL-9 → 改造后] 发版 24 小时：无 vkey 报错；MCP 成功率与发版前相当', async () => {
+  // P-3 prod 发版后 24 小时：日志干净（查 Loki，同 guard-vkey G-LOG；kubectl logs 会漏轮转前的日志），MCP 工具照常可用（成功率口径未定，Q16）
+  test('P-3 [BL-9 → 改造后] 发版 24 小时（Loki）：无 vkey 报错且每小时有日志；MCP 成功率与发版前相当', async () => {
+    test.setTimeout(10 * 60_000);
     requireEnv('E2E_DEPLOYED_AT');
     const since = env('E2E_DEPLOYED_AT');
     test.skip(Date.now() - Date.parse(since) < 24 * 3600_000, '发版未满 24 小时');
-    const log = logsSince('YEPAIRAG_LOGS', since);
-    for (const e of VKEY_ERRORS) expect(count(log, e)).toBe(0);
+    await expectCleanLogs(new Date(since).toISOString(), new Date(Date.parse(since) + 24 * 3600_000).toISOString());
     test.skip(!env('E2E_MCP_SUCCESS_SQL'), 'MCP 工具成功率口径未定（Q16）：E2E_MCP_SUCCESS_SQL');
   });
 });

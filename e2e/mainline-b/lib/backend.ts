@@ -151,6 +151,8 @@ export const UNKNOWN_MODEL = 'ValueError: Unknown model';
 export const RECORDED_ECOMMERCE = 'Recorded conversation to database: agent_type=ecommerce';
 export const TEXT_SENT = /\[CreditUsage\] sent to .*"kind": "text"/;
 export const TEXT_RETIRED = '[CreditUsage] text rail retired';
+/** kind=text 发送行，兼容外层 JSON 转义引号（\"kind\": \"text\"，prod 1.4.2 实测）；与老客服用例 textSentFor 同口径，只是不限会话。 */
+export const TEXT_SENT_ANY = /\[CreditUsage\] sent to .*\\?"kind\\?":\s*\\?"text\\?"/;
 
 export function expectNoVkeyErrors(sinceIso: string, extra: string[] = []) {
   const log = logsSince('YEPAIRAG_LOGS', sinceIso);
