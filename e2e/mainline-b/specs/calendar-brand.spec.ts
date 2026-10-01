@@ -119,42 +119,68 @@ test.describe('S1 营销日历', () => {
     expect(r.status(), (await r.text()).slice(0, 300)).toBe(200);
     expect(r.headers()['content-encoding'] ?? '', '不能把上游的 gzip 透给浏览器').not.toMatch(/gzip/);
     expect(r.headers()['content-type'] ?? '').toContain('application/json');
+    // chatbot 共享 WebClient 缓冲上限 4MB：记下整月响应体字节数，接近上限要提前报
+    const bytes = (await r.body()).length;
+    test.info().annotations.push({ type: '日历整月响应体字节数', description: `${bytes}（${(bytes / 1024 / 1024).toFixed(3)} MB / 上限 4 MB）` });
+    console.log(`[E4] month=${MONTH} body bytes=${bytes}`);
     expectCalendarShape(await r.json());
     // ponytail: 不和「直连 yepairag 同月结果」比——直连会在现有代码上给 A 写中性判定锁 7 天；只比结构
   });
 
-  // E8 月份不合法 → 422 透传
-  for (const bad of ['2026-13', 'abc']) {
-    test(`E8 [S1] month=${bad} → 422（透传 yepairag 校验）`, async ({ browser, request }) => {
+  // E8 月份格式不合法 → 422，且与直连 yepairag 一致。yepairag 只校验格式 ^\d{4}-\d{2}$（month=2026-13 直连本来就 200 空日历，现有行为），
+  // 所以只测格式非法的值。格式非法时 yepairag 在启动内容认知之前就 422，直连对照不会写判定（10-02 dev Loki 实测 abc 无 [Cognition] 行）
+  for (const bad of ['abc', '2026-1', '']) {
+    test(`E8 [S1] month=${JSON.stringify(bad)} → 422，与直连 yepairag 一致`, async ({ browser, request }) => {
       const A = merchant('NEW');
-      const r = await request.get(`${CAL}?month=${bad}`, { headers: await hdr(browser, A) });
+      const r = await request.get(`${CAL}?month=${encodeURIComponent(bad)}`, { headers: await hdr(browser, A) });
       expectRoute(r, 'R1');
       expect(r.status(), (await r.text()).slice(0, 300)).toBe(422);
+      const yep = env('YEPAIRAG_BASE_URL');
+      test.skip(!yep, '缺 YEPAIRAG_BASE_URL，未做直连对照（port-forward svc/yepairag-<env>）');
+      const direct = await request.get(`${yep}/yepairag/merchant/marketing/calendar?tenant_id=${A.tenant}&month=${encodeURIComponent(bad)}`);
+      expect(direct.status(), '直连 yepairag 也应 422').toBe(422);
+      expect(await json(r), '应原样透传 yepairag 的校验错误').toEqual(await json(direct));
     });
   }
 
-  // E5 A（7 天内未判定）打开日历 → 内容认知判出结果，费用记 A（G1 转绿）
-  test('E5 [S1] A 打开日历 → [Cognition] wrote … judged>0、无 VkeyMissing；W23 chatbot:acct:A 有 rag vkey 记录', async ({ browser, request }) => {
+  // E5 有已发布内容、7 天内未判定的商家打开日历 → 内容认知判出结果，费用记该商家（G1 转绿）
+  // 商家用 E2E_COG_*（不能用 A：A 没有已发布内容，yepairag 打 [Cognition] nothing to judge）。10-02 只读查 dev Loki：
+  // 近 30 天 judged>0 的只有 1133289854005231616、1192650577220251648，二者近 7 天都有 judge failed（锁中），且无登录凭据 → 暂无可用商家
+  test('E5 [S1] 有内容商家打开日历 → [Cognition] wrote … judged>0、无 VkeyMissing、无 no merchant vkey；W23 chatbot:acct 有 rag vkey 记录', async ({ browser, request }) => {
     test.setTimeout(10 * 60_000);
-    const A = merchant('NEW');
+    test.skip(
+      !env('E2E_COG_TENANT'),
+      '缺「有已发布内容、7 天内未判定」的 dev 测试商家（E2E_COG_TENANT/EMAIL/PASSWORD）。10-02 查 dev Loki 近 30 天 judged>0 的 2 个 tenant 都在 7 天锁内、且不在账号池；不造数据，待有可用商家再跑',
+    );
+    const A = merchant('COG');
     // 7 天新鲜度门：A 最近 7 天判过就会跳过，结果不算数（不删库，换商家或等锁过期）
     const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
     const recent = (await cognitionLines('[Cognition] wrote', A.tenant, weekAgo)).n + (await cognitionLines('[Cognition] judge failed', A.tenant, weekAgo)).n;
-    test.skip(recent > 0, `A=${A.tenant} 7 天内已做过内容认知（新鲜度门会跳过），换「7 天内未判定」的商家（E2E_NEW_*）`);
+    test.skip(recent > 0, `商家 ${A.tenant} 7 天内已做过内容认知（新鲜度门会跳过），换「7 天内未判定」的商家（E2E_COG_*）`);
     expect(await balance(await session(browser, A), A.tenant), '前提：A 余额 > 0').toBeGreaterThan(0);
     const since = nowIso();
     const r = await request.get(`${CAL}?month=${MONTH}`, { headers: await hdr(browser, A) });
     expectRoute(r, 'R1');
     expect(r.status()).toBe(200);
-    const wrote = await poll(
-      () => cognitionLines('[Cognition] wrote', A.tenant, since).then((x) => x.first),
-      (lines) => lines.some((l) => /judged=[1-9]\d*/.test(l)),
+    // 等到出现结果：wrote（判定完成）或 nothing to judge（A 没有可判定的已发布内容 = 数据前提不满足）
+    const outcome = await poll(
+      async () => ({
+        wrote: (await cognitionLines('[Cognition] wrote', A.tenant, since)).first,
+        nothing: (await cognitionLines('[Cognition] nothing to judge', A.tenant, since)).n,
+      }),
+      (o) => o.wrote.some((l) => /judged=[1-9]\d*/.test(l)) || o.nothing > 0,
       5 * 60_000,
       20_000,
     );
+    test.skip(
+      outcome.nothing > 0 && outcome.wrote.length === 0,
+      `数据前提不满足：yepairag [Cognition] nothing to judge tenant=${A.tenant}（A 没有可判定的已发布内容），换有已发布内容、7 天内未判定的商家`,
+    );
+    const wrote = outcome.wrote;
     test.info().annotations.push({ type: '[Cognition] wrote', description: wrote.join('\n') });
     expect(wrote.some((l) => /judged=[1-9]\d*/.test(l)), 'judged=0 = 判定全中性，并锁 7 天').toBe(true);
     expect((await countLines(sel('yepairag'), 'VkeyMissing', since, nowIso())).n).toBe(0);
+    expect((await cognitionLines('[Cognition] no merchant vkey, skipping', A.tenant, since)).n, 'chatbot 应已把商家 vkey 带到 yepairag').toBe(0);
     const rows = await waitW23(A.tenant, since, (x) => x.some(isRagVkey));
     test.info().annotations.push({ type: 'SQL-W23', description: JSON.stringify(rows) });
     expect(rows.filter(isRagVkey).length, '内容认知的模型调用应记到 A').toBeGreaterThan(0);
@@ -325,7 +351,8 @@ test.describe('安全', () => {
     // ponytail: 用 JWT 第二段（payload）前 20 个字符——第一段（header）同一用户池的 token 都一样，grep 它会误中别人的 token
     const jwtPart = token.split('.')[1]?.slice(0, 20) ?? '';
     await new Promise((x) => setTimeout(x, 60_000)); // Loki 入库延迟
-    const ops = env('E2E_CALBRAND_LOG_OPS') || 'marketing-calendar|brand-summary|MarketingCalendarProxy|BrandSummaryProxy|marketingCalendar|brandSummary';
+    // 逗号或竖线分隔都认（W3 实现的 operation 名：marketingCalendarProxy,brandSummaryGetProxy,brandSummaryPostProxy）
+    const ops = (env('E2E_CALBRAND_LOG_OPS') || 'marketingCalendarProxy,brandSummaryGetProxy,brandSummaryPostProxy').split(/[,|]/).map((x) => x.trim()).filter(Boolean).join('|');
     const proxyLines = `${sel('chatbot-api')} |~ ${JSON.stringify(ops)}`;
     const all = await countLines(proxyLines, '', RUN_START, nowIso());
     expect(all.n, `本轮 chatbot 日志里没有新路由的日志（按 ${ops} 过滤）——查不到就证明不了没泄露`).toBeGreaterThan(0);

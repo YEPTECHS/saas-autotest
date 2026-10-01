@@ -13,7 +13,8 @@ export const cfg = {
   embeddingModel: env('EMBEDDING_MODEL') || 'text-embedding-3-large',
 };
 
-export type MerchantKind = 'NEW' | 'LEGACY' | 'WHITELIST' | 'ZERO' | 'NONSHOPIFY';
+// COG：有已发布内容、7 天内未做内容认知的商家（calendar-brand E5）
+export type MerchantKind = 'NEW' | 'LEGACY' | 'WHITELIST' | 'ZERO' | 'NONSHOPIFY' | 'COG';
 
 export interface Merchant {
   kind: MerchantKind;
