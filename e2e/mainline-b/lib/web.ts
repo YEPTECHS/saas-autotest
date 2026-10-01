@@ -27,6 +27,9 @@ export async function login(page: Page, m: Merchant) {
   await expect.poll(() => !!authHeaders.get(page), { message: '登录后没抓到前端调 chatbot-api 的 Authorization 头', timeout: 30_000 }).toBe(true);
 }
 
+/** 登录后抓到的 chatbot-api 鉴权头（{authorization}）；只在内存里传，不打印。 */
+export const authOf = (page: Page) => authHeaders.get(page);
+
 const apiUrl = (path: string) => `${cfg.api}/chatbot/api${path}`;
 
 export async function apiGet(page: Page, path: string) {
