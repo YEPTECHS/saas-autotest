@@ -10,6 +10,8 @@ import { merchant, env, nowIso, cfg, poll, type Merchant } from '../lib/config';
 import { blockGa, login, authOf, balance, closeContexts } from '../lib/web';
 import { waitW23, expectNoW23, isRagVkey } from '../lib/backend';
 import { sel, countLines } from '../lib/loki';
+import { request as httpsRequest } from 'node:https';
+import { gunzipSync } from 'node:zlib';
 
 const RUN_START = nowIso();
 const PROXY = `${cfg.api}/chatbot/api/v1/digital-staff`;
@@ -59,6 +61,21 @@ const hdr = async (browser: Browser, m: Merchant) => {
 test.afterAll(async () => closeContexts());
 
 // ---------- 小工具 ----------
+
+/** 原始 GET（不自动解压），返回状态码、响应头、原始字节。 */
+const rawGet = (url: string, headers: Record<string, string>) =>
+  new Promise<{ status: number; headers: Record<string, string | string[] | undefined>; body: Buffer }>((resolve, reject) => {
+    // 不带 User-Agent 会被网关前的 WAF 回 403 HTML（10-02 实测），带上和浏览器一样的基本头
+    const base = { 'user-agent': 'Mozilla/5.0 (Macintosh) saas-autotest-e2e', accept: 'application/json, text/plain, */*' };
+    const req = httpsRequest(url, { headers: { ...base, ...headers }, timeout: 90_000 }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (c: Buffer) => chunks.push(c));
+      res.on('end', () => resolve({ status: res.statusCode ?? 0, headers: res.headers, body: Buffer.concat(chunks) }));
+    });
+    req.on('timeout', () => req.destroy(new Error(`timeout ${url}`)));
+    req.on('error', reject);
+    req.end();
+  });
 
 const json = async (r: APIResponse) => {
   const t = await r.text();
@@ -111,20 +128,33 @@ test.describe('S4 身份只取自 JWT', () => {
 // ---------- S1 日历 ----------
 
 test.describe('S1 营销日历', () => {
-  // E4 A 打开日历 → 200，结构 {month, items, pool}，未压缩 JSON
-  test('E4 [S1] A 打开日历 → 200，有 month/items/pool，无 Content-Encoding: gzip，可直接按 JSON 解析', async ({ browser, request }) => {
+  // E4 方案 (b)（PM 10-02，design.md C6 E4）：gzip 是 chatbot Tomcat 按 Accept-Encoding 协商的正常压缩（上游固定 identity、不复制上游响应头）。
+  // 保留客户端默认 Accept-Encoding；若有 Content-Encoding: gzip，原始字节只解压一次就必须是合法 JSON（不能是两层 gzip）。
+  // Playwright 的 request 会自动解压、看不到原始字节，所以这里用 node:https 拿原始响应。
+  test('E4 [S1] A 打开日历 → 200、Content-Type=application/json；有 gzip 时原始字节只解压一次即合法 JSON（无二层 1f8b），有 month/items/pool；记字节数', async ({ browser, request }) => {
     const A = merchant('NEW');
-    const r = await request.get(`${CAL}?month=${MONTH}`, { headers: await hdr(browser, A) });
-    expectRoute(r, 'R1');
-    expect(r.status(), (await r.text()).slice(0, 300)).toBe(200);
-    expect(r.headers()['content-encoding'] ?? '', '不能把上游的 gzip 透给浏览器').not.toMatch(/gzip/);
-    expect(r.headers()['content-type'] ?? '').toContain('application/json');
-    // chatbot 共享 WebClient 缓冲上限 4MB：记下整月响应体字节数，接近上限要提前报
-    const bytes = (await r.body()).length;
-    test.info().annotations.push({ type: '日历整月响应体字节数', description: `${bytes}（${(bytes / 1024 / 1024).toFixed(3)} MB / 上限 4 MB）` });
-    console.log(`[E4] month=${MONTH} body bytes=${bytes}`);
-    expectCalendarShape(await r.json());
-    // ponytail: 不和「直连 yepairag 同月结果」比——直连会在现有代码上给 A 写中性判定锁 7 天；只比结构
+    const h = await hdr(browser, A);
+    const raw = await rawGet(`${CAL}?month=${MONTH}`, { ...h, 'accept-encoding': 'gzip, deflate, br' });
+    expect(raw.status, raw.body.subarray(0, 300).toString()).not.toBe(404);
+    expect(raw.status, raw.body.subarray(0, 300).toString()).toBe(200);
+    expect(raw.headers['content-type'] ?? '').toContain('application/json');
+    const enc = String(raw.headers['content-encoding'] ?? '');
+    let text = raw.body;
+    if (/gzip/.test(enc)) {
+      text = gunzipSync(raw.body);
+      expect([text[0], text[1]], '解压一次后仍是 gzip（被压了两层）').not.toEqual([0x1f, 0x8b]);
+    }
+    const body = JSON.parse(text.toString('utf8'));
+    expectCalendarShape(body);
+    // chatbot 共享 WebClient 缓冲上限 4MB：记下整月响应体字节数（解压后）
+    test.info().annotations.push({ type: '日历整月响应体字节数', description: `解压后 ${text.length}（线上传输 ${raw.body.length}，Content-Encoding=${enc || '无'}）/ 上限 4 MB` });
+    console.log(`[E4] month=${MONTH} decoded=${text.length} wire=${raw.body.length} enc=${enc || '-'}`);
+    // 与直连 yepairag 同月结构一致（C4 已部署：直连不带 vkey 不做内容认知、不写判定）
+    const yep = env('YEPAIRAG_BASE_URL');
+    if (yep) {
+      const direct = await (await request.get(`${yep}/yepairag/merchant/marketing/calendar?tenant_id=${A.tenant}&month=${MONTH}`)).json();
+      expect(Object.keys(body).sort(), '顶层字段应与直连 yepairag 一致').toEqual(Object.keys(direct).sort());
+    } else test.info().annotations.push({ type: 'skip-part', description: '缺 YEPAIRAG_BASE_URL，未做直连结构对照' });
   });
 
   // E8 月份格式不合法 → 422，且与直连 yepairag 一致。yepairag 只校验格式 ^\d{4}-\d{2}$（month=2026-13 直连本来就 200 空日历，现有行为），
