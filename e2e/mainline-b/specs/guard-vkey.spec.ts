@@ -1,4 +1,6 @@
 // 主线 B 补漏兜底（需求 pm/.trellis/tasks/09-30-mainline-b-vkey-gap，BDD 见同目录 bdd.md）：只读，查 Loki。
+// ⚠️ G-TRAFFIC 只反映「现行调用方」：清单的「调用方不带 vkey」随调用方变更更新（10-02 起 GET calendar、POST brand_summary 改走 chatbot 代理已移出），
+//    拿历史窗口跑时，按的是现在的清单，历史上的直连不会再被标出来。漏带 vkey 由 G-LOG 的 VkeyMissing 兜住。
 // 时间窗：E2E_WINDOW_START ～ E2E_WINDOW_END（ISO，UTC）；不给 START 用 E2E_DEPLOYED_AT，不给 END 用现在。环境取 E2E_TARGET（prod / dev）。
 import { test, expect } from '@playwright/test';
 import { env } from '../lib/config';
@@ -32,7 +34,7 @@ test.describe('兜底：发布后 vkey 规则', () => {
       const [method, path] = k.split(' ');
       return { k, n, e: matchEntry(method, path.replace(/\/N(?=\/|$)/g, '/0')) };
     });
-    const report = rows.map((r) => `${r.n}\t${r.k}\t${r.e ? `#${r.e.n} ${r.e.ingress}${r.e.rejects ? ' 会拒' : ''}${r.e.callerNoVkey ? ' 调用方不带vkey' : ''}` : '清单外'}`);
+    const report = rows.map((r) => `${r.n}\t${r.k}\t${r.e ? `#${r.e.n} ${r.e.ingress}${r.e.rejects ? ' 会拒' : ''}${r.e.callerNoVkey ? ' 调用方不带vkey' : ''}${r.e.caller ? `（${r.e.caller}）` : ''}` : '清单外'}`);
     test.info().annotations.push({ type: `G-TRAFFIC ${start} ～ ${end}`, description: report.join('\n') });
     console.log(`[G-TRAFFIC] ${start} ～ ${end}\n${report.join('\n')}`);
     expect(rows.length, 'Loki 里时间窗内一条 uvicorn.access 都没有——查询或采集有问题').toBeGreaterThan(0);

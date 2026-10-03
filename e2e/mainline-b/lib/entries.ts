@@ -1,4 +1,5 @@
 // yepairag 入口清单（data/yepairag-entries.json，由 W32 盘点第 1 节 89 行转成）与真实流量对账。
+// 「调用方不带 vkey」标注只描述现行调用方：GET calendar、POST brand_summary 10-02 起改走 chatbot 代理（带商家 vkey），已移出。
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +10,8 @@ export interface Entry {
   ingress: string;
   onMissingVkey: string;
   rejects: boolean; // 缺 vkey 会拒
-  callerNoVkey: boolean; // 现有调用方不带 vkey（W32 §2）
+  callerNoVkey: boolean; // 现行调用方不带 vkey（W32 §2；随调用方变化更新——清单描述的是「现在」，不是历史）
+  caller?: string; // 调用方变更说明（例：10-02 起改走 chatbot 代理）
 }
 
 export const ENTRIES: Entry[] = JSON.parse(readFileSync(fileURLToPath(new URL('../data/yepairag-entries.json', import.meta.url)), 'utf8')).entries;

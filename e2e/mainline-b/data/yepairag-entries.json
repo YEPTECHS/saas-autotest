@@ -175,7 +175,8 @@
    "modelCall": "是（LiteLLM，需 vkey）",
    "onMissingVkey": "**拒**：请求本身 200；后台内容认知 VkeyMissing → verdict 全 neutral，7 天不重试",
    "rejects": true,
-   "callerNoVkey": true
+   "callerNoVkey": false,
+   "caller": "chatbot 代理，带商家 vkey（2026-10-02 起，10-01-calendar-brand-billing）"
   },
   {
    "n": 17,
@@ -450,7 +451,8 @@
    "modelCall": "是（LiteLLM，需 vkey）",
    "onMissingVkey": "**拒**：VkeyMissing → 500",
    "rejects": true,
-   "callerNoVkey": true
+   "callerNoVkey": false,
+   "caller": "chatbot 代理，带商家 vkey（2026-10-02 起，10-01-calendar-brand-billing）"
   },
   {
    "n": 42,
